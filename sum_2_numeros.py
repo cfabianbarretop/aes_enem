@@ -49,14 +49,16 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     (b_img, b_digit) = self.mnist_dataset[self.index_map[idx * 2 + 1]]
 
     # Each data has two images and the GT is the sum of two digits
-    return (a_img, b_img, a_digit + b_digit)
+    return (a_img, b_img, a_digit, b_digit, a_digit + b_digit)
 
   @staticmethod
   def collate_fn(batch):
     a_imgs = torch.stack([item[0] for item in batch])
     b_imgs = torch.stack([item[1] for item in batch])
-    digits = torch.stack([torch.tensor(item[2]).long() for item in batch])
-    return ((a_imgs, b_imgs), digits)
+    a_digits = torch.stack([torch.tensor(item[2]).long() for item in batch])
+    b_digits = torch.stack([torch.tensor(item[3]).long() for item in batch])
+    digits = torch.stack([torch.tensor(item[4]).long() for item in batch])
+    return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
 
 
 def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
@@ -119,6 +121,7 @@ class MNISTSum2Net(nn.Module):
     self.scl_ctx.add_rule("sum_2(a + b) :- digit_1(a), digit_2(b)")
 
     # The `sum_2` logical reasoning module
+    # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
     self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(19)])
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
@@ -129,7 +132,7 @@ class MNISTSum2Net(nn.Module):
     b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
 
     # Then execute the reasoning module; the result is a size 19 tensor
-    return self.sum_2(digit_1=a_distrs, digit_2=b_distrs) # Tensor 64 x 19
+    return a_distrs, b_distrs, self.sum_2(digit_1=a_distrs, digit_2=b_distrs) # Tensor 64 x 19 
 
 
 def bce_loss(output, ground_truth):
@@ -158,13 +161,39 @@ class Trainer():
   def train_epoch(self, epoch):
     self.network.train()
     iter = tqdm(self.train_loader, total=len(self.train_loader))
-    for (data, target) in iter:
+    c1 = []
+    c2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
+    for (data, data_des) in iter:
+      (a_digits, b_digits, target) = data_des
       self.optimizer.zero_grad()
-      output = self.network(data)
+      a_distrs, b_distrs, output = self.network(data)
+      g1 = a_digits.tolist()
+      g2 = b_digits.tolist()
+      c1 = a_distrs.argmax(dim=1).tolist()
+      c2 = b_distrs.argmax(dim=1).tolist()
+      p = output.argmax(dim=1).tolist()
+      y = target.tolist()
       loss = self.loss(output, target)
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
+    print("G1 -> ", g1)
+    print("G2 -> ", g2)
+    print("C1 -> ", c1)
+    print("C2 -> ", c2)
+    print("Y -> ", y)
+    print("y -> ", p)
+    pred_tuples = list(zip(c1, c2, p))
+    gt_tuples   = list(zip(g1, g2, y))
+    print("Predicciones:", pred_tuples)
+    print("Etiquetas reales:", gt_tuples)
+    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+      if pred != gt:
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
 
   def test(self, epoch):
     self.network.eval()
@@ -173,8 +202,9 @@ class Trainer():
     correct = 0
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
-      for (data, target) in iter:
-        output = self.network(data)
+      for (data, data_des) in iter:
+        (a_digits, b_digits, target) = data_des
+        a_distrs, b_distrs, output = self.network(data)
         test_loss += self.loss(output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
@@ -184,6 +214,7 @@ class Trainer():
   def train(self, n_epochs):
     self.test(0)
     for epoch in range(1, n_epochs + 1):
+      print("-----------> EPOCH: ",epoch)
       self.train_epoch(epoch)
       self.test(epoch)
 
@@ -191,7 +222,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=10)
+  parser.add_argument("--n-epochs", type=int, default=2)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
@@ -213,11 +244,20 @@ if __name__ == "__main__":
   random.seed(args.seed)
 
   # Data
-  data_dir = os.path.abspath(os.path.join(os.path.abspath(__file__), "../../data"))
+
+  # Obtiene el directorio donde está este archivo.py
+  base_dir = os.path.dirname(os.path.abspath(__file__))
+  # Une el directorio de base_dir con la carpeta "data"
+  data_dir = os.path.join(base_dir, "data")
+  print("PATH data -> ", data_dir)
 
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
+  print("Dataset mnist")
+  print("Train -> ", len(train_loader))
+  print("Test -> ", len(test_loader))
 
   # Create trainer and train
   trainer = Trainer(train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
+  
