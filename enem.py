@@ -133,24 +133,21 @@ class MNISTSum2Net(nn.Module):
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
     self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(5)))
     self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(4)))
-    #self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
+
     self.scl_ctx.add_rule("sum_2(0) :- digit_1(0)")
     self.scl_ctx.add_rule("sum_2(1) :- digit_1(1), digit_2(0)")
-    #soma2
+
     self.scl_ctx.add_rule("sum_2(2) :- digit_1(1), digit_2(b), b>=1")
     self.scl_ctx.add_rule("sum_2(2) :- digit_1(a), digit_2(0), a>=2")
-    #self.scl_ctx.add_rule("sum_2(2) :- digit_1(a), digit_2(0), a>=2")
-    #soma3
+
     self.scl_ctx.add_rule("sum_2(3) :- digit_1(2), digit_2(b), b>=1")
     self.scl_ctx.add_rule("sum_2(3) :- digit_1(a), digit_2(1), a>=3")
-    #self.scl_ctx.add_rule("sum_2(3) :- digit_1(a), digit_2(1), a>=2")
-    #soma4
+
     self.scl_ctx.add_rule("sum_2(4) :- digit_1(3), digit_2(b), b>=2")
     self.scl_ctx.add_rule("sum_2(4) :- digit_1(a), digit_2(2), a>=4")
-    #self.scl_ctx.add_rule("sum_2(4) :- digit_1(a), digit_2(2), a>=3")
-    #soma5
+
     self.scl_ctx.add_rule("sum_2(5) :- digit_1(4), digit_2(3)")
-    # The `sum_2` logical reasoning module
+
     self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(6)])
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
