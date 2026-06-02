@@ -180,7 +180,28 @@ def save_file(g1, g2, y, c1, c2, p):
     for g1_i, g2_i, y_i, c1_i, c2_i, p_i in zip(g1, g2, y, c1, c2, p):
         writer.writerow([g1_i, g2_i, y_i, c1_i, c2_i, p_i])
   
-
+def shortcut(g1, g2, y, c1, c2, p):
+  # print("G1 -> ", g1)
+  # print("G2 -> ", g2)
+  # print("C1 -> ", c1)
+  # print("C2 -> ", c2)
+  # print("Y -> ", y)
+  # print("y -> ", p)
+  pred_tuples = list(zip(c1, c2, p))
+  gt_tuples   = list(zip(g1, g2, y))
+  # print("Predicciones:", pred_tuples)
+  # print("Etiquetas reales:", gt_tuples)
+  cont = 0
+  cont_gt = 0
+  for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+    if pred != gt:
+        if pred[2] == gt[2]:
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          cont += 1
+    else:
+      cont_gt += 1
+  print("Total de valores errados:", cont)
+  print("Total de valores verdaderos:", cont_gt)
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
@@ -223,28 +244,8 @@ class Trainer():
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-    print("G1 -> ", g1)
-    print("G2 -> ", g2)
-    print("C1 -> ", c1)
-    print("C2 -> ", c2)
-    print("Y -> ", y)
-    print("y -> ", p)
-    pred_tuples = list(zip(c1, c2, p))
-    gt_tuples   = list(zip(g1, g2, y))
     save_file(g1, g2, y, c1, c2, p)
-    print("Predicciones:", pred_tuples)
-    print("Etiquetas reales:", gt_tuples)
-    cont = 0
-    cont_gt = 0
-    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
-      if pred != gt:
-          if pred[2] == gt[2]:
-            print(f"Error en índice {i}: pred={pred}, gt={gt}")
-            cont += 1
-      else:
-        cont_gt += 1
-    print("Total de valores errados:", cont)
-    print("Total de valores verdaderos:", cont_gt)
+    shortcut(g1, g2, y, c1, c2, p)
 
 
   def train(self, n_epochs):
@@ -281,7 +282,7 @@ if __name__ == "__main__":
   base_dir = os.path.dirname(os.path.abspath(__file__))
   # Une el directorio de base_dir con la carpeta "data"
   data_dir = os.path.join(base_dir, "data_enem")
-  print("PATH data -> ", data_dir)
+  # print("PATH data -> ", data_dir)
 
   # Dataloaders
   train_loader, test_loaders = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)

@@ -171,6 +171,28 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def shortcut(g1, g2, y, c1, c2, p):
+  # print("G1 -> ", g1)
+  # print("G2 -> ", g2)
+  # print("C1 -> ", c1)
+  # print("C2 -> ", c2)
+  # print("Y -> ", y)
+  # print("y -> ", p)
+  pred_tuples = list(zip(c1, c2, p))
+  gt_tuples   = list(zip(g1, g2, y))
+  # print("Predicciones:", pred_tuples)
+  # print("Etiquetas reales:", gt_tuples)
+  cont = 0
+  cont_gt = 0
+  for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+    if pred != gt:
+        if pred[2] == gt[2]:
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          cont += 1
+    else:
+      cont_gt += 1
+  print("Total de valores errados:", cont)
+  print("Total de valores verdaderos:", cont_gt)
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
@@ -209,40 +231,37 @@ class Trainer():
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    print("G1 -> ", g1)
-    print("G2 -> ", g2)
-    print("C1 -> ", c1)
-    print("C2 -> ", c2)
-    print("Y -> ", y)
-    print("y -> ", p)
-    pred_tuples = list(zip(c1, c2, p))
-    gt_tuples   = list(zip(g1, g2, y))
-    print("Predicciones:", pred_tuples)
-    print("Etiquetas reales:", gt_tuples)
-    cont = 0
-    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
-      if pred != gt:
-          print(f"Error en índice {i}: pred={pred}, gt={gt}")
-          cont += 1
-    print("Total de valores errados:", cont)
-
+    shortcut(g1, g2, y, c1, c2, p)
 
   def test(self, epoch):
     self.network.eval()
     num_items = len(self.test_loader.dataset)
     test_loss = 0
     correct = 0
+    c1 = []
+    c2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
-        (_, _, target) = data_des
-        _, _, output = self.network(data)
-        output = output.cpu() 
+        (syntax, mistake, target) = data_des
+        p_syntax, p_mistake, output = self.network(data)
+        output = output.cpu()
+        g1.extend(syntax.tolist())
+        g2.extend(mistake.tolist())
+        c1.extend(p_syntax.argmax(dim=1).tolist())
+        c2.extend(p_mistake.argmax(dim=1).tolist())
+        p.extend(output.argmax(dim=1).tolist())
+        y.extend(target.tolist())
         test_loss += self.loss(output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+      shortcut(g1, g2, y, c1, c2, p)
 
 
   def train(self, n_epochs):
@@ -281,7 +300,7 @@ if __name__ == "__main__":
   base_dir = os.path.dirname(os.path.abspath(__file__))
   # Une el directorio de base_dir con la carpeta "data"
   data_dir = os.path.join(base_dir, "data_enem")
-  print("PATH data -> ", data_dir)
+  # print("PATH data -> ", data_dir)
 
   # Dataloaders
   train_loader, test_loaders = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
