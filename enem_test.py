@@ -174,11 +174,9 @@ def nll_loss(output, ground_truth):
 def save_file(g1, g2, y, c1, c2, p):
   with open("resultados.csv", "w", newline="") as archivo:
     writer = csv.writer(archivo)
-
-    # Cabecera
+    # Headers
     writer.writerow(["g_syntax", "g_mistakes", "y", "c_syntax", "c_mistake", "p"])
-
-    # Filas
+    # Rows
     for g1_i, g2_i, y_i, c1_i, c2_i, p_i in zip(g1, g2, y, c1, c2, p):
         writer.writerow([g1_i, g2_i, y_i, c1_i, c2_i, p_i])
   
@@ -196,48 +194,6 @@ class Trainer():
       self.loss = bce_loss
     else:
       raise Exception(f"Unknown loss function `{loss}`")
-
-  def train_epoch(self, epoch):
-    self.network.train()
-    iter = tqdm(self.train_loader, total=len(self.train_loader))
-    c1 = []
-    c2 = []
-    g1 = []
-    g2 = []
-    y  = []
-    p  = []
-    for (data, data_des) in iter:
-      (syntax, mistake, target) = data_des
-      self.optimizer.zero_grad()
-      p_syntax, p_mistake, output = self.network(data)
-      output = output.cpu()
-      g1.extend(syntax.tolist())
-      g2.extend(mistake.tolist())
-      c1.extend(p_syntax.argmax(dim=1).tolist())
-      c2.extend(p_mistake.argmax(dim=1).tolist())
-      p.extend(output.argmax(dim=1).tolist())
-      y.extend(target.tolist())
-      loss = self.loss(output, target)
-      loss.backward()
-      self.optimizer.step()
-      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    print("G1 -> ", g1)
-    print("G2 -> ", g2)
-    print("C1 -> ", c1)
-    print("C2 -> ", c2)
-    print("Y -> ", y)
-    print("y -> ", p)
-    pred_tuples = list(zip(c1, c2, p))
-    gt_tuples   = list(zip(g1, g2, y))
-    print("Predicciones:", pred_tuples)
-    print("Etiquetas reales:", gt_tuples)
-    cont = 0
-    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
-      if pred != gt:
-          print(f"Error en índice {i}: pred={pred}, gt={gt}")
-          cont += 1
-    print("Total de valores errados:", cont)
-
 
   def test(self, epoch):
     self.network.eval()
@@ -292,10 +248,8 @@ class Trainer():
 
 
   def train(self, n_epochs):
-    self.test(0)
     for epoch in range(1, n_epochs + 1):
       print("-----------> EPOCH: ",epoch)
-    #   self.train_epoch(epoch)
       self.test(epoch)
 
 if __name__ == "__main__":
@@ -332,7 +286,6 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loaders = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  #print(validation_loader.dataset.essays)
   trainer = Trainer(train_loader, test_loaders , learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
 
