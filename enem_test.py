@@ -171,6 +171,18 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def save_file(g1, g2, y, c1, c2, p):
+  with open("resultados.csv", "w", newline="") as archivo:
+    writer = csv.writer(archivo)
+
+    # Cabecera
+    writer.writerow(["g_syntax", "g_mistakes", "y", "c_syntax", "c_mistake", "p"])
+
+    # Filas
+    for g1_i, g2_i, y_i, c1_i, c2_i, p_i in zip(g1, g2, y, c1, c2, p):
+        writer.writerow([g1_i, g2_i, y_i, c1_i, c2_i, p_i])
+  
+
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
@@ -263,6 +275,7 @@ class Trainer():
     print("y -> ", p)
     pred_tuples = list(zip(c1, c2, p))
     gt_tuples   = list(zip(g1, g2, y))
+    save_file(g1, g2, y, c1, c2, p)
     print("Predicciones:", pred_tuples)
     print("Etiquetas reales:", gt_tuples)
     cont = 0
