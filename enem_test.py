@@ -102,13 +102,13 @@ class MNISTNet(nn.Module):
   def __init__(self):
     super(MNISTNet, self).__init__()
     self.sintaxe = AutoModelForSequenceClassification.from_pretrained(
-                "neuralmind/bert-base-portuguese-cased",
+                "igorcs/Syntax-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=5,
             )
     
     self.desvios = AutoModelForSequenceClassification.from_pretrained( 
-                "neuralmind/bert-base-portuguese-cased",
+                "igorcs/Mistakes-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=4,
             )
@@ -232,30 +232,63 @@ class Trainer():
     num_items = len(self.test_loader.dataset)
     test_loss = 0
     correct = 0
+    c1 = []
+    c2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
-        (_, _, target) = data_des
-        _, _, output = self.network(data)
-        output = output.cpu() 
+        (syntax, mistake, target) = data_des
+        p_syntax, p_mistake, output = self.network(data)
+        output = output.cpu()
+        g1.extend(syntax.tolist())
+        g2.extend(mistake.tolist())
+        c1.extend(p_syntax.argmax(dim=1).tolist())
+        c2.extend(p_mistake.argmax(dim=1).tolist())
+        p.extend(output.argmax(dim=1).tolist())
+        y.extend(target.tolist())
         test_loss += self.loss(output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+    print("G1 -> ", g1)
+    print("G2 -> ", g2)
+    print("C1 -> ", c1)
+    print("C2 -> ", c2)
+    print("Y -> ", y)
+    print("y -> ", p)
+    pred_tuples = list(zip(c1, c2, p))
+    gt_tuples   = list(zip(g1, g2, y))
+    print("Predicciones:", pred_tuples)
+    print("Etiquetas reales:", gt_tuples)
+    cont = 0
+    cont_gt = 0
+    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+      if pred != gt:
+          if pred[2] == gt[2]:
+            print(f"Error en índice {i}: pred={pred}, gt={gt}")
+            cont += 1
+      else:
+        cont_gt += 1
+    print("Total de valores errados:", cont)
+    print("Total de valores verdaderos:", cont_gt)
 
 
   def train(self, n_epochs):
     self.test(0)
     for epoch in range(1, n_epochs + 1):
       print("-----------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
+    #   self.train_epoch(epoch)
       self.test(epoch)
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=20)
+  parser.add_argument("--n-epochs", type=int, default=1)
   parser.add_argument("--batch-size-train", type=int, default=1)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.000001)
