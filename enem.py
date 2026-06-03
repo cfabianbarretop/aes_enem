@@ -168,6 +168,16 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def save_file(epoch, g1, g2, y, c1, c2, p):
+  name_file = f"e_{epoch}_resultados.csv"
+  with open(name_file, "w", newline="") as archivo:
+    writer = csv.writer(archivo)
+    # Headers
+    writer.writerow(["g_syntax", "g_mistakes", "y", "c_syntax", "c_mistake", "p"])
+    # Rows
+    for g1_i, g2_i, y_i, c1_i, c2_i, p_i in zip(g1, g2, y, c1, c2, p):
+        writer.writerow([g1_i, g2_i, y_i, c1_i, c2_i, p_i])
+
 def shortcut(g1, g2, y, c1, c2, p):
   # print("G1 -> ", g1)
   # print("G2 -> ", g2)
@@ -228,6 +238,7 @@ class Trainer():
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
+    save_file(epoch,g1, g2, y, c1, c2, p)
     shortcut(g1, g2, y, c1, c2, p)
 
   def test(self, epoch):

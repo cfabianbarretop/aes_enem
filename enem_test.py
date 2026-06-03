@@ -32,9 +32,9 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     # Contains a MNIST dataset
     self.split_name = split
     if split == "train":
-        self.essays = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
+        self.essays = load_dataset("igorcs/C1-B", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
     elif split == "test":
-        self.essays = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)['test']
+        self.essays = load_dataset("igorcs/C1-B", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
 
   def __len__(self):
     return int(len(self.essays))  
@@ -172,7 +172,7 @@ def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
 def save_file(g1, g2, y, c1, c2, p):
-  with open("resultados.csv", "w", newline="") as archivo:
+  with open("c1_B_data_train_resultados.csv", "w", newline="") as archivo:
     writer = csv.writer(archivo)
     # Headers
     writer.writerow(["g_syntax", "g_mistakes", "y", "c_syntax", "c_mistake", "p"])
