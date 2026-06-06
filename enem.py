@@ -9,7 +9,7 @@ import torchvision
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from datasets import load_dataset, Dataset
+from datasets import load_dataset, Dataset, concatenate_datasets
 from argparse import ArgumentParser
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from tqdm import tqdm
@@ -19,6 +19,7 @@ import scallopy
 TOKENIZER_NAME = f"neuralmind/bert-base-portuguese-cased"
 tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_NAME)
 TOLERANCE = 10
+BASE_NOTE_DIVISION = 40
 nome_extra = "essay_c1_logic_addmult"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device: ", device)
@@ -32,9 +33,10 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     # Contains a MNIST dataset
     self.split_name = split
     if split == "train":
-        self.essays = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
+        self.essays = load_dataset("igorcs/LLM-JBCS", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
     elif split == "test":
-        self.essays = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)['test']
+        test_dataset = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)
+        self.essays = concatenate_datasets([test_dataset['train'], test_dataset['test']])
 
   def __len__(self):
     return int(len(self.essays))  
@@ -47,22 +49,37 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
                 padding="max_length",
                 max_length=512
             )
-    if isinstance(self.essays[idx]['nota'], str):
-        nota = eval(self.essays[idx]['nota'])
+    if self.split_name == "train":
+      if isinstance(self.essays[idx]['label'], str):
+          nota = eval(self.essays[idx]['label']) // BASE_NOTE_DIVISION
+      else:
+          nota = self.essays[idx]['label'] // BASE_NOTE_DIVISION
+      return (tokenized_text, nota)
     else:
-        nota = self.essays[idx]['nota']
-    if isinstance(self.essays[idx]['syntax'], str):
-        syntax = eval(self.essays[idx]['syntax'])
-    else:
-        syntax = self.essays[idx]['syntax']
-    if isinstance(self.essays[idx]['mistakes'], str):
-        mistake = eval(self.essays[idx]['mistakes'])
-    else:
-        mistake = self.essays[idx]['mistakes']
-    return (tokenized_text, syntax, mistake, nota)
+      if isinstance(self.essays[idx]['nota'], str):
+          nota = eval(self.essays[idx]['nota'])
+      else:
+          nota = self.essays[idx]['nota']
+      if isinstance(self.essays[idx]['syntax'], str):
+          syntax = eval(self.essays[idx]['syntax'])
+      else:
+          syntax = self.essays[idx]['syntax']
+      if isinstance(self.essays[idx]['mistakes'], str):
+          mistake = eval(self.essays[idx]['mistakes'])
+      else:
+          mistake = self.essays[idx]['mistakes']
+      return (tokenized_text, syntax, mistake, nota)
+    
+  @staticmethod
+  def collate_train(batch):
+    input_ids = torch.stack([item[0]['input_ids'][0] for item in batch])
+    token_type = torch.stack([item[0]['token_type_ids'][0] for item in batch])
+    attention_mask = torch.stack([item[0]['attention_mask'][0] for item in batch])
+    nota = torch.stack([torch.tensor(item[1]).long() for item in batch])
+    return ((input_ids, token_type, attention_mask), nota)  
 
   @staticmethod
-  def collate_fn(batch):
+  def collate_test(batch):
     input_ids = torch.stack([item[0]['input_ids'][0] for item in batch])
     token_type = torch.stack([item[0]['token_type_ids'][0] for item in batch])
     attention_mask = torch.stack([item[0]['attention_mask'][0] for item in batch])
@@ -79,7 +96,7 @@ def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
       split="train",
       download=True,
     ),
-    collate_fn=MNISTSum2Dataset.collate_fn,
+    collate_fn=MNISTSum2Dataset.collate_train,
     batch_size=batch_size_train,
     shuffle=False
   )
@@ -90,7 +107,7 @@ def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
       split="test",
       download=True,
     ),
-    collate_fn=MNISTSum2Dataset.collate_fn,
+    collate_fn=MNISTSum2Dataset.collate_test,
     batch_size=batch_size_test,
     shuffle=False
   )
@@ -217,29 +234,14 @@ class Trainer():
   def train_epoch(self, epoch):
     self.network.train()
     iter = tqdm(self.train_loader, total=len(self.train_loader))
-    c1 = []
-    c2 = []
-    g1 = []
-    g2 = []
-    y  = []
-    p  = []
-    for (data, data_des) in iter:
-      (syntax, mistake, target) = data_des
+    for (data, target) in iter:
       self.optimizer.zero_grad()
-      p_syntax, p_mistake, output = self.network(data)
+      _, _, output = self.network(data)
       output = output.cpu()
-      g1.extend(syntax.tolist())
-      g2.extend(mistake.tolist())
-      c1.extend(p_syntax.argmax(dim=1).tolist())
-      c2.extend(p_mistake.argmax(dim=1).tolist())
-      p.extend(output.argmax(dim=1).tolist())
-      y.extend(target.tolist())
       loss = self.loss(output, target)
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    save_file(epoch,g1, g2, y, c1, c2, p)
-    shortcut(g1, g2, y, c1, c2, p)
 
   def test(self, epoch):
     self.network.eval()
@@ -275,7 +277,7 @@ class Trainer():
   def train(self, n_epochs):
     self.test(0)
     for epoch in range(1, n_epochs + 1):
-      print("-----------> EPOCH: ",epoch)
+      print("-----------------------------> EPOCH: ",epoch)
       self.train_epoch(epoch)
       self.test(epoch)
 
@@ -313,7 +315,7 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loaders = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  #print(validation_loader.dataset.essays)
+  # print(f"{len(train_loader)} - {len(test_loaders)}")
   trainer = Trainer(train_loader, test_loaders , learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
 
