@@ -203,7 +203,7 @@ def shortcut(g1, g2, y, c1, pc1, c2, pc2, p):
           sum_ars += math.log(1/peso)
           p_c1 = pc1[i]
           p_c2 = pc2[i]
-          sum_model += (1-p_c1)*(1-p_c2)*math.log(peso-1)
+          sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
           # print(f"Error en índice {i}: pred={pred}, gt={gt}")
           cont += 1
     else:
@@ -217,7 +217,7 @@ def shortcut(g1, g2, y, c1, pc1, c2, pc2, p):
   print(f"Total de valores errados: {cont} | sum_log: {sum_ars}")
   print(f"Total de valores verdaderos: {cont_gt}")
   print(f"Total de valores acertados: {cont + cont_gt} | sum_log: {sum_ars + sum_gt}")
-  return cont_gt, cont, cont / (cont + cont_gt), sum_ars / (sum_ars + sum_gt), sum_model
+  return cont_gt, cont, cont / (cont + cont_gt), sum_ars / (sum_ars + sum_gt), sum_model, sum_model / (sum_ars + sum_gt)
 
 def save_shortcut_metrics(metric):
     with open("shortcut_metric_sum.csv", "w", newline="") as file:
@@ -231,7 +231,8 @@ def save_shortcut_metrics(metric):
             "rs",
             "RSR",
             "RSRw",
-            "prob_model"
+            "prob_model",
+            "prob_mod_no"
         ])
 
         for row in metric:
@@ -244,6 +245,7 @@ def save_shortcut_metrics(metric):
                 row["RSR"],
                 row["RSRw"],
                 row["prob_model"],
+                row["prob_mod_no"]
             ])
 
 class Trainer():
@@ -342,7 +344,7 @@ class Trainer():
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-      gt, rs, rsr, rsrw, prob_model = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+      gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
       save_file("test_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
       self.shortcut_metrics.append({
           "epoch": epoch,
@@ -352,7 +354,8 @@ class Trainer():
           "rs": rs,
           "RSR": rsr,
           "RSRw": rsrw,
-          "prob_model": prob_model
+          "prob_model": prob_model,
+          "prob_mod_no": prob_mod_no
       })
 
   def train(self, n_epochs):
