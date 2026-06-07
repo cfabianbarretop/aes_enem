@@ -80,7 +80,7 @@ def plot_cm(cm, labels, title):
 #2nd scenario
 #y_true, y_pred = load_data("c1_A_data_test_resultados.csv", filter=True)
 #3th scenario
-y_true, y_pred = load_data("e_6_resultados_test.csv", filter=True)
+y_true, y_pred = load_data("e_2_resultados_test.csv", filter=True)
 #4th scenario
 #y_true, y_pred = load_data("c1_B_data_test_resultados.csv", filter=True)
 #5th scenario
