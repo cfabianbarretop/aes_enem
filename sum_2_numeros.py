@@ -406,6 +406,6 @@ if __name__ == "__main__":
   print("Test -> ", len(test_loader))
 
   # Create trainer and train
-  trainer = Trainer(test_loader, train_loader, learning_rate, loss_fn, k, provenance)
+  trainer = Trainer(train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
   

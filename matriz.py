@@ -23,7 +23,8 @@ def encode_concepts(y):
     Convierte vectores de conceptos (multi-dim) a enteros.
     Ej: [3,2] -> "(3, 2)"
     """
-    return np.array([f"{tuple(row)}" for row in y])
+    # return np.array([f"{tuple(row)}" for row in y])
+    return np.array([",".join(map(str, row)) for row in y])
 
 
 # =========================================================
@@ -80,7 +81,7 @@ def plot_cm(cm, labels, title):
 #2nd scenario
 #y_true, y_pred = load_data("c1_A_data_test_resultados.csv", filter=True)
 #3th scenario
-y_true, y_pred = load_data("e_2_resultados_test.csv", filter=True)
+y_true, y_pred = load_data("e_5_resultados_test.csv", filter=True)
 #4th scenario
 #y_true, y_pred = load_data("c1_B_data_test_resultados.csv", filter=True)
 #5th scenario
