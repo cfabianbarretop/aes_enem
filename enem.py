@@ -35,8 +35,10 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     if split == "train":
         self.essays = load_dataset("igorcs/LLM-JBCS", cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
     elif split == "test":
-        test_dataset = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)
-        self.essays = concatenate_datasets([test_dataset['train'], test_dataset['test']])
+        test_dataset_c1a = load_dataset("igorcs/C1-A", cache_dir="tmp/aes_enem", trust_remote_code=True)
+        test_dataset_c1b = load_dataset("igorcs/C1-B", cache_dir="tmp/aes_enem", trust_remote_code=True)
+        self.essays = concatenate_datasets([test_dataset_c1a['train'], test_dataset_c1a['test'], test_dataset_c1b['train'], test_dataset_c1b['test']])
+        # self.essays = load_dataset("igorcs/LLM-JBCS", cache_dir="tmp/aes_enem", trust_remote_code=True)['test']
 
   def __len__(self):
     return int(len(self.essays))  
@@ -120,12 +122,14 @@ class MNISTNet(nn.Module):
     super(MNISTNet, self).__init__()
     self.sintaxe = AutoModelForSequenceClassification.from_pretrained(
                 "neuralmind/bert-base-portuguese-cased",
+                # "igorcs/Syntax-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=5,
             )
     
     self.desvios = AutoModelForSequenceClassification.from_pretrained( 
                 "neuralmind/bert-base-portuguese-cased",
+                # "igorcs/Mistakes-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=4,
             )
@@ -185,15 +189,16 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
-def save_file(epoch, g1, g2, y, c1, c2, p):
-  name_file = f"e_{epoch}_resultados.csv"
+def save_file(file_name, epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb):
+  name_file = f"e_{epoch}_resultados_{file_name}.csv"
   with open(name_file, "w", newline="") as archivo:
     writer = csv.writer(archivo)
     # Headers
-    writer.writerow(["g_syntax", "g_mistakes", "y", "c_syntax", "c_mistake", "p"])
+    writer.writerow(["idx", "g_1", "g_2", "y", "c_1", "p_c_1", "c_2", "p_c_2", "p", "pb"])
     # Rows
-    for g1_i, g2_i, y_i, c1_i, c2_i, p_i in zip(g1, g2, y, c1, c2, p):
-        writer.writerow([g1_i, g2_i, y_i, c1_i, c2_i, p_i])
+    for idx, (g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i) in enumerate(zip(g1, g2, y, c1, pc1, c2, pc2, p, pb)):
+        if y_i == p_i:
+          writer.writerow([idx,g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i])
 
 def shortcut(g1, g2, y, c1, c2, p):
   # print("G1 -> ", g1)
@@ -224,6 +229,7 @@ class Trainer():
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
+    self.shortcut_metrics = []
     if loss == "nll":
       self.loss = nll_loss
     elif loss == "bce":
@@ -249,11 +255,14 @@ class Trainer():
     test_loss = 0
     correct = 0
     c1 = []
+    pc1 = []
     c2 = []
+    pc2 = []
     g1 = []
     g2 = []
     y  = []
     p  = []
+    pb  = []
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
@@ -262,9 +271,15 @@ class Trainer():
         output = output.cpu()
         g1.extend(syntax.tolist())
         g2.extend(mistake.tolist())
-        c1.extend(p_syntax.argmax(dim=1).tolist())
-        c2.extend(p_mistake.argmax(dim=1).tolist())
-        p.extend(output.argmax(dim=1).tolist())
+        t_pc1, t_c1 = p_syntax.max(dim=1)
+        t_pc2, t_c2 = p_mistake.max(dim=1)
+        t_pb , t_p = output.max(dim=1)
+        c1.extend(t_c1.tolist())
+        pc1.extend(t_pc1.tolist())
+        c2.extend(t_c2.tolist())
+        pc2.extend(t_pc2.tolist())
+        p.extend(t_p.tolist())
+        pb.extend(t_pb.tolist())
         y.extend(target.tolist())
         test_loss += self.loss(output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
@@ -272,6 +287,9 @@ class Trainer():
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
       shortcut(g1, g2, y, c1, c2, p)
+      # if epoch % 1 == 0:
+      save_file("test", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
+      
 
 
   def train(self, n_epochs):
@@ -284,7 +302,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=20)
+  parser.add_argument("--n-epochs", type=int, default=15)
   parser.add_argument("--batch-size-train", type=int, default=1)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.000001)
@@ -313,10 +331,11 @@ if __name__ == "__main__":
   # print("PATH data -> ", data_dir)
 
   # Dataloaders
-  train_loader, test_loaders = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
+  train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  # print(f"{len(train_loader)} - {len(test_loaders)}")
-  trainer = Trainer(train_loader, test_loaders , learning_rate, loss_fn, k, provenance)
+  print("Train -> ", len(train_loader))
+  print("Test -> ", len(test_loader))
+  trainer = Trainer(train_loader, test_loader , learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
 
 

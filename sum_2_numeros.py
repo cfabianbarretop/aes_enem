@@ -1,6 +1,7 @@
 import os
 import random
 from typing import *
+import csv
 
 import torch
 import torchvision
@@ -12,6 +13,9 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 import scallopy
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Device: ", device)
 
 mnist_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
@@ -144,10 +148,44 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def save_file(file_name, epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb):
+  name_file = f"e_{epoch}_resultados_{file_name}.csv"
+  with open(name_file, "w", newline="") as archivo:
+    writer = csv.writer(archivo)
+    # Headers
+    writer.writerow(["idx", "g_1", "g_2", "y", "c_1", "p_c_1", "c_2", "p_c_2", "p", "pb"])
+    # Rows
+    for idx, (g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i) in enumerate(zip(g1, g2, y, c1, pc1, c2, pc2, p, pb)):
+        if y_i == p_i:
+          writer.writerow([idx,g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i])
+
+def shortcut(g1, g2, y, c1, c2, p):
+  # print("G1 -> ", g1)
+  # print("G2 -> ", g2)
+  # print("C1 -> ", c1)
+  # print("C2 -> ", c2)
+  # print("Y -> ", y)
+  # print("y -> ", p)
+  pred_tuples = list(zip(c1, c2, p))
+  gt_tuples   = list(zip(g1, g2, y))
+  # print("Predicciones:", pred_tuples)
+  # print("Etiquetas reales:", gt_tuples)
+  cont = 0
+  cont_gt = 0
+  for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+    if pred != gt:
+        if pred[2] == gt[2]:
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          cont += 1
+    else:
+      cont_gt += 1
+  print("Total de valores errados:", cont)
+  print("Total de valores verdaderos:", cont_gt)
+
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
-    self.network = MNISTSum2Net(provenance, k)
+    self.network = MNISTSum2Net(provenance, k).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -162,54 +200,87 @@ class Trainer():
     self.network.train()
     iter = tqdm(self.train_loader, total=len(self.train_loader))
     c1 = []
+    pc1 = []
     c2 = []
+    pc2 = []
     g1 = []
     g2 = []
     y  = []
     p  = []
+    pb  = []
     for (data, data_des) in iter:
+      (a_imgs, b_imgs) = data
+      a_imgs = a_imgs.to(device)
+      b_imgs = b_imgs.to(device)
+      data = (a_imgs, b_imgs)
       (a_digits, b_digits, target) = data_des
       self.optimizer.zero_grad()
       a_distrs, b_distrs, output = self.network(data)
-      g1 = a_digits.tolist()
-      g2 = b_digits.tolist()
-      c1 = a_distrs.argmax(dim=1).tolist()
-      c2 = b_distrs.argmax(dim=1).tolist()
-      p = output.argmax(dim=1).tolist()
-      y = target.tolist()
+      output = output.cpu()
+      g1.extend(a_digits.tolist())
+      g2.extend(b_digits.tolist())
+      t_pc1, t_c1 = a_distrs.max(dim=1)
+      t_pc2, t_c2 = b_distrs.max(dim=1)
+      t_pb , t_p = output.max(dim=1)
+      c1.extend(t_c1.tolist())
+      pc1.extend(t_pc1.tolist())
+      c2.extend(t_c2.tolist())
+      pc2.extend(t_pc2.tolist())
+      p.extend(t_p.tolist())
+      pb.extend(t_pb.tolist())
+      y.extend(target.tolist())
       loss = self.loss(output, target)
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    print("G1 -> ", g1)
-    print("G2 -> ", g2)
-    print("C1 -> ", c1)
-    print("C2 -> ", c2)
-    print("Y -> ", y)
-    print("y -> ", p)
-    pred_tuples = list(zip(c1, c2, p))
-    gt_tuples   = list(zip(g1, g2, y))
-    print("Predicciones:", pred_tuples)
-    print("Etiquetas reales:", gt_tuples)
-    for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
-      if pred != gt:
-          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+    shortcut(g1, g2, y, c1, c2, p)
+    # if epoch % 1 == 0:
+    #   save_file("train", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
 
   def test(self, epoch):
     self.network.eval()
     num_items = len(self.test_loader.dataset)
     test_loss = 0
     correct = 0
+    c1 = []
+    pc1 = []
+    c2 = []
+    pc2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
+    pb  = []
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
+        (a_imgs, b_imgs) = data
+        a_imgs = a_imgs.to(device)
+        b_imgs = b_imgs.to(device)
+        data = (a_imgs, b_imgs)
         (a_digits, b_digits, target) = data_des
-        a_distrs, b_distrs, output = self.network(data)
+        p_syntax, p_mistake, output = self.network(data)
+        output = output.cpu()
+        g1.extend(a_digits.tolist())
+        g2.extend(b_digits.tolist())
+        t_pc1, t_c1 = p_syntax.max(dim=1)
+        t_pc2, t_c2 = p_mistake.max(dim=1)
+        t_pb , t_p = output.max(dim=1)
+        c1.extend(t_c1.tolist())
+        pc1.extend(t_pc1.tolist())
+        c2.extend(t_c2.tolist())
+        pc2.extend(t_pc2.tolist())
+        p.extend(t_p.tolist())
+        pb.extend(t_pb.tolist())
+        y.extend(target.tolist())
         test_loss += self.loss(output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+      shortcut(g1, g2, y, c1, c2, p)
+      if epoch % 1 == 0:
+        save_file("test", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
 
   def train(self, n_epochs):
     self.test(0)
@@ -222,7 +293,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=2)
+  parser.add_argument("--n-epochs", type=int, default=3)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
