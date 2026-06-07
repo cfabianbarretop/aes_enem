@@ -2,7 +2,7 @@ import os
 import random
 from typing import *
 import csv
-
+import math
 import torch
 import torchvision
 import torch.nn as nn
@@ -159,7 +159,7 @@ def save_file(file_name, epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb):
         if y_i == p_i:
           writer.writerow([idx,g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i])
 
-def shortcut(g1, g2, y, c1, c2, p):
+def shortcut(g1, g2, y, c1, pc1, c2, pc2, p):
   # print("G1 -> ", g1)
   # print("G2 -> ", g2)
   # print("C1 -> ", c1)
@@ -172,16 +172,79 @@ def shortcut(g1, g2, y, c1, c2, p):
   # print("Etiquetas reales:", gt_tuples)
   cont = 0
   cont_gt = 0
+  sum_ars = 0
+  sum_gt = 0
+  sum_model = 0
+  cy = {
+    0: 1,
+    1: 2,
+    2: 3,
+    3: 4,
+    4: 5,
+    5: 6,
+    6: 7,
+    7: 8,
+    8: 9,
+    9: 10,
+    10: 9,
+    11: 8,
+    12: 7,
+    13: 6,
+    14: 5,
+    15: 4,
+    16: 3,
+    17: 2,
+    18: 1
+}
   for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
     if pred != gt:
         if pred[2] == gt[2]:
-          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          peso = cy.get(pred[2], 0)
+          sum_ars += math.log(1/peso)
+          p_c1 = pc1[i]
+          p_c2 = pc2[i]
+          sum_model += (1-p_c1)*(1-p_c2)*math.log(peso-1)
+          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
           cont += 1
     else:
+      peso = cy.get(pred[2], 0)
+      sum_gt += math.log(1/peso)
+      p_c1 = pc1[i]
+      p_c2 = pc2[i]
+      sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
       cont_gt += 1
-  print("Total de valores errados:", cont)
-  print("Total de valores verdaderos:", cont_gt)
+    
+  print(f"Total de valores errados: {cont} | sum_log: {sum_ars}")
+  print(f"Total de valores verdaderos: {cont_gt}")
+  print(f"Total de valores acertados: {cont + cont_gt} | sum_log: {sum_ars + sum_gt}")
+  return cont_gt, cont, cont / (cont + cont_gt), sum_ars / (sum_ars + sum_gt), sum_model
 
+def save_shortcut_metrics(metric):
+    with open("shortcut_metric_sum.csv", "w", newline="") as file:
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "epoch",
+            "loss",
+            "acc",
+            "gt",
+            "rs",
+            "RSR",
+            "RSRw",
+            "prob_model"
+        ])
+
+        for row in metric:
+            writer.writerow([
+                row["epoch"],
+                row["loss"],
+                row["acc"],
+                row["gt"],
+                row["rs"],
+                row["RSR"],
+                row["RSRw"],
+                row["prob_model"],
+            ])
 
 class Trainer():
   def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
@@ -189,6 +252,7 @@ class Trainer():
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
+    self.shortcut_metrics = []
     if loss == "nll":
       self.loss = nll_loss
     elif loss == "bce":
@@ -233,7 +297,7 @@ class Trainer():
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
-    shortcut(g1, g2, y, c1, c2, p)
+    # shortcut(g1, g2, y, c1, c2, p)
     # if epoch % 1 == 0:
     #   save_file("train", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
 
@@ -278,9 +342,18 @@ class Trainer():
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-      shortcut(g1, g2, y, c1, c2, p)
-      if epoch % 1 == 0:
-        save_file("test", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
+      gt, rs, rsr, rsrw, prob_model = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+      save_file("test_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
+      self.shortcut_metrics.append({
+          "epoch": epoch,
+          "loss": test_loss,
+          "acc": perc.item(),
+          "gt": gt,
+          "rs": rs,
+          "RSR": rsr,
+          "RSRw": rsrw,
+          "prob_model": prob_model
+      })
 
   def train(self, n_epochs):
     self.test(0)
@@ -288,6 +361,7 @@ class Trainer():
       print("-----------> EPOCH: ",epoch)
       self.train_epoch(epoch)
       self.test(epoch)
+    save_shortcut_metrics(self.shortcut_metrics)
 
 
 if __name__ == "__main__":
@@ -329,6 +403,6 @@ if __name__ == "__main__":
   print("Test -> ", len(test_loader))
 
   # Create trainer and train
-  trainer = Trainer(train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer = Trainer(test_loader, train_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
   
