@@ -23,6 +23,7 @@ TOLERANCE = 10
 BASE_NOTE_DIVISION = 40
 nome_extra = "essay_c1_logic_addmult"
 device = "cuda" if torch.cuda.is_available() else "cpu"
+cy = {0: 4, 1: 1, 2: 6, 3: 5, 4: 3, 5: 1}
 print("Device: ", device)
 class MNISTSum2Dataset(torch.utils.data.Dataset):
   def __init__(
@@ -122,15 +123,15 @@ class MNISTNet(nn.Module):
   def __init__(self):
     super(MNISTNet, self).__init__()
     self.sintaxe = AutoModelForSequenceClassification.from_pretrained(
-                "neuralmind/bert-base-portuguese-cased",
-                # "igorcs/Syntax-A",
+                # "neuralmind/bert-base-portuguese-cased",
+                "igorcs/Syntax-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=5,
             )
     
     self.desvios = AutoModelForSequenceClassification.from_pretrained( 
-                "neuralmind/bert-base-portuguese-cased",
-                # "igorcs/Mistakes-A",
+                # "neuralmind/bert-base-portuguese-cased",
+                "igorcs/Mistakes-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=4,
             )
@@ -190,6 +191,40 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def logic_loss_syntax(probs, grades):
+    loss = 0
+    valid = {
+        0:[0],
+        1:[1],
+        2:[1,2,3,4],
+        3:[2,3,4],
+        4:[4],
+        5:[4]
+    }
+    for i in range(len(grades)):
+        g = grades[i].item()
+        p = probs[i, valid[g]].sum()
+        weight = math.log(1/cy[g])
+        loss += weight * (-math.log(p + 1e-8))
+    return loss / len(grades)
+
+def logic_loss_mistake(probs, grades):
+    valid = {
+        0:[0,1,2,3],
+        1:[0],
+        2:[0,1,2,3],
+        3:[1,2,3],
+        4:[2],
+        5:[3]
+    }
+    loss = 0
+    for i in range(len(grades)):
+        g = grades[i].item()
+        p = probs[i, valid[g]].sum()
+        weight = math.log(1/cy[g])
+        loss += weight * (-math.log(p + 1e-8))
+    return loss / len(grades)
+
 def save_file(file_name, epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb):
   name_file = f"e_{epoch}_resultados_{file_name}.csv"
   with open(name_file, "w", newline="") as archivo:
@@ -217,14 +252,6 @@ def shortcut(g1, g2, y, c1, pc1, c2, pc2, p):
   sum_ars = 0
   sum_gt = 0
   sum_model = 0
-  cy = {
-    0: 4,
-    1: 1,
-    2: 6,
-    3: 5,
-    4: 3,
-    5: 1
-}
   for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
     if pred != gt:
         if pred[2] == gt[2]:
@@ -298,7 +325,10 @@ class Trainer():
       self.optimizer.zero_grad()
       output_syntax, output_mistake, output = self.network(data)
       output = output.cpu()
-      loss = self.loss(output, target)
+      loss_grade = self.loss(output, target)
+      loss_logic_syntax = logic_loss_syntax(output_syntax,target)
+      loss_logic_mistake = logic_loss_mistake(output_mistake,target)
+      loss = (loss_grade + 0.5 * (loss_logic_syntax + loss_logic_mistake))
       loss.backward()
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
@@ -359,14 +389,14 @@ class Trainer():
     self.test(0)
     for epoch in range(1, n_epochs + 1):
       print("-----------------------------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
+      # self.train_epoch(epoch)
       self.test(epoch)
     save_shortcut_metrics(self.shortcut_metrics)
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=20)
+  parser.add_argument("--n-epochs", type=int, default=5)
   parser.add_argument("--batch-size-train", type=int, default=1)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.000001)
