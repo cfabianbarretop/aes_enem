@@ -1,5 +1,6 @@
 \documentclass[12pt]{article}
 
+
 \usepackage{sbc-template}
 \usepackage{graphicx,url}
 \usepackage[utf8]{inputenc}
@@ -7,7 +8,7 @@
 \usepackage{amsmath}
 \usepackage{booktabs}
 %\usepackage[latin1]{inputenc}  
-
+\usepackage{subcaption} % en el preámbulo
      
 \sloppy
 
@@ -45,22 +46,15 @@
 
 \section{Introducción} \label{sec:intro}
 
-%Sugestão: 1ºparágrafo: comecem dizendo qual é a motivação para se investigar RS.
-La Inteligencia Artificial Neuro-Simbólica (NeSy) es un enfoque que busca combinar la capacidad de aprendizaje de las redes neuronales con el razonamiento estructurado de la IA simbólica. De esta manera, aspira a desarrollar sistemas más robustos, interpretables y capaces de generalizar mediante la incorporación de conocimiento previo \cite{Colelough2024, Yang2025, Acharya2025}. Tradicionalmente, se ha asumido que la integración de restricciones simbólicas guía el aprendizaje hacia representaciones conceptuales correctas. Sin embargo, estudios recientes \cite{Marconato2023-NotAll, Yang2024} han demostrado que los modelos NeSy pueden alcanzar un alto rendimiento predictivo apoyándose en conceptos cuya semántica no se corresponde con la esperada. Siguiendo la terminología propuesta por \cite{Marconato2023-NotAll}, este fenómeno se conoce como \textit{Reasoning Shortcuts} (RSs) y constituye un problema crítico que compromete la interpretabilidad, la fiabilidad y la capacidad de generalización fuera de distribución de estos sistemas. En este contexto, comprender y cuantificar la presencia de RSs resulta fundamental para evaluar de manera crítica las verdaderas capacidades de los modelos NeSy.
+La Inteligencia Artificial Neuro-Simbólica (NeSy) busca combinar la capacidad de aprendizaje de las redes neuronales con el razonamiento estructurado de la IA simbólica, con el objetivo de desarrollar sistemas más robustos, interpretables y capaces de generalizar mediante la incorporación de conocimiento previo \cite{Colelough2024, Yang2025, Acharya2025}. Un supuesto fundamental de este paradigma es que la integración de restricciones simbólicas guía el aprendizaje hacia representaciones conceptuales correctas. Sin embargo, evidencia reciente \cite{Marconato2023-NotAll, Yang2024} muestra que los modelos NeSy pueden alcanzar un alto rendimiento predictivo apoyándose en conceptos cuya semántica no coincide con la esperada. Este fenómeno, denominado \textit{Reasoning Shortcuts} (RSs) \cite{Marconato2023-NotAll}, compromete la interpretabilidad, la fiabilidad y la capacidad de generalización fuera de distribución. En este contexto, comprender y cuantificar la presencia de RSs resulta fundamental para evaluar las verdaderas capacidades de los modelos NeSy.
 
+El fenómeno de los \textit{reasoning shortcuts} no es exclusivo de los modelos NeSy. En Deep Learning, \cite{Geirhos2020} describen los atajos como reglas de decisión que logran buen rendimiento en benchmarks estándar pero fallan en condiciones más exigentes. En el ámbito neuro-simbólico, \cite{Li2024} introducen el concepto de \textit{shortcut satisfaction}, donde el modelo se ajusta a configuraciones de conceptos que satisfacen las restricciones lógicas, aunque no correspondan a la asignación correcta. De manera similar, \cite{Marconato2023-NotAll} proponen una formalización probabilística en la que los RSs surgen como óptimos no intencionados consistentes con el conocimiento previo $K$. Bajo este marco, un modelo incurre en RSs cuando aprende una distribución $p_\theta(C \mid X)$ que maximiza la verosimilitud en los datos de entrenamiento, pero difiere de la distribución de conceptos \textit{ground-truth} $p^*(G \mid X)$. A pesar de estos avances, las definiciones existentes se centran principalmente en el proceso de aprendizaje y carecen de herramientas prácticas para cuantificar la presencia de RSs en modelos ya entrenados. En particular, no existen métricas operativas que permitan medir hasta qué punto las predicciones correctas están respaldadas por conceptos semánticamente coherentes.
 
-%2º parágrafo: definições anteriores de RS e quais as limitações delas.
-El fenómemo de los \textit{reasoning shortcuts} no se limita a modelos NeSy. En el contexto de Deep Learning, \cite{Geirhos2020} describen atajos de aprendizaje como reglas de decisión que se desempeñan bien en benchmarks estándar, pero que fallan en condiciones de prueba más exigentes, como escenarios del mundo real.
-En el ámbito neuro-simbólico, \cite{Li2024} introducen el término \textit{shortcut satisfaction}, donde el modelo se sobreajusta a una asignación de conceptos particular que satisface las restricciones lógicas impuestas. Sin embargo, múltiples configuraciones de conceptos pueden satisfacer las restricciones pero no todas corresponden a la verdad. Por otra parte, \cite{Marconato2023-NotAll} proponen una formalización probabilística de los RS, modelándolos como óptimos no intencionados en un proceso generativo consistente con el conocimiento previo $K$. Bajo este marco, un modelo incurre en RS cuando aprende una distribución sobre conceptos $p_\theta(C \mid X)$ que maximiza la verosimilitud en los datos de entrenamiento pero no coincide con la distribución de conceptos \textit{ground-truth} $p^*(G \mid X)$. A pesar de estos avances, las definiciones existentes presentan limitaciones importantes: se centran en propiedades del proceso de aprendizaje sin ofrecer mecanismos prácticos para cuantificar la presencia de atajos en modelos entrenados. Incluso las formulaciones más recientes carecen de métricas operativas que permitan medir de forma directa hasta qué punto las predicciones correctas de un modelo están respaldadas por conceptos semánticamente válidos.
+Para abordar esta limitación, proponemos una nueva familia de métricas para cuantificar el uso de \textit{reasoning shortcuts} a nivel de modelo. A diferencia de enfoques previos, que analizan los RSs de forma global \cite{Marconato2023-NotAll} o mediante indicadores indirectos como el \textit{concept collapse} \cite{Bortolotti2024}, nuestra propuesta evalúa directamente si las predicciones correctas están sustentadas por configuraciones conceptuales válidas. Introducimos el \textit{Reasoning Shortcut Ratio} (RSR), que mide la proporción de aciertos atribuibles a configuraciones conceptuales incorrectas. Además, extendemos esta métrica para considerar la ambigüedad estructural del problema, ponderando cada instancia según el número de configuraciones conceptuales compatibles con una misma etiqueta. Finalmente, proponemos una variante probabilística que captura no solo la presencia de RSs, sino también su intensidad, utilizando la distribución sobre conceptos producida por el modelo. En conjunto, nuestras métricas permiten: $(i)$ detectar reasoning shortcuts, $(ii)$ comparar modelos más allá de la \textit{accuracy}, y $(iii)$ analizar el impacto de la ambigüedad conceptual.
 
-%3º parágrafo: descrever a proposta de metricas do artigo e como elas resolvem as limitações anteriores.
-Para abordar estas limitaciones, este trabajo propone una métrica diseñada para cuantificar el uso de \textit{reasoning shortcuts} a nivel de modelo. A diferencia de enfoques previos, que analizan los RS desde una perspectiva global de la tarea \cite{Marconato2023-NotAll} o mediante métricas indirectas sobre el espacio de conceptos como \textit{concept collapse} \cite{Bortolotti2024}, esta propuesta se centra en evaluar directamente en qué medida las predicciones correctas del modelo están respaldadas por conceptos semánticamente correctos. En particular, introducimos el \textit{Reasoning Shortcut Ratio} (RSR), que mide la proporción de aciertos que pueden atribuirse a configuraciones conceptuales incorrectas, proporcionando así una estimación interpretable del grado en que el modelo depende de shortcuts. Adicionalmente, extendemos esta métrica para considerar la ambigüedad estructural inherente al problema, ponderando las instancias según el número de configuraciones conceptuales que pueden explicar una misma etiqueta. Finalmente, proponemos una extensión probabilística que permite capturar no solo la presencia de shortcuts, sino también su intensidad, aprovechando la distribución de probabilidad sobre conceptos producida por modelos NeSy modernos. En conjunto, estas métricas permiten: $i)$ detectar el uso de reasoning shortcuts en modelos NeSy, $ii)$ comparar modelos más allá de métricas tradicionales como \textit{accuracy}, y $iii)$ analizar el impacto de la ambigüedad conceptual en el aprendizaje.
+Para validar empíricamente nuestra propuesta, consideramos el problema de \textit{Automatic Essay Scoring} (AES) en el examen nacional de ingreso a la universidad de Brasil (ENEM), un escenario realista con alta complejidad semántica y relevancia social, en contraste con los \textit{toy examples} comúnmente utilizados en la literatura. Evaluamos nuestras métricas bajo distintos regímenes de entrenamiento, incluyendo aprendizaje supervisado y \textit{distant learning}, así como sobre múltiples conjuntos de datos. En particular, utilizamos AES ENEM \cite{propor2024}, que contiene ensayos evaluados según criterios alineados con el ENEM, y Subcriteria \cite{feedbackpropor}, que proporciona anotaciones explícitas de conceptos derivadas de las rúbricas oficiales. Este diseño experimental permite analizar cómo varía el uso de reasoning shortcuts en función del nivel de supervisión conceptual, así como su relación con el desempeño predictivo y la calidad de las representaciones aprendidas.
 
-%4º parágrafo: dizer que aplicam as métricas em AES do ENEM, por ser um problema do mundo real, ao contrário dos toys examples comuns da literatura. Também dizer como aplicam as métricas e quais os experimentos feitos.
-Para validar empíricamente las métricas propuestas, las aplicamos en el contexto de \textit{Automatic Essay Scoring} (AES) para el examen nacional de ingreso a la universidad --- ENEM ---, un problema del mundo real con alta relevancia social y complejidad semántica, en contraste con los \textit{toy examples} comúnmente utilizados en la literatura NeSy. Evaluamos nuestras métricas bajo diferentes configuraciones de aprendizaje, incluyendo entrenamiento supervisado y \textit{distant learning}, así como en distintos datasets: JBCS \cite{propor2024} que se componen de ensayos enviados por estudiantes a sitios web que simulan el examen ENEM y son evaluados por correctores del sitio web o por profesionales contratados; y Subcriteria \cite{feedbackpropor}, que proporciona anotaciones explícitas de conceptos en forma de subcriterios derivados de las rúbricas oficiales. Estos experimentos nos permiten analizar cómo varía el uso de reasoning shortcuts según el régimen de entrenamiento y la disponibilidad de supervisión conceptual. Los experimentos realizados permiten no solo cuantificar la presencia de RS en un escenario realista, sino también estudiar su relación con el desempeño predictivo y la calidad de las representaciones conceptuales aprendidas.
-
-%5º parágrafo: dizer quais foram as conclusões e contribuições do trabalho.
-% in progress...
+Finalmente, nuestros resultados muestran que métricas tradicionales como la \textit{accuracy} pueden ocultar diferencias sustanciales en el comportamiento de razonamiento de los modelos. Observamos que modelos con rendimiento predictivo similar pueden depender fuertemente de reasoning shortcuts, evidenciado por altos valores de $RSR_w$ y patrones de colapso conceptual en las matrices de confusión. En contraste, los modelos entrenados con supervisión conceptual explícita presentan una menor dependencia de estos atajos y una mejor alineación entre conceptos predichos y verdaderos, aunque este resultado puede verse influido por la limitada disponibilidad de conceptos \textit{ground-truth}. En conjunto, estos hallazgos subrayan la necesidad de evaluar explícitamente la calidad del razonamiento en sistemas NeSy y demuestran que nuestras métricas aportan información complementaria no capturada por medidas estándar.
 
 \section{Trabajos Relacionados} \label{sec:relatedwork}
 
@@ -69,17 +63,18 @@ Para validar empíricamente las métricas propuestas, las aplicamos en el contex
 One other advantage is enabling two different types of training. In the first type, using only traditional supervised learning, it is possible to train the neural networks in what they are supposed to do, and then combine them through the logical formulae. The second type is called distant learning, where only the result of the inference is presented, and the gradient flows to the logical combinations that satisfy the inference. In this work, we employ both learning methods in order to assess our metrics. 
 
 \paragraph{Reasoning Shortcuts Metrics}
-Diversos trabajos han propuesto métricas para caracterizar la presencia de \textit{reasoning shortcuts} desde distintas perspectivas. Por un lado, \cite{Bortolotti2024, Marconato2023-NotAll} introducen el análisis de \textit{óptimos deterministas}, que cuantifica el número de soluciones conceptuales que satisfacen las restricciones lógicas de una tarea. Esta medida proporciona una indicación de la ambigüedad estructural del problema y, por ende, de su susceptibilidad a RS, aunque no permite evaluar directamente el comportamiento de un modelo entrenado. En el mismo trabajo, se propone la métrica de \textit{concept collapse}, que busca medir en qué medida las representaciones aprendidas combinan múltiples conceptos ground-truth. Un alto colapso sugiere que el modelo utiliza un conjunto reducido de conceptos para resolver la tarea; sin embargo, un bajo colapso no implica necesariamente la ausencia de RS, ya que el modelo podría estar activando múltiples conceptos de manera incorrecta sin reflejar la semántica adecuada. 
+Diversos trabajos han propuesto métricas para caracterizar la presencia de \textit{reasoning shortcuts} desde distintas perspectivas. Por un lado, \cite{Bortolotti2024, Marconato2023-NotAll} introducen el análisis de \textit{óptimos deterministas}, una medida que cuantifica el número de configuraciones conceptuales capaces de satisfacer las restricciones lógicas de una tarea. Esta métrica proporciona una estimación de la ambigüedad estructural del problema y, en consecuencia, de su susceptibilidad a la aparición de RSs. Sin embargo, al depender únicamente de la estructura lógica de la tarea, no permite evaluar directamente el comportamiento de un modelo entrenado. En estos mismos trabajos se propone además la métrica de \textit{concept collapse}, cuyo objetivo es medir hasta qué punto las representaciones aprendidas fusionan múltiples conceptos \textit{ground-truth}. Un alto grado de colapso sugiere que el modelo no distingue adecuadamente entre conceptos semánticamente diferentes. No obstante, un bajo colapso no garantiza la ausencia de RSs, ya que el modelo podría activar múltiples conceptos incorrectos sin capturar la semántica esperada.
 
-Por otro lado, en escenarios donde no se dispone de anotaciones de conceptos, \cite{Marconato2024-bears} propone un enfoque basado en la comparación entre múltiples modelos NeSy que alcanzan un alto desempeño en la tarea. La idea es analizar la consistencia entre los conceptos inferidos por estos modelos: discrepancias significativas pueden indicar la presencia de shortcuts. No obstante, este enfoque es indirecto, depende del entrenamiento de múltiples modelos y no proporciona una medida cuantitativa clara de la intensidad o frecuencia de los RS en un modelo individual.
+Desde una perspectiva diferente, \cite{Marconato2024-bears} abordan el problema en escenarios donde no se dispone de anotaciones conceptuales. Su propuesta consiste en comparar múltiples modelos NeSy que alcanzan un desempeño elevado en la tarea y analizar la consistencia entre las representaciones conceptuales inferidas por cada uno de ellos. La hipótesis subyacente es que discrepancias significativas entre modelos pueden ser indicativas de reasoning shortcuts. Aunque este enfoque resulta útil cuando no existe supervisión conceptual, presenta varias limitaciones: es una medida indirecta, requiere entrenar múltiples modelos y no proporciona una cuantificación explícita de la frecuencia o intensidad de los RSs en un modelo individual.
 
-\paragraph{RS Mitigation Strategies} Multiples estrategias han sido propuestas para mitigar la aparición de \textit{reasoning shortcuts} en modelos NeSy, las cuales pueden agruparse en enfoques supervisados, no supervisados y basados en el conocimiento. Entre las estrategias supervisadas, la \textit{concept supervision} \cite{Marconato2023-NotAll} introduce términos adicionales de pérdida para alinear las predicciones de conceptos con anotaciones \textit{ground-truth}. Si bien es efectiva, su aplicabilidad está limitada por el alto costo de obtención de anotaciones, así como por el riesgo de sobreajuste cuando estas cubren exhaustivamente el espacio conceptual. En una línea similar, el \textit{multi-task learning} \cite{Marconato2023-NotAll} busca reducir la ambigüedad entrenando modelos sobre múltiples tareas que comparten conceptos, aunque requiere disponibilidad de múltiples etiquetas y un diseño cuidadoso de tareas compatibles.
+\paragraph{RS Mitigation Strategies}
+Múltiples estrategias han sido propuestas para mitigar la aparición de \textit{reasoning shortcuts} en modelos NeSy. Entre los enfoques supervisados, la \textit{concept supervision} \cite{Marconato2023-NotAll} incorpora términos adicionales de pérdida con el objetivo de alinear las predicciones conceptuales con anotaciones \textit{ground-truth}. Aunque esta estrategia ha demostrado ser efectiva para reducir la aparición de RSs, su aplicabilidad está limitada por el elevado costo asociado a la obtención de anotaciones conceptuales. Además, una supervisión excesivamente detallada puede restringir el espacio de soluciones aprendidas y favorecer fenómenos de sobreajuste. En una línea similar, el \textit{multi-task learning} \cite{Marconato2023-NotAll} busca disminuir la ambigüedad conceptual mediante el entrenamiento conjunto sobre múltiples tareas que comparten representaciones conceptuales. Sin embargo, este enfoque requiere la disponibilidad de múltiples fuentes de supervisión y un diseño cuidadoso de tareas compatibles.
 
-Por otro lado, los enfoques basados en el conocimiento, como \textit{knowledge editing} \cite{Marconato2023-NotAll}, intentan reducir la ambigüedad modificando las restricciones lógicas, pero su viabilidad depende de la capacidad de intervenir sobre el conocimiento previo. Asimismo, métodos como la \textit{abductive weak supervision} \cite{Yang2024} generan pseudo-etiquetas de conceptos mediante abducción lógica, aunque pueden introducir ruido en el proceso de aprendizaje.
+Desde una perspectiva complementaria, los enfoques basados en conocimiento intentan reducir la posibilidad de shortcuts actuando directamente sobre las restricciones simbólicas. Por ejemplo, \textit{knowledge editing} \cite{Marconato2023-NotAll} modifica el conocimiento previo con el fin de disminuir la ambigüedad inherente a la tarea, aunque su efectividad depende de la posibilidad de intervenir y refinar dicho conocimiento. Asimismo, métodos como la \textit{abductive weak supervision} \cite{Yang2024} utilizan mecanismos de abducción lógica para generar pseudo-etiquetas conceptuales que complementan el proceso de entrenamiento. No obstante, la calidad de estas pseudo-etiquetas depende de la validez de las hipótesis abductivas generadas, por lo que pueden introducir ruido adicional durante el aprendizaje.
 
-Finalmente, diversas estrategias no supervisadas buscan regular el espacio de representaciones aprendidas. Entre ellas, la maximización de entropía \cite{Marconato2023-NotAll} y el \textit{concept smoothing} \cite{Yang2024} promueven distribuciones de conceptos menos deterministas, reduciendo el riesgo de ciertos tipos de RS, aunque sin garantías de alineación semántica. Métodos como la reconstrucción fomentan representaciones más informativas, pero introducen complejidad computacional adicional y dependen de supuestos sobre la estructura de los datos. Por su parte, el \textit{architectural disentanglement} \cite{Marconato2023-NotAll} restringe la expresividad del modelo procesando componentes independientes de la entrada, lo que puede reducir el espacio de shortcuts posibles, aunque requiere supuestos fuertes sobre la estructura de los datos. Adicionalmente, \cite{Stein2025} estudia los pitfalls de la programación neuro-simbólica, en donde 
+Finalmente, diversas estrategias no supervisadas buscan regular el espacio de representaciones aprendidas. Entre ellas, la maximización de entropía \cite{Marconato2023-NotAll} y el \textit{concept smoothing} \cite{Yang2024} promueven distribuciones conceptuales menos deterministas, disminuyendo la probabilidad de ciertos tipos de RSs, aunque sin ofrecer garantías de alineación semántica. Asimismo, los enfoques basados en reconstrucción favorecen el aprendizaje de representaciones más informativas, pero introducen una complejidad computacional adicional y dependen de hipótesis sobre la organización subyacente de los datos. Por su parte, el \textit{architectural disentanglement} \cite{Marconato2023-NotAll} limita la expresividad del modelo mediante el procesamiento de componentes independientes de la entrada, reduciendo potencialmente el espacio de shortcuts disponibles. Sin embargo, su efectividad depende de supuestos relativamente fuertes acerca de la estructura del dominio.
 
-En resumen, no existe una estrategia universalmente óptima. Los métodos supervisados tienden a ser más efectivos pero costosos, mientras que los no supervisados son más escalables pero menos fiables. En la práctica, la elección depende de las características de la tarea, la disponibilidad de anotaciones y el tipo de shortcuts presentes, siendo común la combinación de múltiples estrategias, aunque no siempre compatibles entre sí. En este trabajo, aprovec
+En conjunto, ninguna estrategia constituye una solución universal al problema de los \textit{reasoning shortcuts}. Los enfoques supervisados suelen ofrecer una mayor capacidad de mitigación, aunque a costa de requerir anotaciones conceptuales costosas. Por el contrario, las estrategias no supervisadas resultan más escalables, pero generalmente proporcionan garantías más débiles respecto a la alineación semántica de los conceptos aprendidos. En la práctica, la selección de una estrategia depende de las características de la tarea, la disponibilidad de supervisión conceptual y el tipo de shortcuts presentes. Por esta razón, es frecuente combinar múltiples mecanismos de mitigación, aun cuando estos no siempre sean compatibles entre sí.
 
 \paragraph{Automatic Essay Scoring} (AES) is a field that aims to develop systems that are able to assess written text with minimal human intervention \cite{Page-1966}. In Brazil, given the social importance of the national university entrance exam --- the ENEM --- different datasets have been proposed in order to create such systems \cite{amorim-veloso-2017,Essay-br,ExtendedEssay-br,propor2024,paper-lais}. These datasets, except for the last, are composed of essays sent by students to websites that simulate the ENEM exam and are evaluated either by graders of the website or by hired professionals. The last one is composed by official ENEM essays with their respective official grades.
 
@@ -91,9 +86,9 @@ Although it has been shown that this neuro-symbolic system is competitive with t
 
 \subsection{Formalización de Reasoning Shortcuts}
 
-Siguiendo la formulación de \cite{Bortolotti2024} y \cite{Marconato2023-NotAll}, consideramos tareas que requieren aprendizaje y razonamiento, las cuales predicen una etiqueta $\mathbf{y}$ a partir de una entrada de bajo nivel $\mathbf{x}$. Se asume que existe un conjunto de $k$ conceptos $\mathbf{c}^*$ de alto nivel asiciados a $\mathbf{x}$; entonces, $\mathbf{c}^*$ junto con el conocimiento previo $\mathrm{K}$, permiten inferir la etiqueta correcta $\mathbf{y}^*$ a través de una función $\beta_K: \mathbf{c^*} \mapsto \mathbf{y}$.
+Siguiendo la formulación de \cite{Bortolotti2024} y \cite{Marconato2023-NotAll}, consideramos tareas que requieren aprendizaje y razonamiento, las cuales predicen una etiqueta $\mathbf{y}$ a partir de una entrada de bajo nivel $\mathbf{x}$. Se asume que existe un conjunto de $k$ conceptos $\mathbf{c}^*$ de alto nivel asociados a $\mathbf{x}$; entonces, $\mathbf{c}^*$ junto con el conocimiento previo $\mathrm{K}$ permiten inferir la etiqueta correcta $\mathbf{y}^*$ mediante una función $\beta_K: \mathbf{c^*} \mapsto \mathbf{y}$.
 
-Un modelo neuro-simbólico puede representarse como una composición $\beta_K \circ \alpha$, donde $\alpha: \mathbf{c}^* \mapsto \mathbf{c}$ mapea los conceptos verdaderos a conceptos válidos para la predición de etiquetas. Idealmente, $\alpha$ debería recuperar los conceptos semánticamente correctos $\mathbf{c}^*$. Sin embargo, pueden existir múltiples funciones $\alpha$ que, incluso produciendo conceptos incorrectos, generan la etiqueta correcta al ser procesadas por $\beta_K$. Estas soluciones alternativas constituyen \textit{reasoning shortcuts} (RS).
+Un modelo neuro-simbólico puede representarse como una composición $\beta_K \circ \alpha$, donde $\alpha: \mathbf{c}^* \mapsto \mathbf{c}$ transforma los conceptos verdaderos en conceptos válidos para la predicción de etiquetas. Idealmente, $\alpha$ debería recuperar los conceptos semánticamente correctos $\mathbf{c}^*$. Sin embargo, pueden existir múltiples funciones $\alpha$ que, incluso produciendo conceptos incorrectos, generan la etiqueta correcta al ser procesadas por $\beta_K$. Estas soluciones alternativas corresponden a \textit{reasoning shortcuts} (RS).
 
 Formalmente, un RS ocurre cuando existe una función $\alpha$ tal que:
 \begin{equation*}
@@ -103,80 +98,101 @@ Formalmente, un RS ocurre cuando existe una función $\alpha$ tal que:
 Siguiendo \cite{Marconato2023-NotAll}, el número de óptimos deterministas (\textit{det-opts}) corresponde al número de funciones $\alpha$ que satisfacen esta condición para todos los ejemplos del conjunto de entrenamiento. Este valor puede expresarse como:
 
 \begin{equation}
-\text{det\_opts} = \sum_{\alpha\in\mathcal{A}} \mathbf{1}\left\{\bigwedge_{\mathbf{c}\in \text{supp}(\mathbf{c^*})}(\beta_K \circ \alpha)(\mathbf{c}) = \beta_k(\mathbf{c})\right\} = \prod_{\mathbf{y} \in \mathcal{Y}} |\mathcal{C}_{\mathbf{y}}|^{|\mathcal{C}_{\mathbf{y}}|}
+\text{det\_opts} = \sum_{\alpha\in\mathcal{A}} \mathbf{1}\left\{\bigwedge_{\mathbf{c}\in \text{supp}(\mathbf{c^*})}(\beta_K \circ \alpha)(\mathbf{c}) = \beta_k(\mathbf{c})\right\} = \prod_{\mathbf{y} \in \mathcal{Y}} |\mathcal{C}*{\mathbf{y}}|^{|\mathcal{C}*{\mathbf{y}}|}
 \end{equation}
 
-donde $\mathcal{C}_{\mathbf{y}}$ es el conjunto de configuraciones de conceptos que producen la etiqueta $\mathbf{y}$. Esta formulación muestra que, incluso en escenarios ideales, pueden existir múltiples soluciones óptimas que no corresponden a la semántica correcta, evidenciando la ambigüedad inherente en tareas NeSy.
+donde $\mathcal{C}_{\mathbf{y}}$ es el conjunto de configuraciones de conceptos que producen la etiqueta $\mathbf{y}$. Esta formulación evidencia que, incluso en escenarios ideales, pueden existir múltiples soluciones óptimas que no corresponden a la semántica correcta, reflejando la ambigüedad inherente a las tareas NeSy.
 
-En escenarios reales, no es posible enumerar explícitamente todas las funciones $\alpha$. En su lugar, se analiza el comportamiento del modelo entrenado $\alpha_{\text{modelo}}$ sobre un conjunto de datos $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{c}_i, \mathbf{y}_i)\}_{i=1}^N$, identificando evidencia de RS cuando:
+En escenarios reales, no es posible enumerar explícitamente todas las funciones $\alpha$. En su lugar, se analiza el comportamiento del modelo entrenado $\alpha_{\text{modelo}}$ sobre un conjunto de datos $\mathcal{D} = {(\mathbf{x}_i, \mathbf{c}_i, \mathbf{y}*i)}*{i=1}^N$, considerando evidencia de RS cuando:
 \begin{equation}
 \hat{\mathbf{y}}_i = \mathbf{y}_i \quad \wedge \quad \hat{\mathbf{c}}_i \neq \mathbf{c}_i
 \end{equation}
 
 \subsection{Definición de la Métrica Propuesta}
 
-A partir de la formalización anterior y motivados por las limitaciones de métricas existentes como el \textit{concept collapse} \cite{Bortolotti2024}, proponemos una métrica que cuantifica la proporción de predicciones correctas que son potencialmente explicadas por reasoning shortcuts.
+A partir de la formalización anterior y motivados por las limitaciones de métricas existentes como el \textit{concept collapse} \cite{Bortolotti2024}, proponemos una métrica que cuantifica la proporción de predicciones correctas potencialmente atribuibles a \textit{reasoning shortcuts}.
 
 Sea $\mathcal{D}$ un conjunto de $N$ instancias. Definimos el conjunto de aciertos del modelo como:
+
 \begin{equation}
-\mathcal{A} = \{i \mid \hat{y}_i = y_i\}
+\mathcal{A} = {i \mid \hat{y}_i = y_i}
 \end{equation}
 
 y el subconjunto de aciertos que presentan evidencia de RS como:
+
 \begin{equation}
-\mathcal{A}_{RS} = \{i \mid \hat{y}_i = y_i \wedge \hat{\mathbf{c}}_i \neq \mathbf{c}_i\}
+\mathcal{A}_{RS} = {i \mid \hat{y}_i = y_i \wedge \hat{\mathbf{c}}_i \neq \mathbf{c}_i}
 \end{equation}
 
 La métrica propuesta, denominada \textit{Reasoning Shortcut Ratio} (RSR), se define como:
+
 \begin{equation}
 RSR = \frac{|\mathcal{A}_{RS}|}{|\mathcal{A}|}
 \end{equation}
 
-Esta métrica mide la proporción de predicciones correctas que no están sustentadas en conceptos correctos, proporcionando una estimación directa del uso de shortcuts por parte del modelo.
+Esta métrica mide la proporción de predicciones correctas que no están sustentadas por conceptos semánticamente correctos, proporcionando una estimación directa del grado en que el modelo depende de shortcuts para realizar sus predicciones.
 
-Adicionalmente, proponemos una variante ponderada que considera la ambigüedad estructural del espacio de conceptos. Inspirados en el análisis de óptimos deterministas, introducimos un factor de peso basado en el tamaño del conjunto $\mathcal{C}_{y_i}$:
+Adicionalmente, proponemos una variante ponderada que considera la ambigüedad estructural del espacio conceptual. Inspirados en el análisis de óptimos deterministas, introducimos un factor de ponderación basado en el tamaño del conjunto $\mathcal{C}_{y_i}$:
+
 \begin{equation}
-RSR_w = \frac{\sum_{i \in \mathcal{A}_{RS}} \log \frac{1}{|\mathcal{C}_{y_i}|}}{\sum_{i \in \mathcal{A}} \log \frac{1}{|\mathcal{C}_{y_i}|}}
+RSR_w = \frac{\sum_{i \in \mathcal{A}*{RS}} \log \frac{1}{|\mathcal{C}*{y_i}|}}{\sum_{i \in \mathcal{A}} \log \frac{1}{|\mathcal{C}_{y_i}|}}
 \end{equation}
 
-En esta formulación, el término $\log |\mathcal{C}_{y_i}|^{-1}$ asigna mayor peso a instancias con baja ambigüedad estructural (i.e., cuando existen pocas configuraciones de conceptos que explican la etiqueta), y menor peso a aquellas con alta ambigüedad. De esta manera, la métrica prioriza la detección de shortcuts en escenarios donde estos son más críticos desde el punto de vista semántico.
+En esta formulación, el término $\log |\mathcal{C}_{y_i}|^{-1}$ asigna un mayor peso a las instancias con baja ambigüedad estructural (i.e., cuando existen pocas configuraciones conceptuales que explican la etiqueta) y un menor peso a aquellas con alta ambigüedad. De esta manera, la métrica prioriza la detección de shortcuts en escenarios donde estos resultan más críticos desde una perspectiva semántica.
 
-Finalmente, la métrica propuesta permite: $i)$ detectar el uso de reasoning shortcuts en modelos NeSy. $ii)$ Comparar modelos más allá de métricas tradicionales como accuracy. $iii)$ Analizar el impacto de la ambigüedad conceptual en el aprendizaje.
-
+Finalmente, la métrica propuesta permite: $(i)$ detectar el uso de \textit{reasoning shortcuts} en modelos NeSy; $(ii)$ comparar modelos más allá de métricas tradicionales como la \textit{accuracy}; y $(iii)$ analizar el impacto de la ambigüedad conceptual en el proceso de aprendizaje.
 
 \subsubsection{Extensión probabilística}
 
 Hasta ahora, las métricas propuestas consideran únicamente decisiones puntuales del modelo. Sin embargo, muchos modelos NeSy modernos producen distribuciones de probabilidad sobre los conceptos. Para capturar esta información, extendemos la métrica a un marco probabilístico.
 
-Sea un modelo que define una distribución $p_\theta(c \mid x)$ sobre el espacio de conceptos dado una entrada $x$. Nos enfocamos en instancias donde el modelo predice correctamente la etiqueta, es decir, $\hat{y}_i = y_i$. En este caso, evaluamos en qué medida el modelo asigna probabilidad al concepto correcto $c_i$. Definimos el grado de shortcut por instancia como:
+Sea un modelo que define una distribución $p_\theta(c \mid x)$ sobre el espacio de conceptos dada una entrada $x$. Nos enfocamos en instancias para las cuales el modelo predice correctamente la etiqueta, es decir, $\hat{y}_i = y_i$. En este contexto, evaluamos en qué medida el modelo asigna probabilidad al concepto correcto $c_i$. Definimos el grado de shortcut por instancia como:
+
 \begin{equation}
-RS^{\text{prob}}_i = 1 - p_\theta(c_i \mid x_i)
+RS^{\text{prob}}*i = 1 - p*\theta(c_i \mid x_i)
 \end{equation}
 
-Esta cantidad mide el \textit{desajsute probabilístico} entre el modelo y el concepto correcto. Un valor alto indica que, a pesar de predecir correctamente la etiqueta, el modelo asigna baja probabilidad al concepto verdadero, lo que sugiere el uso de explicaciones alternativas (shortcuts). Por el contrario, valores cercanos a cero indican que la predicción correcta está respaldada por una representación conceptual coherente.
+Esta cantidad mide el \textit{desajuste probabilístico} entre el modelo y el concepto correcto. Un valor alto indica que, a pesar de predecir correctamente la etiqueta, el modelo asigna una baja probabilidad al concepto verdadero, lo que sugiere el uso de explicaciones alternativas (shortcuts). Por el contrario, valores cercanos a cero indican que la predicción correcta está respaldada por una representación conceptual coherente.
 
 A partir de esta definición local, proponemos una métrica global que agrega este comportamiento sobre todas las predicciones correctas, incorporando además la ambigüedad estructural del problema:
+
 \begin{equation}
-D^{\text{prob}}_{\text{modelo}} =
-\sum_{i: \hat{y}_i = y_i}
-\big(1 - p_\theta(c_i \mid x_i)\big)\,\log (|R(y_i)| -1)
+D^{\text{prob}}_{\text{model}} =
+- \sum_{i: \hat{y}_i = y_i}
+\big(1 - p_\theta(c_i \mid x_i)\big)\,\log (|C(y_i)|)
 \end{equation}
 
+y su versión normalizada:
+
+\begin{equation}
+D^{\text{prob}}*{\text{model}} =
+\frac{
+\sum*{i: \hat{y}*i = y_i}
+\big(1 - p*\theta(c_i \mid x_i)\big), (-\log |C_{y_i}|)
+}{
+\sum_{i: \hat{y}*i = y_i}
+(-\log |C*{y_i}|)
+}
+\end{equation}
+
+Nótese que $-\log |C_{y_i}| = \log (|C_{y_i}|^{-1})$; sin embargo, utilizamos la primera expresión por simplicidad notacional.
+
 Esta métrica cuantifica el \textit{grado esperado de uso de shortcuts} del modelo. Cada término pondera dos factores complementarios:
+
 \begin{enumerate}
-    \item \textbf{Intensidad del shortcut:} capturada por $1 - p_\theta(c_i \mid x_i)$, que refleja cuán poco probable considera el modelo al concepto correcto.
-    \item \textbf{Ambigüedad estructural:} capturada por $\log (|R(y_i)| -1)$, que mide cuántas configuraciones conceptuales pueden producir la misma etiqueta.
+\item \textbf{Intensidad del shortcut:} capturada por $1 - p_\theta(c_i \mid x_i)$, que refleja cuán improbable considera el modelo al concepto correcto.
+\item \textbf{Ambigüedad estructural:} capturada por $-\log |C_{y_i}|$, que refleja el grado de ambigüedad asociado a la etiqueta y mide cuántas configuraciones conceptuales pueden producir el mismo resultado.
 \end{enumerate}
 
-De esta manera, la métrica asigna mayor peso a shortcuts en regiones del espacio donde existen múltiples explicaciones posibles, alineándose con el análisis teórico de óptimos deterministas.
+De esta manera, la métrica asigna un mayor peso a los shortcuts que ocurren en regiones del espacio conceptual donde existen múltiples explicaciones plausibles, alineándose con el análisis teórico de los óptimos deterministas.
 
 En conjunto, esta extensión permite ir más allá de la detección binaria de shortcuts, capturando su \textit{intensidad} y proporcionando una caracterización más fina y continua del comportamiento del modelo.
 
 \subsection{Escenarios Experimentales}
 
-En el examen ENEM, los ensayos son evaluados a partir de cinco \textit{criterios}. En este trabajo nos enfocamos en el primero de ellos, C1, el cual evalúa el dominio de la modalidad escrita formal del idioma. Este criterio se descompone en nueve subcriterios organizados en dos dimensiones: (i) \textit{syntax}, con cinco niveles (non-existing, deficitary, regular, good, excellent), y (ii) \textit{mistakes}, con cuatro niveles (many mistakes, some mistakes, few mistakes, maximum 2 mistakes). Estas dimensiones son codificadas como variables ordinales, donde \textit{syntax} toma valores en $\{0, \dots, 4\}$ y \textit{mistakes} en $\{0, \dots, 3\}$.
+En el examen ENEM, los ensayos son evaluados a partir de cinco \textit{criterios}. En este trabajo nos enfocamos en el primero de ellos, C1, que evalúa el dominio de la modalidad escrita formal del idioma. Este criterio se descompone en nueve subcriterios organizados en dos dimensiones: (i) \textit{syntax}, con cinco niveles (\textit{non-existing}, \textit{deficitary}, \textit{regular}, \textit{good} y \textit{excellent}), y (ii) \textit{mistakes}, con cuatro niveles (\textit{many mistakes}, \textit{some mistakes}, \textit{few mistakes} y \textit{maximum 2 mistakes}). Estas dimensiones se codifican como variables ordinales, donde \textit{syntax} toma valores en $\{0, \dots, 4\}$ y \textit{mistakes} en $\{0, \dots, 3\}$.
 
-El puntaje final de C1 se obtiene mediante un conjunto de reglas lógicas derivadas directamente de la rúbrica oficial del ENEM, las cuales definen una función determinista $K$ que asigna un \textit{score} en función de ambas dimensiones:
+El puntaje final de C1 se obtiene mediante un conjunto de reglas lógicas derivadas directamente de la rúbrica oficial del ENEM. Dichas reglas definen una función determinista $K$ que asigna un \textit{score} en función de ambas dimensiones:
 
 \[
 K = \left\{
@@ -196,54 +212,102 @@ K = \left\{
 
 \subsubsection{Datasets}
 %JBCS \cite{propor2024} e Subcriteria \cite{feedbackpropor}
-Utilizamos el \textit{Subcriteria dataset} \cite{feedbackpropor}, el cual fue construido específicamente para modelar los subcriterios definidos en la rúbrica del ENEM. Este dataset se compone de dos fuentes: \textit{Source A}, que contiene 63 ensayos anotados manualmente por el experto A con sus respectivos subcriterios, y \textit{Source B}, que incluye los ensayos evaluados por el experto B bajo el mismo esquema. Ambas particiones contienen tanto las anotaciones a nivel de subcriterio como las calificaciones finales.
+Utilizamos el \textit{Subcriteria dataset} \cite{feedbackpropor}, construido específicamente para modelar los subcriterios definidos en la rúbrica del ENEM. Este conjunto de datos se compone de dos fuentes: \textit{Source A}, que incluye 63 ensayos anotados manualmente por el experto A junto con sus respectivos subcriterios, y \textit{Source B}, que comprende los ensayos evaluados por el experto B bajo el mismo esquema de anotación. Ambas particiones incluyen tanto las anotaciones a nivel de subcriterio como las calificaciones finales.
 
-Adicionalmente, empleamos el \textit{AES ENEM dataset} \cite{propor2024}, que contiene 770 ensayos con sus calificaciones a nivel de \textit{criterio} y nota final, pero sin anotaciones explícitas de subcriterios.
+Adicionalmente, empleamos el \textit{AES ENEM dataset} \cite{propor2024}, compuesto por 770 ensayos con sus calificaciones a nivel de \textit{criterio} y nota final, pero sin anotaciones explícitas de subcriterios.
+
 
 \subsubsection{Modelos Evaluados}
 %Distant learning on Subcriteria, supervised learning on Subcriteria
-Consideramos el sistema de \textit{Automatic Essay Scoring} propuesto en \cite{feedbackpropor}, el cual sigue un enfoque neuro-simbólico basado en \textit{Scallop}. En este sistema, modelos de lenguaje (LLMs) son utilizados para predecir los subcriterios a partir de los ensayos, mientras que las reglas lógicas de la rúbrica se utilizan para inferir el puntaje final.
+
+Consideramos el sistema de \textit{Automatic Essay Scoring} propuesto en \cite{feedbackpropor}, el cual sigue un enfoque neuro-simbólico basado en \textit{Scallop}. En este sistema, modelos de lenguaje (LLMs) se utilizan para predecir los subcriterios a partir de los ensayos, mientras que las reglas lógicas de la rúbrica permiten inferir el puntaje final.
 
 Esta arquitectura permite definir distintos escenarios experimentales:
 
 \begin{itemize}
-    \item \textbf{Distant learning:} utilizamos dos subredes preentrenadas (una para cada dimensión: \textit{syntax} y \textit{mistakes}) siguiendo \cite{feedbackpropor}. Estas predicciones son luego combinadas mediante el programa lógico en Scallop para obtener el score de C1. La evaluación se realiza sobre el Subcriteria dataset.
+\item \textbf{Distant learning:} entrenamos dos subredes \textit{BERTimbau} (una para cada dimensión: \textit{syntax} y \textit{mistakes}) sobre el dataset \cite{propor2024}. Posteriormente, estas predicciones se combinan mediante el programa lógico implementado en Scallop para obtener el score de C1. La evaluación se realiza sobre el Subcriteria dataset.
 
-    \item \textbf{Semi-supervised learning:} dado que las anotaciones de subcriterios son limitadas, entrenamos dos modelos \textit{BERTimbau} para predecir las dimensiones latentes utilizando el AES ENEM dataset. En ausencia de anotaciones explícitas de subcriterios, incorporamos las restricciones de las reglas lógicas como una penalización en la función de pérdida. Este escenario permite analizar la estrategia de mitigación \textit{concept supervision} propuesta en \cite{Marconato2023-NotAll}.
+\item \textbf{Semi-supervised learning:} dado que las anotaciones de subcriterios son limitadas, entrenamos dos modelos \textit{BERTimbau} para predecir las dimensiones latentes utilizando el dataset AES ENEM \cite{propor2024}. En ausencia de anotaciones explícitas de subcriterios, incorporamos las restricciones derivadas de las reglas lógicas como un término de penalización en la función de pérdida. Este escenario permite analizar una estrategia de mitigación basada en \textit{concept supervision}, propuesta en \cite{Marconato2023-NotAll}.
 
-    \item \textbf{Pretrained learning:} utilizamos dos subredes preentrenadas propuestas en \cite{feedbackpropor}, estas redes fueron entrenadas usando LLMs para predecir de forma independiente las dimensiones \textit{syntax} y \textit{mistakes}. La evaluación se realiza sobre el Subcriteria dataset.
+\item \textbf{Distant learning pretrained:} utilizamos dos subredes preentrenadas (una para cada dimensión: \textit{syntax} y \textit{mistakes}) siguiendo la configuración propuesta en \cite{feedbackpropor}. Estas redes fueron entrenadas utilizando LLMs para predecir de forma independiente las dimensiones \textit{syntax} y \textit{mistakes}. La evaluación se realiza sobre el Subcriteria dataset.
+
 \end{itemize}
+
 
 \subsection{Métricas de evaluación}
 
-Evaluamos los modelos considerando múltiples niveles de análisis. En primer lugar, reportamos la \textit{accuracy} de la predicción final del score de C1. En segundo lugar, utilizamos matrices de confusión a nivel de conceptos, que permiten analizar la calidad de las predicciones intermedias y detectar patrones asociados a \textit{reasoning shortcuts} \cite{Bortolotti2024}.
+Evaluamos los modelos considerando múltiples niveles de análisis. En primer lugar, reportamos la \textit{accuracy} de la predicción final del score de C1. En segundo lugar, utilizamos matrices de confusión a nivel conceptual, las cuales permiten analizar la calidad de las predicciones intermedias e identificar patrones potencialmente asociados a \textit{reasoning shortcuts} \cite{Bortolotti2024}.
 
-Finalmente, incorporamos nuestra métrica propuesta, \textit{RSR ponderada}, junto con su extensión probabilística, lo que nos permite cuantificar el grado esperado en el que un modelo recurre a shortcuts durante el proceso de inferencia.
+Finalmente, incorporamos la métrica propuesta $RSR_w$, junto con su extensión probabilística $D^{\text{prob}}_{\text{model}}$, lo que nos permite cuantificar el grado esperado en que un modelo recurre a shortcuts durante el proceso de inferencia.
+
 
 \section{Resultados y Discusión} \label{sec:results}
 
-En esta sección presentamos los resultados obtenidos de nuestros experimentos.
+En esta sección presentamos los resultados obtenidos en nuestros experimentos.
 
-
-\begin{center}
+\begin{table}[ht]
+\centering
 \begin{tabular}{lccc}
 \toprule
-Escenário & Accuracy & $RSR_w$ & $RSR_{prob}$ \\
+Escenario & Accuracy & $RSR_w$ & $D^{\text{prob}}_{\text{model}}$ \\
 \midrule
-Distant learning & 0.6 & 0.30 & 0.52 \\
-Semi-supervised learning & 0.7 & 0.28 & 0.50 \\
+Distant learning & 0.65 & 0.94 & 0.59 \\
+Semi-supervised learning & 0.65 & 0.94 & 0.59 \\
+Pretrained & 0.70 & 0.29 & 0.52 \\
 \bottomrule
 \end{tabular}
-\end{center}
+\caption{Summary of metrics from the three experimental scenarios: accuracy, Reasoning Shortcut Ratio (weighted) and expected degree of shortcut usage}
+\label{tab:results}
+\end{table}
 
+Las matrices de confusión conceptuales conjuntas (Figure~\ref{fig:confusionmatrix}) ofrecen una visión más profunda del comportamiento capturado por las métricas propuestas. Tanto en el escenario de \textit{distant learning} como en el de \textit{semi-supervised learning}, observamos un patrón claro de colapso conceptual, donde múltiples configuraciones conceptuales reales son asignadas a un subconjunto reducido de conceptos predichos. En particular, varias etiquetas verdaderas como $(2,1)$, $(2,2)$ y $(3,1)$ son asignadas sistemáticamente a $(3,1)$ o $(3,3)$ (Figure~\ref{fig:cm_DLBert}, Figure~\ref{fig:cm_SemiSupervised}), lo que indica que el modelo aprende a apoyarse en unas pocas configuraciones conceptuales suficientes para satisfacer las restricciones lógicas de la tarea.
+
+Este comportamiento explica directamente la elevada proporción de shortcuts observada ($RSR_w = 0,94$) (Table~\ref{tab:results}), ya que el modelo produce con frecuencia predicciones finales correctas a pesar de basarse en conceptos intermedios incorrectos. Es importante destacar que el escenario semisupervisado presenta patrones de confusión prácticamente idénticos, lo que sugiere que incorporar restricciones lógicas como término de penalización en la función de pérdida resulta insuficiente para evitar el colapso conceptual en esta tarea.
+
+En contraste, el escenario preentrenado presenta una estructura sustancialmente diferente. La matriz de confusión muestra una mayor concentración de masa en la diagonal principal, lo que indica una mejor alineación entre los conceptos predichos y los conceptos verdaderos. Aunque aún se observan errores, estos tienden a ser semánticamente más cercanos (por ejemplo, $(3,2)$ se clasifica erróneamente como $(4,2)$) (Figure~\ref{fig:cm_Pretrained}), en lugar de converger hacia una única configuración dominante. Como consecuencia, se obtiene una proporción de shortcuts significativamente menor ($RSR_w = 0,29$) (Table~\ref{tab:results}), lo que sugiere que la supervisión explícita de conceptos mejora tanto la fidelidad conceptual como la calidad del razonamiento del modelo.
+
+Sin embargo, la métrica probabilística muestra una mejora más moderada, lo que sugiere que, incluso cuando los shortcuts son menos frecuentes, el modelo aún puede asignar una probabilidad considerable a conceptos incorrectos. Este resultado resalta la naturaleza complementaria de las métricas propuestas: mientras que $RSR_w$ captura la frecuencia con la que el modelo recurre a shortcuts, $D^{\text{prob}}_{\text{model}}$ refleja la intensidad de dichos shortcuts.
+
+\begin{figure}[ht]
+\centering
+\begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{Template_SBC/template-latex/cm_DLBert.png}
+    \caption{Distant learning using BERTimbau}
+    \label{fig:cm_DLBert}
+\end{subfigure}
+\begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{Template_SBC/template-latex/cm_SemiSupervised.png}
+    \caption{Semi-supervised learning}
+    \label{fig:cm_SemiSupervised}
+\end{subfigure}
+\hfill
+\begin{subfigure}[t]{0.48\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{Template_SBC/template-latex/cm_Pretrained.png}
+    \caption{Distant learning using pretrained subnetworks}
+    \label{fig:cm_Pretrained}
+\end{subfigure}
+\caption{Concept-level confusion matrices show learned concepts versus truth concepts.}
+\label{fig:confusionmatrix}
+\end{figure}
 
 \section{Conclusiones} \label{sec:conclusion}
 
-\paragraph{Resumen de Contribuciones}
-\paragraph{Limitaciones}
-\paragraph{Trabajo Futuro}
+En este trabajo abordamos el problema de los \textit{reasoning shortcuts} en modelos neuro-simbólicos, proponiendo una métrica cuantitativa que permite estimar en qué medida las predicciones correctas de un modelo están respaldadas por representaciones conceptuales correctas. En particular, introdujimos el \textit{Reasoning Shortcut Ratio} ($RSR$) y su variante ponderada ($RSR_w$), que incorpora la ambigüedad estructural del espacio conceptual. Además, extendimos esta formulación a un escenario probabilístico mediante $D^{\text{prob}}_{\text{model}}$, lo que permite capturar no solo la presencia de shortcuts, sino también su intensidad.
 
-\section{Referencias}
+A través de experimentos en el dominio de evaluación automática de ensayos (ENEM), mostramos que métricas tradicionales como la accuracy pueden ocultar comportamientos no deseados. En particular, observamos que modelos con un desempeño similar pueden diferir drásticamente en el uso de shortcuts. Finalmente, nuestros resultados sugieren que las estrategias basadas en supervisión directa de conceptos pueden ser más efectivas para mitigar shortcuts que los enfoques indirectos basados en regularización lógica. Sin embargo, esta observación debe interpretarse con cautela, ya que puede estar influenciada por la limitada disponibilidad de anotaciones conceptuales \textit{ground-truth}, lo cual podría afectar tanto el proceso de entrenamiento como la evaluación. En este sentido, nuestros resultados destacan la importancia de evaluar explícitamente la calidad del razonamiento en modelos NeSy.
+
+
+\paragraph{Limitaciones}
+Este trabajo presenta algunas limitaciones que abren oportunidades para futuras investigaciones. En primer lugar, las métricas $RSR$ y $RSR_w$ dependen de la disponibilidad de anotaciones a nivel conceptual, las cuales pueden no estar disponibles en todos los dominios. En segundo lugar, la estimación de la ambigüedad estructural se basa en el tamaño de los conjuntos $\mathcal{C}_{y}$, lo que asume un conocimiento completo de las reglas que conectan los conceptos con las etiquetas. En escenarios más complejos o con reglas parcialmente desconocidas, esta estimación podría resultar difícil de obtener.
+
+Adicionalmente, si bien el análisis experimental se centra en un caso de estudio específico (evaluación de ensayos en el ENEM), sería necesario validar la generalidad de las métricas propuestas en otros dominios neuro-simbólicos.
+
+
+\paragraph{Trabajo Futuro}
+Como líneas de trabajo futuro, proponemos extender estas métricas a escenarios en los que los conceptos no estén explícitamente definidos o sean latentes, explorando posibles conexiones con el aprendizaje auto-supervisado y los modelos generativos. Asimismo, sería interesante investigar mecanismos de entrenamiento que penalicen explícitamente el uso de shortcuts, incorporando las métricas propuestas directamente en la función de pérdida.
 
 \bibliographystyle{sbc}
 \bibliography{sbc-template}
