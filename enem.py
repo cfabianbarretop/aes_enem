@@ -123,15 +123,15 @@ class MNISTNet(nn.Module):
   def __init__(self):
     super(MNISTNet, self).__init__()
     self.sintaxe = AutoModelForSequenceClassification.from_pretrained(
-                # "neuralmind/bert-base-portuguese-cased",
-                "igorcs/Syntax-A",
+                "neuralmind/bert-base-portuguese-cased",
+                # "igorcs/Syntax-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=5,
             )
     
     self.desvios = AutoModelForSequenceClassification.from_pretrained( 
-                # "neuralmind/bert-base-portuguese-cased",
-                "igorcs/Mistakes-A",
+                "neuralmind/bert-base-portuguese-cased",
+                # "igorcs/Mistakes-A",
                 cache_dir="/tmp/aes_enem2",
                 num_labels=4,
             )
@@ -198,7 +198,7 @@ def logic_loss_syntax(probs, grades):
         1:[1],
         2:[1,2,3,4],
         3:[2,3,4],
-        4:[4],
+        4:[3,4],
         5:[4]
     }
     for i in range(len(grades)):
@@ -214,7 +214,7 @@ def logic_loss_mistake(probs, grades):
         1:[0],
         2:[0,1,2,3],
         3:[1,2,3],
-        4:[2],
+        4:[2,3],
         5:[3]
     }
     loss = 0
@@ -389,14 +389,14 @@ class Trainer():
     self.test(0)
     for epoch in range(1, n_epochs + 1):
       print("-----------------------------> EPOCH: ",epoch)
-      # self.train_epoch(epoch)
+      self.train_epoch(epoch)
       self.test(epoch)
     save_shortcut_metrics(self.shortcut_metrics)
 
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=5)
+  parser.add_argument("--n-epochs", type=int, default=20)
   parser.add_argument("--batch-size-train", type=int, default=1)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.000001)
