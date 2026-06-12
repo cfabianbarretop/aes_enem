@@ -24,6 +24,60 @@ mnist_img_transform = torchvision.transforms.Compose([
   )
 ])
 
+class MNISTAdditionLevelDataset(
+    torch.utils.data.Dataset
+):
+
+    def __init__(self, file_name):
+
+        self.data = torch.load(
+            file_name,
+            weights_only=False
+        )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+
+        sample = self.data[idx]
+
+        return (
+            sample["x1"],
+            sample["x2"],
+            sample["z1"],
+            sample["z2"],
+            sample["y"]
+        )
+
+    @staticmethod
+    def collate_fn(batch):
+
+        a_imgs = torch.stack(
+            [item[0] for item in batch]
+        )
+
+        b_imgs = torch.stack(
+            [item[1] for item in batch]
+        )
+
+        a_digits = torch.tensor(
+            [item[2] for item in batch]
+        ).long()
+
+        b_digits = torch.tensor(
+            [item[3] for item in batch]
+        ).long()
+
+        digits = torch.tensor(
+            [item[4] for item in batch]
+        ).long()
+
+        return (
+            (a_imgs, b_imgs),
+            (a_digits, b_digits, digits)
+        )
+
 class MNISTSum2Dataset(torch.utils.data.Dataset):
   def __init__(
     self,
@@ -65,7 +119,13 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
 
 
-def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
+def mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test):
+  # train_loader = torch.utils.data.DataLoader(
+  #       MNISTAdditionLevelDataset(train_file),
+  #       batch_size=batch_size_train,
+  #       shuffle=True,
+  #       collate_fn=MNISTAdditionLevelDataset.collate_fn
+  #   )
   train_loader = torch.utils.data.DataLoader(
     MNISTSum2Dataset(
       data_dir,
@@ -228,6 +288,7 @@ def save_shortcut_metrics(file_name, metric):
             "epoch",
             "loss",
             "acc",
+            "GAcc",
             "gt",
             "rs",
             "RSR",
@@ -241,6 +302,7 @@ def save_shortcut_metrics(file_name, metric):
                 row["epoch"],
                 row["loss"],
                 row["acc"],
+                row["GAcc"],
                 row["gt"],
                 row["rs"],
                 row["RSR"],
@@ -266,7 +328,10 @@ class Trainer():
 
   def train_epoch(self, epoch):
     self.network.train()
+    num_items = len(self.train_loader.dataset)
     iter = tqdm(self.train_loader, total=len(self.train_loader))
+    correct = 0
+    correct_concepts = 0
     c1 = []
     pc1 = []
     c2 = []
@@ -298,15 +363,27 @@ class Trainer():
       pb.extend(t_pb.tolist())
       y.extend(target.tolist())
       loss = self.loss(output, target)
+      pred = output.data.max(1, keepdim=True)[1]
+      correct += pred.eq(target.data.view_as(pred)).sum()
+      perc = 100. * correct / num_items
       loss.backward()
       self.optimizer.step()
-      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
+      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
     gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+    gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+    correct_concepts = (
+        sum(gt == pred for gt, pred in zip(g1, c1))
+        +
+        sum(gt == pred for gt, pred in zip(g2, c2))
+    )
+    total_concepts = 2 * len(g1)
+    gacc = 100.0 * correct_concepts / total_concepts
     save_file("train_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
     self.shortcut_metrics_train.append({
         "epoch": epoch,
         "loss": loss.item(),
-        "acc": 0,
+        "acc": perc.item(),
+        "GAcc": gacc,
         "gt": gt,
         "rs": rs,
         "RSR": rsr,
@@ -320,6 +397,7 @@ class Trainer():
     num_items = len(self.test_loader.dataset)
     test_loss = 0
     correct = 0
+    correct_concepts = 0
     c1 = []
     pc1 = []
     c2 = []
@@ -357,11 +435,19 @@ class Trainer():
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
       gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+      correct_concepts = (
+          sum(gt == pred for gt, pred in zip(g1, c1))
+          +
+          sum(gt == pred for gt, pred in zip(g2, c2))
+      )
+      total_concepts = 2 * len(g1)
+      gacc = 100.0 * correct_concepts / total_concepts
       save_file("test_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
       self.shortcut_metrics_test.append({
           "epoch": epoch,
           "loss": test_loss,
           "acc": perc.item(),
+          "GAcc": gacc,
           "gt": gt,
           "rs": rs,
           "RSR": rsr,
@@ -413,7 +499,7 @@ if __name__ == "__main__":
   print("PATH data -> ", data_dir)
 
   # Dataloaders
-  train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
+  train_loader, test_loader = mnist_sum_2_loader("mnist_addition_level_III.pt", data_dir, batch_size_train, batch_size_test)
   print("Dataset mnist")
   print("Train -> ", len(train_loader))
   print("Test -> ", len(test_loader))

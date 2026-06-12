@@ -13,7 +13,7 @@ from torchvision import transforms
 DATA_DIR = "./data"
 N_SAMPLES = 30000
 
-EASY_SUMS = [0, 1, 2, 3, 15, 16, 17, 18]
+EASY_SUMS = [0, 1, 2, 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 18]
 HARD_SUMS = [7, 8, 9, 10, 11]
 
 LEVELS = {
