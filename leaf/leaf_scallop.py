@@ -81,7 +81,7 @@ def leaf_loader(data_dir, batch_size_train, batch_size_test):
 
 class LeafClassifierNet(nn.Module):
 
-    def __init__(self, num_classes):
+    def __init__(self):
         super().__init__()
 
         self.conv = nn.Sequential(
@@ -94,18 +94,26 @@ class LeafClassifierNet(nn.Module):
             nn.MaxPool2d(2)
         )
 
-        self.fc = nn.Sequential(
+        self.features = nn.Sequential(
             nn.Flatten(),
             nn.Linear(32*56*56,128),
-            nn.ReLU(),
-            nn.Linear(128,num_classes), # 11 species
-            nn.Softmax(dim=1)
+            nn.ReLU()
         )
 
-    def forward(self,x):
+        self.c1_head = nn.Linear(128, 6)
+        self.c2_head = nn.Linear(128, 5)
+        self.c3_head = nn.Linear(128, 4)
+
+    def forward(self, x):
+
         x = self.conv(x)
-        x = self.fc(x)
-        return x 
+        h = self.features(x)
+
+        margin = F.softmax(self.c1_head(h), dim=1)
+        shape = F.softmax(self.c2_head(h), dim=1)
+        texture = F.softmax(self.c3_head(h), dim=1)
+
+        return margin, shape, texture 
     
 # ==============================================
 # Modelo Lógico
@@ -115,19 +123,31 @@ class LeafClassifierLog(nn.Module):
    def __init__(self, provenance, k):
       super(LeafClassifierLog, self).__init__()
       # Neural network classification
-      self.leaf_net = LeafClassifierNet(num_classes=11)
+      self.leaf_net = LeafClassifierNet()
 
       # Scallop Context
       self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
-      self.scl_ctx.add_relation("leaf", int, input_mapping=list(range(11)))
-      self.scl_ctx.add_rule("species(a) :- leaf(a)")
+      self.scl_ctx.add_relation("margin", int, input_mapping=list(range(6)))
+      self.scl_ctx.add_relation("shape", int, input_mapping=list(range(6)))
+      self.scl_ctx.add_relation("texture", int, input_mapping=list(range(6)))
+      self.scl_ctx.add_rule("species(0) :- margin(0), shape(3), texture(1)")
+      self.scl_ctx.add_rule("species(1) :- margin(4), shape(0), texture(0)")
+      self.scl_ctx.add_rule("species(2) :- margin(2), shape(4), texture(2)")
+      self.scl_ctx.add_rule("species(3) :- margin(0), shape(1), texture(0)")
+      self.scl_ctx.add_rule("species(4) :- margin(3), shape(4), texture(2)")
+      self.scl_ctx.add_rule("species(5) :- margin(2), shape(4), texture(3)")
+      self.scl_ctx.add_rule("species(6) :- margin(0), shape(4), texture(0)")
+      self.scl_ctx.add_rule("species(7) :- margin(0), shape(0), texture(3)")
+      self.scl_ctx.add_rule("species(8) :- margin(0), shape(2), texture(0)")
+      self.scl_ctx.add_rule("species(9) :- margin(0), shape(2), texture(1)")
+      self.scl_ctx.add_rule("species(10) :- margin(0), shape(0), texture(2)")
 
       self.specie = self.scl_ctx.forward_function("species", output_mapping=[(i,) for i in range(11)])
     
    def forward(self, x: Tuple[torch.Tensor]):
       img = x
-      img_distrs = self.leaf_net(img)
-      return img_distrs, self.specie(leaf=img_distrs)
+      margin, shape, texture = self.leaf_net(img)
+      return margin, self.specie(margin=margin, shape=shape, texture=texture)
 
 # ==============================================
 # Calculo de error
