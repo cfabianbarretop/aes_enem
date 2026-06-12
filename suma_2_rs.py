@@ -1,0 +1,424 @@
+import os
+import random
+from typing import *
+import csv
+import math
+import torch
+import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+
+from argparse import ArgumentParser
+from tqdm import tqdm
+
+import scallopy
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print("Device: ", device)
+
+mnist_img_transform = torchvision.transforms.Compose([
+  torchvision.transforms.ToTensor(),
+  torchvision.transforms.Normalize(
+    (0.1307,), (0.3081,)
+  )
+])
+
+class MNISTSum2Dataset(torch.utils.data.Dataset):
+  def __init__(
+    self,
+    root: str,
+    train: bool = True,
+    transform: Optional[Callable] = None,
+    target_transform: Optional[Callable] = None,
+    download: bool = False,
+  ):
+    # Contains a MNIST dataset
+    self.mnist_dataset = torchvision.datasets.MNIST(
+      root,
+      train=train,
+      transform=transform,
+      target_transform=target_transform,
+      download=download,
+    )
+    self.index_map = list(range(len(self.mnist_dataset)))
+    random.shuffle(self.index_map)
+
+  def __len__(self):
+    return int(len(self.mnist_dataset) / 2)
+
+  def __getitem__(self, idx):
+    # Get two data points
+    (a_img, a_digit) = self.mnist_dataset[self.index_map[idx * 2]]
+    (b_img, b_digit) = self.mnist_dataset[self.index_map[idx * 2 + 1]]
+
+    # Each data has two images and the GT is the sum of two digits
+    return (a_img, b_img, a_digit, b_digit, a_digit + b_digit)
+
+  @staticmethod
+  def collate_fn(batch):
+    a_imgs = torch.stack([item[0] for item in batch])
+    b_imgs = torch.stack([item[1] for item in batch])
+    a_digits = torch.stack([torch.tensor(item[2]).long() for item in batch])
+    b_digits = torch.stack([torch.tensor(item[3]).long() for item in batch])
+    digits = torch.stack([torch.tensor(item[4]).long() for item in batch])
+    return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
+
+
+def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
+  train_loader = torch.utils.data.DataLoader(
+    MNISTSum2Dataset(
+      data_dir,
+      train=True,
+      download=True,
+      transform=mnist_img_transform,
+    ),
+    collate_fn=MNISTSum2Dataset.collate_fn,
+    batch_size=batch_size_train,
+    shuffle=True
+  )
+
+  test_loader = torch.utils.data.DataLoader(
+    MNISTSum2Dataset(
+      data_dir,
+      train=False,
+      download=True,
+      transform=mnist_img_transform,
+    ),
+    collate_fn=MNISTSum2Dataset.collate_fn,
+    batch_size=batch_size_test,
+    shuffle=True
+  )
+
+  return train_loader, test_loader
+
+
+class MNISTNet(nn.Module):
+  def __init__(self):
+    super(MNISTNet, self).__init__()
+    self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+    self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+    self.fc1 = nn.Linear(1024, 1024)
+    self.fc2 = nn.Linear(1024, 10)
+
+  def forward(self, x):
+    x = F.max_pool2d(self.conv1(x), 2)
+    x = F.max_pool2d(self.conv2(x), 2)
+    x = x.view(-1, 1024)
+    x = F.relu(self.fc1(x))
+    x = F.dropout(x, p = 0.5, training=self.training)
+    x = self.fc2(x)
+    return F.softmax(x, dim=1)
+
+
+class MNISTSum2Net(nn.Module):
+  def __init__(self, provenance, k):
+    super(MNISTSum2Net, self).__init__()
+
+    # MNIST Digit Recognition Network
+    self.mnist_net = MNISTNet()
+
+    # Scallop Context
+    self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
+    self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
+    self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
+    self.scl_ctx.add_rule("sum_2(a + b) :- digit_1(a), digit_2(b)")
+
+    # The `sum_2` logical reasoning module
+    # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
+    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(19)])
+
+  def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
+    (a_imgs, b_imgs) = x
+
+    # First recognize the two digits
+    a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
+    b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
+
+    # Then execute the reasoning module; the result is a size 19 tensor
+    return a_distrs, b_distrs, self.sum_2(digit_1=a_distrs, digit_2=b_distrs) # Tensor 64 x 19 
+
+
+def bce_loss(output, ground_truth):
+  (_, dim) = output.shape
+  gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
+  return F.binary_cross_entropy(output, gt)
+
+
+def nll_loss(output, ground_truth):
+  return F.nll_loss(output, ground_truth)
+
+def save_file(file_name, epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb):
+  name_file = f"e_{epoch}_resultados_{file_name}.csv"
+  with open(name_file, "w", newline="") as archivo:
+    writer = csv.writer(archivo)
+    # Headers
+    writer.writerow(["idx", "g_1", "g_2", "y", "c_1", "p_c_1", "c_2", "p_c_2", "p", "pb"])
+    # Rows
+    for idx, (g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i) in enumerate(zip(g1, g2, y, c1, pc1, c2, pc2, p, pb)):
+        if y_i == p_i:
+          writer.writerow([idx,g1_i, g2_i, y_i, c1_i, pc1_i, c2_i, pc2_i, p_i, pb_i])
+
+def shortcut(g1, g2, y, c1, pc1, c2, pc2, p):
+  # print("G1 -> ", g1)
+  # print("G2 -> ", g2)
+  # print("C1 -> ", c1)
+  # print("C2 -> ", c2)
+  # print("Y -> ", y)
+  # print("y -> ", p)
+  pred_tuples = list(zip(c1, c2, p))
+  gt_tuples   = list(zip(g1, g2, y))
+  # print("Predicciones:", pred_tuples)
+  # print("Etiquetas reales:", gt_tuples)
+  cont = 0
+  cont_gt = 0
+  sum_ars = 0
+  sum_gt = 0
+  sum_model = 0
+  cy = {
+    0: 1,
+    1: 2,
+    2: 3,
+    3: 4,
+    4: 5,
+    5: 6,
+    6: 7,
+    7: 8,
+    8: 9,
+    9: 10,
+    10: 9,
+    11: 8,
+    12: 7,
+    13: 6,
+    14: 5,
+    15: 4,
+    16: 3,
+    17: 2,
+    18: 1
+}
+  for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+    if pred != gt:
+        if pred[2] == gt[2]:
+          peso = cy.get(pred[2], 0)
+          sum_ars += math.log(1/peso)
+          p_c1 = pc1[i]
+          p_c2 = pc2[i]
+          sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
+          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          cont += 1
+    else:
+      peso = cy.get(pred[2], 0)
+      sum_gt += math.log(1/peso)
+      p_c1 = pc1[i]
+      p_c2 = pc2[i]
+      sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
+      cont_gt += 1
+    
+  print(f"Total de valores errados: {cont} | sum_log: {sum_ars}")
+  print(f"Total de valores verdaderos: {cont_gt}")
+  print(f"Total de valores acertados: {cont + cont_gt} | sum_log: {sum_ars + sum_gt}")
+  return cont_gt, cont, cont / (cont + cont_gt), sum_ars / (sum_ars + sum_gt), sum_model, sum_model / (sum_ars + sum_gt)
+
+def save_shortcut_metrics(file_name, metric):
+    name_file = f"shortcut_metric_sum_{file_name}.csv"
+    with open(name_file, "w", newline="") as file:
+        writer = csv.writer(file)
+
+        writer.writerow([
+            "epoch",
+            "loss",
+            "acc",
+            "gt",
+            "rs",
+            "RSR",
+            "RSRw",
+            "prob_model",
+            "prob_mod_no"
+        ])
+
+        for row in metric:
+            writer.writerow([
+                row["epoch"],
+                row["loss"],
+                row["acc"],
+                row["gt"],
+                row["rs"],
+                row["RSR"],
+                row["RSRw"],
+                row["prob_model"],
+                row["prob_mod_no"]
+            ])
+
+class Trainer():
+  def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
+    self.network = MNISTSum2Net(provenance, k).to(device)
+    self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+    self.train_loader = train_loader
+    self.test_loader = test_loader
+    self.shortcut_metrics_train = []
+    self.shortcut_metrics_test = []
+    if loss == "nll":
+      self.loss = nll_loss
+    elif loss == "bce":
+      self.loss = bce_loss
+    else:
+      raise Exception(f"Unknown loss function `{loss}`")
+
+  def train_epoch(self, epoch):
+    self.network.train()
+    iter = tqdm(self.train_loader, total=len(self.train_loader))
+    c1 = []
+    pc1 = []
+    c2 = []
+    pc2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
+    pb  = []
+    for (data, data_des) in iter:
+      (a_imgs, b_imgs) = data
+      a_imgs = a_imgs.to(device)
+      b_imgs = b_imgs.to(device)
+      data = (a_imgs, b_imgs)
+      (a_digits, b_digits, target) = data_des
+      self.optimizer.zero_grad()
+      a_distrs, b_distrs, output = self.network(data)
+      output = output.cpu()
+      g1.extend(a_digits.tolist())
+      g2.extend(b_digits.tolist())
+      t_pc1, t_c1 = a_distrs.max(dim=1)
+      t_pc2, t_c2 = b_distrs.max(dim=1)
+      t_pb , t_p = output.max(dim=1)
+      c1.extend(t_c1.tolist())
+      pc1.extend(t_pc1.tolist())
+      c2.extend(t_c2.tolist())
+      pc2.extend(t_pc2.tolist())
+      p.extend(t_p.tolist())
+      pb.extend(t_pb.tolist())
+      y.extend(target.tolist())
+      loss = self.loss(output, target)
+      loss.backward()
+      self.optimizer.step()
+      iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}")
+    gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+    save_file("train_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
+    self.shortcut_metrics_train.append({
+        "epoch": epoch,
+        "loss": loss.item(),
+        "acc": 0,
+        "gt": gt,
+        "rs": rs,
+        "RSR": rsr,
+        "RSRw": rsrw,
+        "prob_model": prob_model,
+        "prob_mod_no": prob_mod_no
+    })
+
+  def test(self, epoch):
+    self.network.eval()
+    num_items = len(self.test_loader.dataset)
+    test_loss = 0
+    correct = 0
+    c1 = []
+    pc1 = []
+    c2 = []
+    pc2 = []
+    g1 = []
+    g2 = []
+    y  = []
+    p  = []
+    pb  = []
+    with torch.no_grad():
+      iter = tqdm(self.test_loader, total=len(self.test_loader))
+      for (data, data_des) in iter:
+        (a_imgs, b_imgs) = data
+        a_imgs = a_imgs.to(device)
+        b_imgs = b_imgs.to(device)
+        data = (a_imgs, b_imgs)
+        (a_digits, b_digits, target) = data_des
+        p_syntax, p_mistake, output = self.network(data)
+        output = output.cpu()
+        g1.extend(a_digits.tolist())
+        g2.extend(b_digits.tolist())
+        t_pc1, t_c1 = p_syntax.max(dim=1)
+        t_pc2, t_c2 = p_mistake.max(dim=1)
+        t_pb , t_p = output.max(dim=1)
+        c1.extend(t_c1.tolist())
+        pc1.extend(t_pc1.tolist())
+        c2.extend(t_c2.tolist())
+        pc2.extend(t_pc2.tolist())
+        p.extend(t_p.tolist())
+        pb.extend(t_pb.tolist())
+        y.extend(target.tolist())
+        test_loss += self.loss(output, target).item()
+        pred = output.data.max(1, keepdim=True)[1]
+        correct += pred.eq(target.data.view_as(pred)).sum()
+        perc = 100. * correct / num_items
+        iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+      gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, y, c1, pc1, c2, pc2, p)
+      save_file("test_sum", epoch, g1, g2, y, c1, pc1, c2, pc2, p, pb)
+      self.shortcut_metrics_test.append({
+          "epoch": epoch,
+          "loss": test_loss,
+          "acc": perc.item(),
+          "gt": gt,
+          "rs": rs,
+          "RSR": rsr,
+          "RSRw": rsrw,
+          "prob_model": prob_model,
+          "prob_mod_no": prob_mod_no
+      })
+
+  def train(self, n_epochs):
+    self.test(0)
+    for epoch in range(1, n_epochs + 1):
+      print("-----------> EPOCH: ",epoch)
+      self.train_epoch(epoch)
+      self.test(epoch)
+    save_shortcut_metrics("train",self.shortcut_metrics_train)
+    save_shortcut_metrics("test",self.shortcut_metrics_test)
+
+
+if __name__ == "__main__":
+  # Argument parser
+  parser = ArgumentParser("mnist_sum_2")
+  parser.add_argument("--n-epochs", type=int, default=3)
+  parser.add_argument("--batch-size-train", type=int, default=64)
+  parser.add_argument("--batch-size-test", type=int, default=64)
+  parser.add_argument("--learning-rate", type=float, default=0.001)
+  parser.add_argument("--loss-fn", type=str, default="bce")
+  parser.add_argument("--seed", type=int, default=1234)
+  parser.add_argument("--provenance", type=str, default="difftopkproofs")
+  parser.add_argument("--top-k", type=int, default=3)
+  args = parser.parse_args()
+
+  # Parameters
+  n_epochs = args.n_epochs
+  batch_size_train = args.batch_size_train
+  batch_size_test = args.batch_size_test
+  learning_rate = args.learning_rate
+  loss_fn = args.loss_fn
+  k = args.top_k
+  provenance = args.provenance
+  torch.manual_seed(args.seed)
+  random.seed(args.seed)
+
+  # Data
+
+  # Obtiene el directorio donde está este archivo.py
+  base_dir = os.path.dirname(os.path.abspath(__file__))
+  # Une el directorio de base_dir con la carpeta "data"
+  data_dir = os.path.join(base_dir, "data")
+  print("PATH data -> ", data_dir)
+
+  # Dataloaders
+  train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
+  print("Dataset mnist")
+  print("Train -> ", len(train_loader))
+  print("Test -> ", len(test_loader))
+
+  # Create trainer and train
+  trainer = Trainer(train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer.train(n_epochs)
+  
