@@ -18,7 +18,8 @@ import scallopy
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_LEAF_PATH = "data/leaf_11"          # Original dataset path
+DATA_LEAF_PATH = "data/leaf_11"     # Original dataset path
+DATA_RESULT_PATH = "result"         # Result data path
 IMG_SIZE = (224, 224)               # Standar size for ResNet/CNN type network
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print("Device: ", device)
@@ -150,6 +151,22 @@ class LeafClassifierLog(nn.Module):
       return margin, self.specie(margin=margin, shape=shape, texture=texture)
 
 # ==============================================
+# Guardar resultados
+# ==============================================
+
+def save__metrics(file_path, file_name, metric):
+    name_file = f"{file_path}/result_metric_{file_name}.csv"
+    with open(name_file, "w", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow(["epoch","loss","acc"])
+        for row in metric:
+            writer.writerow([
+                row["epoch"],
+                row["loss"],
+                row["acc"],
+            ])
+
+# ==============================================
 # Calculo de error
 # ==============================================
 
@@ -166,11 +183,14 @@ def nll_loss(output, ground_truth):
 # Entrenamiento y Test
 # ==============================================
 class Trainer():
-  def __init__(self, train_loader, test_loader, learning_rate, loss, k, provenance):
+  def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
      self.network = LeafClassifierLog(provenance, k).to(device)
      self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
      self.train_loader = train_loader
      self.test_loader = test_loader
+     self.result_dir = result_dir
+     self.result_metrics_train = []
+     self.result_metrics_test = []
      if loss == "nll":
          self.loss = nll_loss
      elif loss == "bce":
@@ -195,6 +215,11 @@ class Trainer():
         loss.backward()
         self.optimizer.step()
         iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
+     self.result_metrics_train.append({
+        "epoch": epoch,
+        "loss": loss.item(),
+        "acc": perc.item(),
+      })
 
   def test(self, epoch):
      self.network.eval()
@@ -219,6 +244,7 @@ class Trainer():
       print("-----------> EPOCH: ",epoch)
       self.train_epoch(epoch)
       self.test(epoch)
+    save__metrics(self.result_dir, "train",self.result_metrics_train)
 
 # ==============================================
 # Main
@@ -250,9 +276,9 @@ if __name__ == "__main__":
 
   # Obtiene el directorio donde está este archivo.py
   base_dir = os.path.dirname(os.path.abspath(__file__))
-  # Une el directorio de base_dir con la carpeta "data"
+  # Une el directorio de base_dir con las carpetas "data" y "result"
   data_dir = os.path.join(base_dir, DATA_LEAF_PATH)
-  print("PATH data -> ", data_dir)
+  result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
 
   # Dataloaders
   train_loader, test_loader = leaf_loader(data_dir, batch_size_train, batch_size_test)
@@ -261,5 +287,5 @@ if __name__ == "__main__":
   print("Test -> ", len(test_loader))
 
   # Create trainer and train
-  trainer = Trainer(train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
