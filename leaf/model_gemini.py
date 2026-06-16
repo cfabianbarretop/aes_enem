@@ -4,6 +4,7 @@ from openai import OpenAI
 from PIL import Image
 from pathlib import Path
 import json
+import base64
 
 from argparse import ArgumentParser
 
@@ -43,18 +44,40 @@ class ModelLLM():
         ]
     )
 
-    print(response.text)
+    # print(response.text)
     return response
 
-  def modelGPT(self, name_api_key):
+  def modelGPT(self, name_api_key, path_img):
     api_key = self.getApiKey(name_api_key)
     client = OpenAI(api_key=api_key)
+    prompt = Path("promp_leaf.txt").read_text(encoding="utf-8")
+    with open(path_img, "rb") as f:
+        image_b64 = base64.b64encode(
+            f.read()
+        ).decode("utf-8")
+
     response = client.responses.create(
         model="gpt-5-mini",
-        input="Say hello"
+        input=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": prompt
+                    },
+                    {
+                        "type": "input_image",
+                        "image_url":
+                            f"data:image/jpeg;base64,{image_b64}"
+                    }
+                ]
+            }
+        ]
     )
 
-    print(response.output_text)  
+    print(response.output_text)
+    return response
 
   def createFile(self, name_file):
     species_output = os.path.join(self.result_dir, name_file)
@@ -78,14 +101,14 @@ class ModelLLM():
     for species_dir in dataset_root.iterdir():
       if not species_dir.is_dir():
         continue
-      print("Species:", species_dir.name)
+    #   print("Species:", species_dir.name)
       specie_dir = os.path.join(self.data_dir, species_dir.name)
     #   self.createFile(specie_dir)
       self.result_model = []
       for image_path in species_dir.iterdir():
         if image_path.suffix.lower() not in [".jpg",".jpeg",".png"]:
             continue
-        print("  ", image_path.name)
+        # print("  ", image_path.name)
         img_dir = os.path.join(specie_dir, image_path.name)
         prediction = self.modelGemini(name_api_key, img_dir)
         self.result_model.append({
@@ -104,7 +127,7 @@ class ModelLLM():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaf")
-  parser.add_argument("--api-key-name", type=str, default="GEMINI")
+  parser.add_argument("--api-key-name", type=str, default="OPEN_IA")
   args = parser.parse_args()
 
   # Parameters
@@ -116,4 +139,4 @@ if __name__ == "__main__":
   data_dir = os.path.join(base_dir, DATA_LEAF_PATH)
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
   model = ModelLLM(data_dir= data_dir, result_dir=result_dir)
-  model.train(name_api_key=api_key_name)
+#   model.train(name_api_key=api_key_name)
