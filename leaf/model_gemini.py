@@ -97,15 +97,20 @@ class ModelLLM():
         )
 
   def train(self, name_api_key):
+    cont_file = 0
     dataset_root = Path(self.data_dir)
     for species_dir in dataset_root.iterdir():
       if not species_dir.is_dir():
         continue
+      if cont_file > 0:
+        break
     #   print("Species:", species_dir.name)
       specie_dir = os.path.join(self.data_dir, species_dir.name)
     #   self.createFile(specie_dir)
       self.result_model = []
-      for image_path in species_dir.iterdir():
+      for idx, image_path in enumerate(species_dir.iterdir()):
+        if idx >= 2:
+          break
         if image_path.suffix.lower() not in [".jpg",".jpeg",".png"]:
             continue
         # print("  ", image_path.name)
@@ -119,6 +124,7 @@ class ModelLLM():
             "prediction": prediction.text
         })
       self.saveResult(img_dir)
+      cont_file += 1
 
 # ==============================================
 # Main
@@ -127,7 +133,7 @@ class ModelLLM():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaf")
-  parser.add_argument("--api-key-name", type=str, default="OPEN_IA")
+  parser.add_argument("--api-key-name", type=str, default="GEMINI")
   args = parser.parse_args()
 
   # Parameters
@@ -139,4 +145,4 @@ if __name__ == "__main__":
   data_dir = os.path.join(base_dir, DATA_LEAF_PATH)
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
   model = ModelLLM(data_dir= data_dir, result_dir=result_dir)
-#   model.train(name_api_key=api_key_name)
+  model.train(name_api_key=api_key_name)
