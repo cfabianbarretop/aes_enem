@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 # ==============================================
 DATA_LEAF_PATH = "data/leaf_11"     # Original dataset path
 DATA_RESULT_PATH = "result"         # Result data path
-API_KEY_SECRET = "api_key.json"     # Result data path
+API_KEY_SECRET = "api_key.json"     # Api key data path
 
 # ==============================================
 # MODELOS IA
