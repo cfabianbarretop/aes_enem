@@ -1,22 +1,28 @@
 import os
 from argparse import ArgumentParser
-from datasets import Dataset, load_from_disk
+from datasets import Dataset
 from huggingface_hub import login, upload_folder
+from collections import defaultdict
 import json
+import random
 from PIL import Image
+from tqdm import tqdm
 import numpy as np
 import h5py
 
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_LEAF_PATH = "data/leaf_11"             # Original dataset path
-DATA_RESULT_PATH = "../results"             # Result data path
-LEAF_LABEL = "leaf_labels_vlm.json"         # Leaf labels data
-DATASET_H5PY = "leaf_dataset.h5"            # H5py data
-DATASET_HUGGING_FACE = "leaf_hf_dataset"    # Hugging face data
-HUGGING_FACE_HUB = "dayagd/leaf-dataset"    # Hub dataset
-API_KEY_SECRET = "api_key.json"             # Api key data path
+DATA_LEAF_PATH = "data/leaf_11"                         # Original dataset path
+DATA_RESULT_PATH = "../results"                         # Result data path
+LEAF_LABEL = "leaf_labels_vlm.json"                     # Leaf labels data
+DATASET_H5PY_TRAIN = "leaf_h5py_dataset_train.h5"       # H5py data
+DATASET_H5PY_TEST = "leaf_h5py_dataset_test.h5"         # H5py data
+DATASET_HUGGING_FACE = "leaf_hf_dataset"                # Hugging face data
+DATASET_HUGGING_FACE_TRAIN = "train"                    # Hugging face data
+DATASET_HUGGING_FACE_TEST = "test"                      # Hugging face data
+HUGGING_FACE_HUB = "dayagd/leaf-dataset"                # Hub dataset
+API_KEY_SECRET = "api_key.json"                         # Api key data path
 
 # Concept's map
 MARGIN_MAP = {
@@ -86,15 +92,28 @@ class DatasetLeaf():
       self.shape = []
       self.texture = []
       self.ids = []
-    
+
+   def clean(self):
+      self.images = []
+      self.species = []
+      self.margin = []
+      self.shape = []
+      self.texture = []
+      self.ids = []
+
    def getApiKey(self, name_api_key):
     with open(API_KEY_SECRET, "r", encoding="utf-8") as f:
       config = json.load(f)
     return config[name_api_key]
 
-   def saveData(self):
-    dataset_dir = os.path.join(self.result_dir, DATASET_H5PY)
-    dataset_result_dir = os.path.join(self.result_dir, DATASET_HUGGING_FACE)
+   def saveData(self, train: bool):
+    dataset_orig = DATASET_H5PY_TEST
+    dataset_des = os.path.join(DATASET_HUGGING_FACE, DATASET_HUGGING_FACE_TEST)
+    if train: 
+      dataset_orig = DATASET_H5PY_TRAIN
+      dataset_des = os.path.join(DATASET_HUGGING_FACE, DATASET_HUGGING_FACE_TRAIN)
+    dataset_dir = os.path.join(self.result_dir, dataset_orig)
+    dataset_result_dir = os.path.join(self.result_dir, dataset_des)
     data = {
         "id": [],
         "image": [],
@@ -114,10 +133,8 @@ class DatasetLeaf():
     margin = f["margin"]
     shape = f["shape"]
     texture = f["texture"]
-    # for i in range(len(ids)):
-    for i in range(10):
+    for i in tqdm(range(len(ids)), desc= "Processing images"):
       img = Image.fromarray(images[i])
-      print(ids[i])
       data["id"].append(ids[i])
       data["image"].append(img)
       data["species"].append(SPECIES_MAP_INV[int(species[i])])
@@ -138,9 +155,12 @@ class DatasetLeaf():
      login(token=token)
      upload_folder(folder_path=dataset_result_dir, repo_id=HUGGING_FACE_HUB, repo_type="dataset")
            
-   def h5py(self):
+   def h5py(self, train: bool):
+      name_file = DATASET_H5PY_TEST
+      if train: name_file = DATASET_H5PY_TRAIN
       string_dtype = h5py.string_dtype(encoding="utf-8")
-      dataset_dir = os.path.join(self.result_dir, DATASET_H5PY)
+      dataset_dir = os.path.join(self.result_dir, name_file)
+      print("Save....")
       with h5py.File(dataset_dir, "w") as f:
         f.create_dataset(
             "images",
@@ -176,11 +196,25 @@ class DatasetLeaf():
       self.shape = np.array(self.shape, dtype=np.int32)
       self.texture = np.array(self.texture, dtype=np.int32)
 
-   def create(self):
+   def splitData(self):
+       train_annotations = []
+       test_annotations = []
+       train_ratio = 0.8
        file_dir = os.path.join(self.result_dir, LEAF_LABEL)
        with open(file_dir, "r", encoding="utf-8") as f:
          annotations = json.load(f)
+       groups = defaultdict(list)
        for sample in annotations:
+         groups[sample["species"]].append(sample)
+       for species, samples in groups.items():
+         random.shuffle(samples)
+         split_idx = int(len(samples) * train_ratio)
+         train_annotations.extend(samples[:split_idx])
+         test_annotations.extend(samples[split_idx:])
+       return train_annotations, test_annotations
+         
+   def create(self, annotations, train: bool):
+       for sample in tqdm(annotations, desc="Loading images"):
         img_dir = os.path.join(self.data_dir, sample["image"])
         img = Image.open(img_dir).convert("RGB")
         img = np.array(img)
@@ -199,7 +233,8 @@ class DatasetLeaf():
         )
         self.ids.append(sample["id"])
        self.conver()
-       self.h5py()       
+       self.h5py(train)
+       self.clean()    
 
 # ==============================================
 # Main
@@ -218,7 +253,10 @@ if __name__ == "__main__":
   base_dir = os.path.dirname(os.path.abspath(__file__))
   # Une el directorio de base_dir con las carpetas "data" y "result"
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
-  datset = DatasetLeaf(data_dir= base_dir, result_dir=result_dir)
-#   datset.create()
-#   datset.saveData()
-  datset.updateDataHuggingFace(api_key_name)
+  dataset = DatasetLeaf(data_dir= base_dir, result_dir=result_dir)
+  data_train, data_test = dataset.splitData()
+  dataset.create(data_train, True)
+  dataset.saveData(True)
+  dataset.create(data_test, False)
+  dataset.saveData(False)
+  dataset.updateDataHuggingFace(api_key_name)
