@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import random_split
-
+from datasets import load_dataset
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -34,43 +34,45 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-class LeafDatset(torch.utils.data.Dataset):
+class LeafDatset(torch.utils.data.Dataset): 
   def __init__(self, root: str, train: str):
-    dataset = datasets.ImageFolder(
-        root=root,
-        transform=transform
-    )
-    total = len(dataset)
-    train_size = int(0.7 * total)
-    val_size = int(0.15 * total)
-    test_size = total - train_size - val_size
-    generator = torch.Generator().manual_seed(42)
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset,
-        [train_size, val_size, test_size],
-        generator=generator
-    )
+    
     if train == 'train':
-      self.leaf_dataset = train_dataset
+      self.leaf_dataset = load_dataset("dayagd/leaf-dataset", cache_dir="tmp/leaf", trust_remote_code=True)['train']
     elif train == 'test':
-      self.leaf_dataset = test_dataset
-    else:
-      self.leaf_dataset = val_dataset
+      self.leaf_dataset = load_dataset("dayagd/leaf-dataset", cache_dir="tmp/leaf", trust_remote_code=True)['test']
 
   def __len__(self):
     return int(len(self.leaf_dataset))
   
   def __getitem__(self, idx):
-    return self.leaf_dataset[idx]
+    img = self.leaf_dataset[idx]['image']
+    if transform is not None: img = transform(img)
+    label = self.leaf_dataset[idx]['idx_species']
+    margin = self.leaf_dataset[idx]['idx_margin']
+    shape = self.leaf_dataset[idx]['idx_shape']
+    texture = self.leaf_dataset[idx]['idx_texture']
+    return (img, label, margin, shape, texture)
+  
+  @staticmethod
+  def collate_fn(batch):
+    img = torch.stack([torch.tensor(item[0]).float() for item in batch])
+    label = torch.stack([torch.tensor(item[1]).long() for item in batch])
+    margin = torch.stack([torch.tensor(item[2]).long() for item in batch])
+    shape = torch.stack([torch.tensor(item[3]).long() for item in batch])
+    texture = torch.stack([torch.tensor(item[4]).long() for item in batch])
+    return ((img), (label, margin, shape, texture))
 
 def leaf_loader(data_dir, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
     LeafDatset(data_dir, "train"),
+    collate_fn = LeafDatset.collate_fn,
     batch_size=batch_size_train,
     shuffle=True
   )
   test_loader = torch.utils.data.DataLoader(
     LeafDatset(data_dir, "test"),
+    collate_fn = LeafDatset.collate_fn,
     batch_size=batch_size_test,
     shuffle=False
   )
@@ -203,8 +205,9 @@ class Trainer():
      correct = 0
      num_items = len(self.train_loader.dataset)
      iter = tqdm(self.train_loader, total=len(self.train_loader))
-     for (img, target) in iter:
+     for (img, data_des) in iter:
         img = img.to(device)
+        (target, margin, shape, texture) = data_des
         self.optimizer.zero_grad()
         img_distrs, output = self.network(img)
         output = output.cpu()
@@ -228,8 +231,9 @@ class Trainer():
      test_loss = 0
      with torch.no_grad():
         iter = tqdm(self.test_loader, total=len(self.test_loader))
-        for (img, target) in iter:
+        for (img, data_des) in iter:
            img = img.to(device)
+           (target, margin, shape, texture) = data_des
            img_distrs, output = self.network(img)
            output = output.cpu()
            test_loss += self.loss(output, target).item()

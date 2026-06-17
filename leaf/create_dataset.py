@@ -1,7 +1,7 @@
 import os
 from argparse import ArgumentParser
-from datasets import Dataset
-from huggingface_hub import login, upload_folder
+from datasets import Dataset, load_from_disk, DatasetDict
+from huggingface_hub import login
 from collections import defaultdict
 import json
 import random
@@ -152,8 +152,14 @@ class DatasetLeaf():
    def updateDataHuggingFace(self, name_api_key):
      token = self.getApiKey(name_api_key)
      dataset_result_dir = os.path.join(self.result_dir, DATASET_HUGGING_FACE)
+     train_dataset = load_from_disk(f"{dataset_result_dir}/{DATASET_HUGGING_FACE_TRAIN}")
+     test_dataset = load_from_disk(f"{dataset_result_dir}/{DATASET_HUGGING_FACE_TEST}")
+     dataset = DatasetDict({
+       DATASET_HUGGING_FACE_TRAIN: train_dataset,
+       DATASET_HUGGING_FACE_TEST: test_dataset
+     })
      login(token=token)
-     upload_folder(folder_path=dataset_result_dir, repo_id=HUGGING_FACE_HUB, repo_type="dataset")
+     dataset.push_to_hub(HUGGING_FACE_HUB)
            
    def h5py(self, train: bool):
       name_file = DATASET_H5PY_TEST
