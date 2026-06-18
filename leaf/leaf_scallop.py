@@ -133,17 +133,31 @@ class LeafClassifierLog(nn.Module):
       self.scl_ctx.add_relation("margin", int, input_mapping=list(range(6)))
       self.scl_ctx.add_relation("shape", int, input_mapping=list(range(6)))
       self.scl_ctx.add_relation("texture", int, input_mapping=list(range(6)))
-      self.scl_ctx.add_rule("species(0) :- margin(0), shape(3), texture(1)")
-      self.scl_ctx.add_rule("species(1) :- margin(4), shape(0), texture(0)")
-      self.scl_ctx.add_rule("species(2) :- margin(2), shape(4), texture(2)")
-      self.scl_ctx.add_rule("species(3) :- margin(0), shape(1), texture(0)")
-      self.scl_ctx.add_rule("species(4) :- margin(3), shape(4), texture(2)")
-      self.scl_ctx.add_rule("species(5) :- margin(2), shape(4), texture(3)")
-      self.scl_ctx.add_rule("species(6) :- margin(0), shape(4), texture(0)")
-      self.scl_ctx.add_rule("species(7) :- margin(0), shape(0), texture(3)")
-      self.scl_ctx.add_rule("species(8) :- margin(0), shape(2), texture(0)")
-      self.scl_ctx.add_rule("species(9) :- margin(0), shape(2), texture(1)")
-      self.scl_ctx.add_rule("species(10) :- margin(0), shape(0), texture(2)")
+      self.scl_ctx.add_rule("species(0) :- margin(0), shape(0), texture(1)")
+      
+      self.scl_ctx.add_rule("species(1) :- margin(4), shape(a), texture(b), a>=0, b>=0")
+      self.scl_ctx.add_rule("species(1) :- margin(0), shape(0), texture(0)")
+      
+      self.scl_ctx.add_rule("species(2) :- margin(1), shape(a), texture(b), a>=0, b>=0")
+      
+      self.scl_ctx.add_rule("species(3) :- margin(0), shape(1), texture(b), b>=0")
+      self.scl_ctx.add_rule("species(3) :- margin(5), shape(1), texture(b), b>=0")
+      
+      self.scl_ctx.add_rule("species(4) :- margin(3), shape(a), texture(b), a>=0, b>=0")
+
+      self.scl_ctx.add_rule("species(5) :- margin(2), shape(a), texture(b), a>=0, b>=0")
+      
+      self.scl_ctx.add_rule("species(6) :- margin(0), shape(4), texture(b), b>=0")
+      
+      self.scl_ctx.add_rule("species(7) :- margin(0), shape(3), texture(b), b>=0")
+      
+      self.scl_ctx.add_rule("species(8) :- margin(0), shape(0), texture(2)")
+      
+      self.scl_ctx.add_rule("species(9) :- margin(0), shape(2), texture(b), b>=0")
+      self.scl_ctx.add_rule("species(9) :- margin(5), shape(a), texture(b), a>=2, b>=0")
+
+      self.scl_ctx.add_rule("species(10) :- margin(0), shape(0), texture(3)")
+      self.scl_ctx.add_rule("species(10) :- margin(5), shape(0), texture(b), b>=0")
 
       self.specie = self.scl_ctx.forward_function("species", output_mapping=[(i,) for i in range(11)])
     
@@ -206,16 +220,16 @@ def shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
   sum_model = 0
   cy = {
     0: 1,
-    1: 2,
-    2: 3,
-    3: 4,
-    4: 5,
-    5: 6,
-    6: 7,
-    7: 8,
-    8: 9,
-    9: 10,
-    10: 9
+    1: 21,
+    2: 20,
+    3: 8,
+    4: 20,
+    5: 20,
+    6: 4,
+    7: 4,
+    8: 1,
+    9: 24,
+    10: 5
 }
   for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
     if pred != gt:
