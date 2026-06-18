@@ -12,6 +12,7 @@ from torch.utils.data import random_split
 from datasets import load_dataset
 from argparse import ArgumentParser
 from tqdm import tqdm
+from transformers import Dinov2Model
 
 import scallopy
 
@@ -20,49 +21,9 @@ import scallopy
 # ==============================================
 DATA_LEAF_PATH = "data/leaf_11"         # Original dataset path
 DATA_RESULT_PATH = "result"             # Result data path
-FILE_RESUL_METRIC = "e3_result_metric"  # Name file result
+FILE_RESUL_METRIC = "e4_result_metric"  # Name file result
 IMG_SIZE = (224, 224)                   # Standar size for ResNet/CNN type network
 device = "cuda" if torch.cuda.is_available() else "cpu"
-cy = {0: 1, 1: 21, 2: 20, 3: 8, 4: 20, 5: 20, 6: 4, 7: 4, 8: 1, 9: 24, 10: 5}
-m_valid = {
-   0:[0],
-   1:[0,4],
-   2:[1],
-   3:[0,5],
-   4:[3],
-   5:[2],
-   6:[0],
-   7:[0],
-   8:[0],
-   9:[0,5],
-   10:[0,5]
-}
-s_valid = {
-   0:[0],
-   1:[0,1,2,3,4],
-   2:[0,1,2,3,4],
-   3:[1],
-   4:[0,1,2,3,4],
-   5:[0,1,2,3,4],
-   6:[4],
-   7:[3],
-   8:[0],
-   9:[0,1,2,3,4],
-   10:[0]
-}
-t_valid = {
-   0:[1],
-   1:[0,1,2,3],
-   2:[0,1,2,3],
-   3:[0,1,2,3],
-   4:[0,1,2,3],
-   5:[0,1,2,3],
-   6:[0,1,2,3],
-   7:[0,1,2,3],
-   8:[2],
-   9:[0,1,2,3],
-   10:[0,1,2,3]
-}
 print("Device: ", device)
 
 # ==============================================
@@ -73,58 +34,51 @@ print("Device: ", device)
 transform = transforms.Compose([
     transforms.Resize(IMG_SIZE),
     transforms.ToTensor(),
+    transforms.Normalize(
+        mean=[0.485,0.456,0.406],
+        std=[0.229,0.224,0.225]
+    )
 ])
 
-class LeafDatset(torch.utils.data.Dataset):
+class LeafDatset(torch.utils.data.Dataset): 
   def __init__(self, root: str, train: str):
-    dataset = datasets.ImageFolder(
-        root=root,
-        transform=transform
-    )
-    total = len(dataset)
-    train_size = int(0.7 * total)
-    val_size = int(0.15 * total)
-    test_size = total - train_size - val_size
-    generator = torch.Generator().manual_seed(42)
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset,
-        [train_size, val_size, test_size],
-        generator=generator
-    )
+    
     if train == 'train':
-      self.leaf_dataset = train_dataset
+      self.leaf_dataset = load_dataset("dayagd/leaf-dataset", cache_dir="tmp/leaf", trust_remote_code=True)['train']
     elif train == 'test':
-      self.leaf_dataset = test_dataset
-    else:
-      self.leaf_dataset = val_dataset
+      self.leaf_dataset = load_dataset("dayagd/leaf-dataset", cache_dir="tmp/leaf", trust_remote_code=True)['test']
 
   def __len__(self):
     return int(len(self.leaf_dataset))
   
   def __getitem__(self, idx):
-    return self.leaf_dataset[idx]
+    img = self.leaf_dataset[idx]['image']
+    if transform is not None: img = transform(img)
+    label = self.leaf_dataset[idx]['idx_species']
+    margin = self.leaf_dataset[idx]['idx_margin']
+    shape = self.leaf_dataset[idx]['idx_shape']
+    texture = self.leaf_dataset[idx]['idx_texture']
+    return (img, label, margin, shape, texture)
+  
+  @staticmethod
+  def collate_fn(batch):
+    img = torch.stack([torch.tensor(item[0]).float() for item in batch])
+    label = torch.stack([torch.tensor(item[1]).long() for item in batch])
+    margin = torch.stack([torch.tensor(item[2]).long() for item in batch])
+    shape = torch.stack([torch.tensor(item[3]).long() for item in batch])
+    texture = torch.stack([torch.tensor(item[4]).long() for item in batch])
+    return ((img), (label, margin, shape, texture))
 
 def leaf_loader(data_dir, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
     LeafDatset(data_dir, "train"),
+    collate_fn = LeafDatset.collate_fn,
     batch_size=batch_size_train,
     shuffle=True
   )
   test_loader = torch.utils.data.DataLoader(
     LeafDatset(data_dir, "test"),
-    batch_size=batch_size_test,
-    shuffle=False
-  )
-  return train_loader, test_loader
-
-def leaf_loader(data_dir, batch_size_train, batch_size_test):
-  train_loader = torch.utils.data.DataLoader(
-    LeafDatset(data_dir, "train"),
-    batch_size=batch_size_train,
-    shuffle=True
-  )
-  test_loader = torch.utils.data.DataLoader(
-    LeafDatset(data_dir, "test"),
+    collate_fn = LeafDatset.collate_fn,
     batch_size=batch_size_test,
     shuffle=False
   )
@@ -139,36 +93,32 @@ class LeafClassifierNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.conv = nn.Sequential(
-            nn.Conv2d(3,16,3,padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
-
-            nn.Conv2d(16,32,3,padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2)
+        self.backbone = Dinov2Model.from_pretrained(
+            "facebook/dinov2-base"
         )
 
-        self.features = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(32*56*56,128),
-            nn.ReLU()
-        )
+        for p in self.backbone.parameters():
+            p.requires_grad = False
 
-        self.c1_head = nn.Linear(128, 6)
-        self.c2_head = nn.Linear(128, 5)
-        self.c3_head = nn.Linear(128, 4)
+        self.c1_head = nn.Linear(768, 6)
+        self.c2_head = nn.Linear(768, 5)
+        self.c3_head = nn.Linear(768, 4)
 
     def forward(self, x):
 
-        x = self.conv(x)
-        h = self.features(x)
+        outputs = self.backbone(pixel_values=x)
 
-        margin = F.softmax(self.c1_head(h), dim=1)
-        shape = F.softmax(self.c2_head(h), dim=1)
-        texture = F.softmax(self.c3_head(h), dim=1)
+        h = outputs.last_hidden_state[:,0]
 
-        return margin, shape, texture 
+        margin_logits = self.c1_head(h)
+        shape_logits = self.c2_head(h)
+        texture_logits = self.c3_head(h)
+
+        margin = F.softmax(margin_logits, dim=1)
+        shape = F.softmax(shape_logits, dim=1)
+        texture = F.softmax(texture_logits, dim=1)
+
+        return margin, shape, texture
     
 # ==============================================
 # Modelo Lógico
@@ -226,13 +176,17 @@ def save__metrics(file_path, file_name, metric):
     name_file = f"{file_path}/{FILE_RESUL_METRIC}_{file_name}.csv"
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["epoch","loss","acc", "gt", "prob_model", "prob_mod_no"])
+        writer.writerow(["epoch","loss","acc", "GAcc", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
         for row in metric:
             writer.writerow([
                 row["epoch"],
                 row["loss"],
-                row["acc"],           
+                row["acc"],
+                row["GAcc"],
                 row["gt"],
+                row["rs"],
+                row["RSR"],
+                row["RSRw"],
                 row["prob_model"],
                 row["prob_mod_no"]
             ])
@@ -250,32 +204,61 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
-def lossFun(output, ground_truth, valid):
-   loss = 0
-   for i in range(len(ground_truth)):
-        g = ground_truth[i].item()
-        p = output[i, valid[g]].sum()
-        weight = -math.log(1/cy[g])
-        loss += weight * (-math.log(p + 1e-8))
-   return loss / len(ground_truth)
-
-# ==============================================
-# Metricas
-# ==============================================
-def metric(y, pc1, pc2, pc3, p):
+def shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
+  # print("G1 -> ", g1)
+  # print("G2 -> ", g2)
+  # print("C1 -> ", c1)
+  # print("C2 -> ", c2)
+  # print("Y -> ", y)
+  # print("y -> ", p)
+  pred_tuples = list(zip(c1, c2, c3, p))
+  gt_tuples   = list(zip(g1, g2, g3, y))
+  # print("Predicciones:", pred_tuples)
+  # print("Etiquetas reales:", gt_tuples)
+  cont = 0
   cont_gt = 0
+  sum_ars = 0
   sum_gt = 0
   sum_model = 0
-  for i, (pred, gt) in enumerate(zip(p, y)):
-    if pred == gt:
-      peso = cy.get(pred, 0)
+  cy = {
+    0: 1,
+    1: 21,
+    2: 20,
+    3: 8,
+    4: 20,
+    5: 20,
+    6: 4,
+    7: 4,
+    8: 1,
+    9: 24,
+    10: 5
+}
+  for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+    if pred != gt:
+        if pred[3] == gt[3]:
+          peso = cy.get(pred[3], 0)
+          sum_ars += math.log(1/peso)
+          p_c1 = pc1[i]
+          p_c2 = pc2[i]
+          p_c3 = pc3[i]
+          sum_model += (1-(p_c1*p_c2*p_c3))*math.log(1/peso)
+          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          cont += 1
+    else:
+      peso = cy.get(pred[3], 0)
       sum_gt += math.log(1/peso)
       p_c1 = pc1[i]
       p_c2 = pc2[i]
       p_c3 = pc3[i]
       sum_model += (1-(p_c1*p_c2*p_c3))*math.log(1/peso)
       cont_gt += 1
-  return cont_gt, sum_model, sum_model / cont_gt
+    
+  print("=======================> Total de valores errados <=======================")
+  print(f"Total de valores errados: {cont}")
+  print(f"Total de valores verdaderos: {cont_gt}")
+  print(f"Total de valores acertados: {cont + cont_gt}")
+  print("==========================================================================")
+  return cont_gt, cont, cont / (cont + cont_gt), sum_ars / (sum_ars + sum_gt), sum_model, sum_model / (sum_ars + sum_gt)
 
 # ==============================================
 # Entrenamiento y Test
@@ -299,44 +282,68 @@ class Trainer():
   def train_epoch(self, epoch):
      self.network.train()
      correct = 0
+     correct_concepts = 0
+     c1 = []
      pc1 = []
+     c2 = []
      pc2 = []
+     c3 = []
      pc3 = []
+     g1 = []
+     g2 = []
+     g3 = []
      y  = []
      p  = []
      num_items = len(self.train_loader.dataset)
      iter = tqdm(self.train_loader, total=len(self.train_loader))
-     for (img, target) in iter:
+     for (img, data_des) in iter:
         img = img.to(device)
+        (target, margin, shape, texture) = data_des
         self.optimizer.zero_grad()
         p_margin, p_shape, p_texture, output = self.network(img)
         output = output.cpu()
-        t_pc1, _ = p_margin.max(dim=1)
-        t_pc2, _ = p_shape.max(dim=1)
-        t_pc3, _ = p_texture.max(dim=1)
+        g1.extend(margin.tolist())
+        g2.extend(shape.tolist())
+        g3.extend(texture.tolist())
+        t_pc1, t_c1 = p_margin.max(dim=1)
+        t_pc2, t_c2 = p_shape.max(dim=1)
+        t_pc3, t_c3 = p_texture.max(dim=1)
         _ , t_p = output.max(dim=1)
+        c1.extend(t_c1.tolist())
         pc1.extend(t_pc1.tolist())
+        c2.extend(t_c2.tolist())
         pc2.extend(t_pc2.tolist())
+        c3.extend(t_c3.tolist())
         pc3.extend(t_pc3.tolist())
         p.extend(t_p.tolist())
         y.extend(target.tolist())
-        loss_out = self.loss(output, target)
-        loss_margin = lossFun(p_margin, target, m_valid)
-        loss_shape = lossFun(p_shape, target, s_valid)
-        loss_texture = lossFun(p_texture, target, t_valid)
-        loss = (loss_out + 0.5 * (loss_margin + loss_shape + loss_texture))
+        loss = self.loss(output, target)
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
         loss.backward()
         self.optimizer.step()
         iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-     gt, prob_model, prob_mod_no = metric(y, pc1, pc2, pc3, p)
+     gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p)
+     correct_concepts = (
+        sum(gt == pred for gt, pred in zip(g1, c1))
+        +
+        sum(gt == pred for gt, pred in zip(g2, c2))
+        +
+        sum(gt == pred for gt, pred in zip(g3, c3))
+     )
+     total_concepts = 3 * len(g1)
+     print(f"{correct_concepts} / {total_concepts}")
+     gacc = 100.0 * correct_concepts / total_concepts
      self.result_metrics_train.append({
         "epoch": epoch,
         "loss": loss.item(),
         "acc": perc.item(),
+        "GAcc": gacc,
         "gt": gt,
+        "rs": rs,
+        "RSR": rsr,
+        "RSRw": rsrw,
         "prob_model": prob_model,
         "prob_mod_no": prob_mod_no
       })
@@ -346,23 +353,36 @@ class Trainer():
      num_items = len(self.test_loader.dataset)
      correct = 0
      test_loss = 0
+     c1 = []
      pc1 = []
+     c2 = []
      pc2 = []
+     c3 = []
      pc3 = []
+     g1 = []
+     g2 = []
+     g3 = []
      y  = []
      p  = []
      with torch.no_grad():
         iter = tqdm(self.test_loader, total=len(self.test_loader))
-        for (img, target) in iter:
+        for (img, data_des) in iter:
            img = img.to(device)
+           (target, margin, shape, texture) = data_des
            p_margin, p_shape, p_texture, output = self.network(img)
            output = output.cpu()
-           t_pc1, _ = p_margin.max(dim=1)
-           t_pc2, _ = p_shape.max(dim=1)
-           t_pc3, _ = p_texture.max(dim=1)
+           g1.extend(margin.tolist())
+           g2.extend(shape.tolist())
+           g3.extend(texture.tolist())
+           t_pc1, t_c1 = p_margin.max(dim=1)
+           t_pc2, t_c2 = p_shape.max(dim=1)
+           t_pc3, t_c3 = p_texture.max(dim=1)
            _ , t_p = output.max(dim=1)
+           c1.extend(t_c1.tolist())
            pc1.extend(t_pc1.tolist())
+           c2.extend(t_c2.tolist())
            pc2.extend(t_pc2.tolist())
+           c3.extend(t_c3.tolist())
            pc3.extend(t_pc3.tolist())
            p.extend(t_p.tolist())
            y.extend(target.tolist())
@@ -371,15 +391,28 @@ class Trainer():
            correct += pred.eq(target.data.view_as(pred)).sum()
            perc = 100. * correct / num_items
            iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
-        gt, prob_model, prob_mod_no = metric(y, pc1, pc2, pc3, p)
+        gt, rs, rsr, rsrw, prob_model, prob_mod_no = shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p)
+        correct_concepts = (
+            sum(gt == pred for gt, pred in zip(g1, c1))
+            +
+            sum(gt == pred for gt, pred in zip(g2, c2))
+            +
+            sum(gt == pred for gt, pred in zip(g3, c3))
+        )
+        total_concepts = 3 * len(g1)
+        gacc = 100.0 * correct_concepts / total_concepts
         self.result_metrics_test.append({
-          "epoch": epoch,
-          "loss": test_loss,
-          "acc": perc.item(),
-          "gt": gt,
-          "prob_model": prob_model,
-          "prob_mod_no": prob_mod_no
-        })
+            "epoch": epoch,
+            "loss": test_loss,
+            "acc": perc.item(),
+            "GAcc": gacc,
+            "gt": gt,
+            "rs": rs,
+            "RSR": rsr,
+            "RSRw": rsrw,
+            "prob_model": prob_model,
+            "prob_mod_no": prob_mod_no
+          })
 
   def train(self, n_epochs):
     self.test(0)

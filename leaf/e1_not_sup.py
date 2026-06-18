@@ -143,8 +143,8 @@ class LeafClassifierLog(nn.Module):
       # Scallop Context
       self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
       self.scl_ctx.add_relation("margin", int, input_mapping=list(range(6)))
-      self.scl_ctx.add_relation("shape", int, input_mapping=list(range(6)))
-      self.scl_ctx.add_relation("texture", int, input_mapping=list(range(6)))
+      self.scl_ctx.add_relation("shape", int, input_mapping=list(range(5)))
+      self.scl_ctx.add_relation("texture", int, input_mapping=list(range(4)))
       self.scl_ctx.add_rule("species(0) :- margin(0), shape(0), texture(1)")
       
       self.scl_ctx.add_rule("species(1) :- margin(4), shape(a), texture(b), a>=0, b>=0")
