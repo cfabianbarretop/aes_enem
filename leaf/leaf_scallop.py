@@ -240,7 +240,7 @@ def shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
           p_c2 = pc2[i]
           p_c3 = pc3[i]
           sum_model += (1-(p_c1*p_c2*p_c3))*math.log(1/peso)
-          print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
           cont += 1
     else:
       peso = cy.get(pred[3], 0)
@@ -332,7 +332,8 @@ class Trainer():
         +
         sum(gt == pred for gt, pred in zip(g3, c3))
      )
-     total_concepts = 2 * len(g1)
+     total_concepts = 3 * len(g1)
+     print(f"{correct_concepts} / {total_concepts}")
      gacc = 100.0 * correct_concepts / total_concepts
      self.result_metrics_train.append({
         "epoch": epoch,
