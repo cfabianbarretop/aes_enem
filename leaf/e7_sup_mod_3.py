@@ -12,7 +12,7 @@ from torch.utils.data import random_split
 from datasets import load_dataset
 from argparse import ArgumentParser
 from tqdm import tqdm
-from transformers import AutoModel
+from transformers import SiglipVisionModel
 
 import scallopy
 
@@ -93,7 +93,7 @@ class LeafClassifierNet(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.backbone = AutoModel.from_pretrained(
+        self.backbone = SiglipVisionModel.from_pretrained(
            "google/siglip-base-patch16-224"
         )
 
@@ -105,7 +105,7 @@ class LeafClassifierNet(nn.Module):
 
         outputs = self.backbone(pixel_values=x)
 
-        h = outputs.last_hidden_state[:, 0]
+        h = outputs.pooler_output
 
         margin_logits = self.c1_head(h)
         shape_logits = self.c2_head(h)
