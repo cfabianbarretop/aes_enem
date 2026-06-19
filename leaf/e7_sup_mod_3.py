@@ -427,8 +427,8 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaf")
-  parser.add_argument("--n-epochs", type=int, default=5)
-  parser.add_argument("--batch-size-train", type=int, default=64)
+  parser.add_argument("--n-epochs", type=int, default=10)
+  parser.add_argument("--batch-size-train", type=int, default=8)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
   parser.add_argument("--loss-fn", type=str, default="bce")

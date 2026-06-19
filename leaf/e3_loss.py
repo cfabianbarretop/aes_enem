@@ -275,7 +275,7 @@ def metric(y, pc1, pc2, pc3, p):
       p_c3 = pc3[i]
       sum_model += (1-(p_c1*p_c2*p_c3))*math.log(1/peso)
       cont_gt += 1
-  return cont_gt, sum_model, sum_model / cont_gt
+  return cont_gt, sum_model, sum_model / sum_gt
 
 # ==============================================
 # Entrenamiento y Test
@@ -397,7 +397,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaf")
-  parser.add_argument("--n-epochs", type=int, default=5)
+  parser.add_argument("--n-epochs", type=int, default=10)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
