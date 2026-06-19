@@ -1,3 +1,7 @@
 tmp/
 data/
 leaf/api_key.json
+eniac/__pycache__
+results/leaf_hf_dataset
+results/leaf_h5py_dataset_test.h5
+results/leaf_h5py_dataset_train.h5
