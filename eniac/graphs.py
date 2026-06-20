@@ -38,7 +38,7 @@ class Graphs():
             # Gráfico de prob_mod_no
             ax2.plot(
                 df["epoch"],
-                df["prob_mod_no"],
+                df["loss"],
                 marker="o",
                 label=label
             )
@@ -77,9 +77,9 @@ class Graphs():
         ax1.legend()
 
         # Configuración gráfico 2
-        ax2.set_title("Prob Model No")
+        ax2.set_title("Loss")
         ax2.set_xlabel("Epoch")
-        ax2.set_ylabel("prob_mod_no")
+        ax2.set_ylabel("loss")
         ax2.grid(True)
         ax2.legend()
 

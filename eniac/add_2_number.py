@@ -223,6 +223,19 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
+def cal_loss(output, ground_truth, alpha=0.65):
+  # print(f"{output.shape} - {ground_truth.shape}")
+  loss = torch.tensor(0.0, device=output.device)
+  for b, i in enumerate(ground_truth):
+      y = i.item()
+      p = torch.log(output[b, y])
+      weight = cy.get(y, 0)
+      w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
+      loss += -p * w 
+      # print(f"{p}*log(1 + ({alpha}/{weight}))")
+
+  return loss
+
 # ==============================================
 # Entrenamiento y Test
 # ==============================================
@@ -278,7 +291,9 @@ class Trainer():
       p.extend(t_p.tolist())
       pb.extend(t_pb.tolist())
       y.extend(target.tolist())
-      loss = self.loss(output, target)
+      loss_cal = self.loss(output, target)
+      loss = cal_loss(output, target)
+      # print(f"loss -> {loss} - {loss_cal}")
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
       perc = 100. * correct / num_items
@@ -381,7 +396,7 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("mnist_sum_2")
-  parser.add_argument("--n-epochs", type=int, default=1)
+  parser.add_argument("--n-epochs", type=int, default=10)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
@@ -414,8 +429,8 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  # trainer.train(n_epochs)
-  # main_graph("rs")
-  split_add(train_loader, test_loader)
+  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer.train(n_epochs)
+  main_graph("rs")
+  # split_add(train_loader, test_loader)
   
