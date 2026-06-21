@@ -517,7 +517,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="bce")
+  parser.add_argument("--loss-fn", type=str, default="cel")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
@@ -547,8 +547,8 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  # trainer.train(n_epochs)
+  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer.train(n_epochs)
   main_graph("rs")
   # main_distribution(train_loader, test_loader)
   
