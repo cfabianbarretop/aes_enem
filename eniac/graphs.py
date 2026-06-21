@@ -26,7 +26,7 @@ class Graphs():
             name = csv_file.stem.lower()
             label = csv_file.stem
 
-            if "train" not in name:
+            if self.training not in name:
                 continue
 
             df = pd.read_csv(csv_file)
