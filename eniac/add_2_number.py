@@ -238,7 +238,8 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
-def cal_loss(output, ground_truth, alpha=62):
+def cal_loss(output, ground_truth, alpha=0.62):
+  batch_size = output.shape[0]
   loss = torch.tensor(0.0, device=output.device)
   for b, i in enumerate(ground_truth):
       y = i.item()
@@ -246,7 +247,7 @@ def cal_loss(output, ground_truth, alpha=62):
       weight = cy.get(y, 0)
       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
       loss += -p * w 
-  return loss
+  return loss / batch_size
 
 def bce_cal_loss(output, ground_truth):
   loss_bce = bce_loss(output, ground_truth)
@@ -261,6 +262,11 @@ def cel_loss(output, ground_truth):
       p = output[b, y]
       loss += (-torch.log(p))
   return loss / batch_size
+
+def cel_cal(output, ground_truth):
+  cel = cel_loss(output, ground_truth)
+  cal = cal_loss(output, ground_truth)
+  return cel + cal
 
 def dpm_cel_loss(p_c1, p_c2, output, ground_truth):
   loss = cel_loss(output, ground_truth)
@@ -304,6 +310,8 @@ class Trainer():
       self.loss = dpm_cel_loss
     elif loss == "bce_cal":
       self.loss = bce_cal_loss  
+    elif loss == "cel_cal":
+      self.loss = cel_cal
     else:
       raise Exception(f"Unknown loss function `{loss}`")
 
@@ -342,8 +350,8 @@ class Trainer():
       p.extend(t_p.tolist())
       pb.extend(t_pb.tolist())
       y.extend(target.tolist())
-      # loss = self.loss(output, target)
-      loss = self.loss(t_pc1, t_pc2, output, target)
+      loss = self.loss(output, target)
+      # loss = self.loss(t_pc1, t_pc2, output, target)
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
       perc = 100. * correct / num_items
@@ -407,8 +415,8 @@ class Trainer():
         p.extend(t_p.tolist())
         pb.extend(t_pb.tolist())
         y.extend(target.tolist())
-        # test_loss += self.loss(output, target).item()
-        test_loss += self.loss(t_pc1, t_pc2, output, target).item()
+        test_loss += self.loss(output, target).item()
+        # test_loss += self.loss(t_pc1, t_pc2, output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
@@ -451,7 +459,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="dpm")
+  parser.add_argument("--loss-fn", type=str, default="cel_cal")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
