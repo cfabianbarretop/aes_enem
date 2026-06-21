@@ -13,7 +13,7 @@ from argparse import ArgumentParser
 from tqdm import tqdm
 
 from graphs import main_graph
-from distribution import split_data, split_add
+from distribution import digit_combination
 
 import scallopy
 
@@ -451,7 +451,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="nll")
+  parser.add_argument("--loss-fn", type=str, default="cel")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
@@ -483,5 +483,5 @@ if __name__ == "__main__":
   trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
   main_graph("rs")
-  # split_add(train_loader, test_loader)
+  # digit_combination(train_loader, test_loader)
   
