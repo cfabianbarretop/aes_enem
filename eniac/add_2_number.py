@@ -223,18 +223,65 @@ def bce_loss(output, ground_truth):
 def nll_loss(output, ground_truth):
   return F.nll_loss(output, ground_truth)
 
-def cal_loss(output, ground_truth, alpha=0.65):
-  # print(f"{output.shape} - {ground_truth.shape}")
-  loss = torch.tensor(0.0, device=output.device)
+def dpm_loss(p_c1, p_c2, output, ground_truth):
+  loss = bce_loss(output, ground_truth)
+  loss_dpm = torch.tensor(0.0, device=output.device)
+  sum_weight = torch.tensor(0.0, device=output.device)
+  sum_dpm = torch.tensor(0.0, device=output.device)
+  cy_tensor = torch.tensor([cy[i] for i in range(len(cy))], dtype=output.dtype, device=output.device)
   for b, i in enumerate(ground_truth):
-      y = i.item()
-      p = torch.log(output[b, y])
-      weight = cy.get(y, 0)
+    y = i.item()
+    weight = -torch.log(cy_tensor[y])
+    prob = torch.tensor((1 - (p_c1[b] * p_c2[b])), device=output.device)
+    sum_weight += weight
+    sum_dpm += (prob * weight)
+  loss_dpm = sum_dpm / sum_weight  
+  return loss + loss_dpm
+
+def cal_loss(output, ground_truth, alpha=0.65):
+  (_, dim) = output.shape
+  gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
+  loss = torch.tensor(0.0, device=output.device)
+  batch_size = output.shape[0]
+  for b in range(batch_size):
+    for i in range(dim):
+      p = torch.log(output[b, i])
+      y = gt[b, i]
+      weight = cy.get(y.item(), 0)
       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
       loss += -p * w 
       # print(f"{p}*log(1 + ({alpha}/{weight}))")
 
-  return loss
+  return loss / (batch_size * dim)
+
+def bce_cal_loss(output, ground_truth):
+  loss_bce = bce_loss(output, ground_truth)
+  loss_cal = cal_loss(output, ground_truth)
+  return loss_bce + loss_cal
+
+def cel_loss(output, ground_truth):
+  batch_size = output.shape[0]
+  loss = torch.tensor(0.0, device=output.device)
+  for b, i in enumerate(ground_truth):
+      y = i.item()
+      p = output[b, y]
+      loss += (-torch.log(p))
+  return loss / batch_size
+
+def dpm_cel_loss(p_c1, p_c2, output, ground_truth):
+  loss = cel_loss(output, ground_truth)
+  loss_dpm = torch.tensor(0.0, device=output.device)
+  sum_weight = torch.tensor(0.0, device=output.device)
+  sum_dpm = torch.tensor(0.0, device=output.device)
+  cy_tensor = torch.tensor([cy[i] for i in range(len(cy))], dtype=output.dtype, device=output.device)
+  for b, i in enumerate(ground_truth):
+    y = i.item()
+    weight = -torch.log(cy_tensor[y])
+    prob = torch.tensor((1 - (p_c1[b] * p_c2[b])), device=output.device)
+    sum_weight += weight
+    sum_dpm += (prob * weight)
+  loss_dpm = sum_dpm / sum_weight  
+  return loss + loss_dpm
 
 # ==============================================
 # Entrenamiento y Test
@@ -253,6 +300,16 @@ class Trainer():
       self.loss = nll_loss
     elif loss == "bce":
       self.loss = bce_loss
+    elif loss == "cal":
+      self.loss = cal_loss
+    elif loss == "cel":
+      self.loss = cel_loss
+    elif loss == "dpm":
+      self.loss = dpm_loss
+    elif loss == "bce_cal":
+      self.loss = bce_cal_loss
+    elif loss == "dpm_cel":
+      self.loss = dpm_cel_loss  
     else:
       raise Exception(f"Unknown loss function `{loss}`")
 
@@ -291,9 +348,8 @@ class Trainer():
       p.extend(t_p.tolist())
       pb.extend(t_pb.tolist())
       y.extend(target.tolist())
-      loss_cal = self.loss(output, target)
-      loss = cal_loss(output, target)
-      # print(f"loss -> {loss} - {loss_cal}")
+      loss = self.loss(output, target)
+      # loss = self.loss(t_pc1, t_pc2, output, target)
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
       perc = 100. * correct / num_items
@@ -343,12 +399,12 @@ class Trainer():
         b_imgs = b_imgs.to(device)
         data = (a_imgs, b_imgs)
         (a_digits, b_digits, target) = data_des
-        p_syntax, p_mistake, output = self.network(data)
+        a_distrs, b_distrs, output = self.network(data)
         output = output.cpu()
         g1.extend(a_digits.tolist())
         g2.extend(b_digits.tolist())
-        t_pc1, t_c1 = p_syntax.max(dim=1)
-        t_pc2, t_c2 = p_mistake.max(dim=1)
+        t_pc1, t_c1 = a_distrs.max(dim=1)
+        t_pc2, t_c2 = b_distrs.max(dim=1)
         t_pb , t_p = output.max(dim=1)
         c1.extend(t_c1.tolist())
         pc1.extend(t_pc1.tolist())
@@ -358,6 +414,7 @@ class Trainer():
         pb.extend(t_pb.tolist())
         y.extend(target.tolist())
         test_loss += self.loss(output, target).item()
+        # test_loss += self.loss(t_pc1, t_pc2, output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items

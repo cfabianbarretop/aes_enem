@@ -23,7 +23,11 @@ class Graphs():
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, figsize=(16, 12))
 
         for csv_file in Path(self.result_dir).glob("*.csv"):
+            name = csv_file.stem.lower()
             label = csv_file.stem
+
+            if "train" not in name:
+                continue
 
             df = pd.read_csv(csv_file)
 
