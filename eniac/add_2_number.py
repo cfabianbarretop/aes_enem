@@ -239,20 +239,14 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   return loss + loss_dpm
 
 def cal_loss(output, ground_truth, alpha=0.65):
-  (_, dim) = output.shape
-  gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
   loss = torch.tensor(0.0, device=output.device)
-  batch_size = output.shape[0]
-  for b in range(batch_size):
-    for i in range(dim):
-      p = torch.log(output[b, i])
-      y = gt[b, i]
-      weight = cy.get(y.item(), 0)
+  for b, i in enumerate(ground_truth):
+      y = i.item()
+      p = torch.log(output[b, y])
+      weight = cy.get(y, 0)
       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
       loss += -p * w 
-      # print(f"{p}*log(1 + ({alpha}/{weight}))")
-
-  return loss / (batch_size * dim)
+  return loss
 
 def bce_cal_loss(output, ground_truth):
   loss_bce = bce_loss(output, ground_truth)
