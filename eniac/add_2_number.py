@@ -21,6 +21,7 @@ import scallopy
 # CONFIG
 # ==============================================
 DATA_LEAF_PATH = "data"                 # Original dataset path
+DATA_LEVEL_PATH = "levels"              # Original dataset levels path
 DATA_RESULT_PATH = "result"             # Result data path
 FILE_RESUL_METRIC = "result_metric"     # Name file result
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -36,6 +37,57 @@ mnist_img_transform = torchvision.transforms.Compose([
     (0.1307,), (0.3081,)
   )
 ])
+
+class MNISTSum2LevelDataset(torch.utils.data.Dataset):
+    def __init__(self, file_name):
+
+        self.data = torch.load(
+            file_name,
+            weights_only=False
+        )
+
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, idx):
+
+        sample = self.data[idx]
+
+        return (
+            sample["x1"],
+            sample["x2"],
+            sample["z1"],
+            sample["z2"],
+            sample["y"]
+        )
+
+    @staticmethod
+    def collate_fn(batch):
+
+        a_imgs = torch.stack(
+            [item[0] for item in batch]
+        )
+
+        b_imgs = torch.stack(
+            [item[1] for item in batch]
+        )
+
+        a_digits = torch.tensor(
+            [item[2] for item in batch]
+        ).long()
+
+        b_digits = torch.tensor(
+            [item[3] for item in batch]
+        ).long()
+
+        digits = torch.tensor(
+            [item[4] for item in batch]
+        ).long()
+
+        return (
+            (a_imgs, b_imgs),
+            (a_digits, b_digits, digits)
+        )
 
 class MNISTSum2Dataset(torch.utils.data.Dataset):
   def __init__(
@@ -78,18 +130,24 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
 
 
-def mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test):
+def mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
-    MNISTSum2Dataset(
-      data_dir,
-      train=True,
-      download=True,
-      transform=mnist_img_transform,
-    ),
-    collate_fn=MNISTSum2Dataset.collate_fn,
-    batch_size=batch_size_train,
-    shuffle=True
-  )
+        MNISTSum2LevelDataset(train_file),
+        batch_size=batch_size_train,
+        shuffle=True,
+        collate_fn=MNISTSum2LevelDataset.collate_fn
+    )
+  # train_loader = torch.utils.data.DataLoader(
+  #   MNISTSum2Dataset(
+  #     data_dir,
+  #     train=True,
+  #     download=True,
+  #     transform=mnist_img_transform,
+  #   ),
+  #   collate_fn=MNISTSum2Dataset.collate_fn,
+  #   batch_size=batch_size_train,
+  #   shuffle=True
+  # )
 
   test_loader = torch.utils.data.DataLoader(
     MNISTSum2Dataset(
@@ -238,7 +296,7 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
-def cal_loss(output, ground_truth, alpha=0.62):
+def cal_loss(output, ground_truth, alpha=31):
   batch_size = output.shape[0]
   loss = torch.tensor(0.0, device=output.device)
   for b, i in enumerate(ground_truth):
@@ -459,7 +517,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="cel_cal")
+  parser.add_argument("--loss-fn", type=str, default="cal")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
@@ -483,10 +541,11 @@ if __name__ == "__main__":
   # Une el directorio de base_dir con la carpeta "data"
   data_dir = os.path.abspath(os.path.join(base_dir, "..", DATA_LEAF_PATH))
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+  train_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_VI.pt"
   print("PATH data -> ", data_dir)
 
   # Dataloaders
-  train_loader, test_loader = mnist_sum_2_loader(data_dir, batch_size_train, batch_size_test)
+  train_loader, test_loader = mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
   trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
