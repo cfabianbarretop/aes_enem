@@ -342,8 +342,8 @@ class Trainer():
       p.extend(t_p.tolist())
       pb.extend(t_pb.tolist())
       y.extend(target.tolist())
-      loss = self.loss(output, target)
-      # loss = self.loss(t_pc1, t_pc2, output, target)
+      # loss = self.loss(output, target)
+      loss = self.loss(t_pc1, t_pc2, output, target)
       pred = output.data.max(1, keepdim=True)[1]
       correct += pred.eq(target.data.view_as(pred)).sum()
       perc = 100. * correct / num_items
@@ -407,8 +407,8 @@ class Trainer():
         p.extend(t_p.tolist())
         pb.extend(t_pb.tolist())
         y.extend(target.tolist())
-        test_loss += self.loss(output, target).item()
-        # test_loss += self.loss(t_pc1, t_pc2, output, target).item()
+        # test_loss += self.loss(output, target).item()
+        test_loss += self.loss(t_pc1, t_pc2, output, target).item()
         pred = output.data.max(1, keepdim=True)[1]
         correct += pred.eq(target.data.view_as(pred)).sum()
         perc = 100. * correct / num_items
@@ -451,7 +451,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="cal")
+  parser.add_argument("--loss-fn", type=str, default="dpm")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
