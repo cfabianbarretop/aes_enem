@@ -1,7 +1,8 @@
 from collections import Counter
 import matplotlib.pyplot as plt
+import numpy as np
 
-def split_data(train_loader, test_loader):
+def digit_distribution(train_loader, test_loader):
     train_counts = Counter()
     test_counts = Counter()
     
@@ -14,9 +15,6 @@ def split_data(train_loader, test_loader):
     for _, (a_digits, b_digits, _) in test_loader:
         test_counts.update(a_digits.tolist())
         test_counts.update(b_digits.tolist())
-
-    print("Train:", train_counts)
-    print("Test:", test_counts)
 
     digits = range(10)
 
@@ -37,12 +35,12 @@ def split_data(train_loader, test_loader):
     plt.xticks(x)
     plt.xlabel("Digit")
     plt.ylabel("Number of smples")
-    plt.title("Distribution of class")
+    plt.title("Distribution of digit")
     plt.legend()
 
     plt.show()
 
-def split_add(train_loader, test_loader):
+def sum_distribution(train_loader, test_loader):
     train_sum_counts = Counter()
     test_sum_counts = Counter()
 
@@ -74,4 +72,63 @@ def split_add(train_loader, test_loader):
     plt.title("Sum Distribution (y)")
     plt.legend()
 
+    plt.show()
+
+def digit_combination(train_loader, test_loader):
+
+    train_counts = np.zeros((10, 10), dtype=int)
+    test_counts = np.zeros((10, 10), dtype=int)
+
+    # Train
+    for _, (a_digits, b_digits, _) in train_loader:
+        for a, b in zip(a_digits.tolist(), b_digits.tolist()):
+            train_counts[a, b] += 1
+
+    # Test
+    for _, (a_digits, b_digits, _) in test_loader:
+        for a, b in zip(a_digits.tolist(), b_digits.tolist()):
+            test_counts[a, b] += 1
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+
+    # Train
+    im1 = ax1.imshow(train_counts, cmap="Blues")
+    ax1.set_title("Train")
+    ax1.set_xlabel("Segundo dígito")
+    ax1.set_ylabel("Primer dígito")
+    ax1.set_xticks(range(10))
+    ax1.set_yticks(range(10))
+
+    for i in range(10):
+        for j in range(10):
+            ax1.text(
+                j, i,
+                train_counts[i, j],
+                ha="center",
+                va="center",
+                color="black"
+            )
+
+    # Test
+    im2 = ax2.imshow(test_counts, cmap="Blues")
+    ax2.set_title("Test")
+    ax2.set_xlabel("Segundo dígito")
+    ax2.set_ylabel("Primer dígito")
+    ax2.set_xticks(range(10))
+    ax2.set_yticks(range(10))
+
+    for i in range(10):
+        for j in range(10):
+            ax2.text(
+                j, i,
+                test_counts[i, j],
+                ha="center",
+                va="center",
+                color="black"
+            )
+
+    fig.colorbar(im1, ax=ax1, fraction=0.046)
+    fig.colorbar(im2, ax=ax2, fraction=0.046)
+
+    plt.tight_layout()
     plt.show()
