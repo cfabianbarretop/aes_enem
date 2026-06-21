@@ -101,6 +101,10 @@ class Graphs():
         ax4.grid(True)
         ax4.legend()
 
+        for ax in [ax1, ax2, ax3, ax4]:
+            ax.set_xlim(0, 21)
+            ax.set_xticks(range(0, 22, 2))
+
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")
         plt.show()
