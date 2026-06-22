@@ -24,29 +24,10 @@ class Graphs():
 
         for csv_file in Path(self.result_dir).glob("*.csv"):
             name = csv_file.stem.lower()
-
-            if not name.startswith("e"):
-                continue
+            label = csv_file.stem
 
             if self.training not in name:
                 continue
-
-            if name.startswith("e1"):
-                label = 'Unsupervised'
-            elif name.startswith("e2"):
-                label = 'Supervised'
-            elif name.startswith("e3"):
-                label = 'Loss function unsupervised'
-            elif name.startswith("e4"):
-                label = 'Dinov2Model supervised'
-            elif name.startswith("e5"):
-                label = 'Dinov2Model unsupervised'
-            elif name.startswith("e6"):
-                label = 'CLIPVisionModel supervised'
-            elif name.startswith("e7"):
-                label = 'SiglipVisionModel supervised'
-            else:
-                label = csv_file.stem
 
             df = pd.read_csv(csv_file)
 
@@ -61,7 +42,7 @@ class Graphs():
             # Gráfico de prob_mod_no
             ax2.plot(
                 df["epoch"],
-                df["prob_mod_no"],
+                df["loss"],
                 marker="o",
                 label=label
             )
@@ -93,16 +74,16 @@ class Graphs():
                 )
 
         # Configuración gráfico 1
-        ax1.set_title("Accuracy")
+        ax1.set_title("Acc (Y)")
         ax1.set_xlabel("Epoch")
         ax1.set_ylabel("Acc (%)")
         ax1.grid(True)
         ax1.legend()
 
         # Configuración gráfico 2
-        ax2.set_title("Prob Model No")
+        ax2.set_title("Loss")
         ax2.set_xlabel("Epoch")
-        ax2.set_ylabel("prob_mod_no")
+        ax2.set_ylabel("loss")
         ax2.grid(True)
         ax2.legend()
 
@@ -114,24 +95,21 @@ class Graphs():
         ax3.legend()
 
         # Configuración gráfico 3
-        ax4.set_title("GAcc")
+        ax4.set_title("Acc (C) ")
         ax4.set_xlabel("Epoch")
         ax4.set_ylabel("gacc")
         ax4.grid(True)
         ax4.legend()
 
+        for ax in [ax1, ax2, ax3, ax4]:
+            ax.set_xlim(0, 21)
+            ax.set_xticks(range(0, 22, 2))
+
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")
         plt.show()
 
-if __name__ == "__main__":
-  # Argument parser
-  parser = ArgumentParser("graph")
-  parser.add_argument("--training", type=str, default="train")
-  args = parser.parse_args()
-  # Parameters
-  training = args.training
-
+def main_graph(training="rs"):
   # Obtiene el directorio donde está este archivo.py
   base_dir = os.path.dirname(os.path.abspath(__file__))
   # Une el directorio de base_dir con las carpetas "data" y "result"
@@ -140,3 +118,9 @@ if __name__ == "__main__":
   result_img = os.path.join(result_dir, name_img)
   graph = Graphs(result_dir, result_img, training)
   graph.graph()
+
+if __name__ == "__main__":
+  # Argument parser
+  parser = ArgumentParser("graph")
+  parser.add_argument("--training", type=str, default="rs")
+  args = parser.parse_args()

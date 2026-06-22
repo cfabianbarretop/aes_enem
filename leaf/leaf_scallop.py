@@ -13,6 +13,8 @@ from datasets import load_dataset
 from argparse import ArgumentParser
 from tqdm import tqdm
 
+from graphs import main_graph
+
 import scallopy
 
 # ==============================================
@@ -22,6 +24,19 @@ DATA_LEAF_PATH = "data/leaf_11"     # Original dataset path
 DATA_RESULT_PATH = "result"         # Result data path
 IMG_SIZE = (224, 224)               # Standar size for ResNet/CNN type network
 device = "cuda" if torch.cuda.is_available() else "cpu"
+cy = {
+    0: 1,
+    1: 21,
+    2: 20,
+    3: 8,
+    4: 20,
+    5: 20,
+    6: 4,
+    7: 4,
+    8: 1,
+    9: 24,
+    10: 5
+}
 print("Device: ", device)
 
 # ==============================================
@@ -200,8 +215,23 @@ def bce_loss(output, ground_truth):
 
 
 def nll_loss(output, ground_truth):
-  return F.nll_loss(output, ground_truth)
+  eps = 1e-8
+  return F.nll_loss(torch.log(output + eps), ground_truth)
 
+def cal_loss(output, ground_truth, alpha=1):
+  batch_size = output.shape[0]
+  loss = torch.tensor(0.0, device=output.device)
+  for b, i in enumerate(ground_truth):
+      y = i.item()
+      p = torch.log(output[b, y])
+      weight = cy.get(y, 0)
+      w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
+      loss += -p * w 
+  return loss / batch_size
+
+# ==============================================
+# Metricas
+# ==============================================
 def shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
   # print("G1 -> ", g1)
   # print("G2 -> ", g2)
@@ -218,19 +248,6 @@ def shortcut(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
   sum_ars = 0
   sum_gt = 0
   sum_model = 0
-  cy = {
-    0: 1,
-    1: 21,
-    2: 20,
-    3: 8,
-    4: 20,
-    5: 20,
-    6: 4,
-    7: 4,
-    8: 1,
-    9: 24,
-    10: 5
-}
   for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
     if pred != gt:
         if pred[3] == gt[3]:
@@ -274,6 +291,8 @@ class Trainer():
          self.loss = nll_loss
      elif loss == "bce":
          self.loss = bce_loss
+     elif loss == "cal":
+         self.loss = cal_loss
      else:
          raise Exception(f"Unknown loss function `{loss}`")
     
@@ -381,11 +400,11 @@ class Trainer():
 if __name__ == "__main__":
   # Argument parser
   parser = ArgumentParser("leaf")
-  parser.add_argument("--n-epochs", type=int, default=5)
+  parser.add_argument("--n-epochs", type=int, default=20)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="bce")
+  parser.add_argument("--loss-fn", type=str, default="cal")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
@@ -417,3 +436,5 @@ if __name__ == "__main__":
   # Create trainer and train
   trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
+  main_graph("train")
+  # main_distribution(train_loader, test_loader)

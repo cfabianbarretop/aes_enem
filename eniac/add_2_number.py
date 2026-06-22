@@ -310,7 +310,7 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
-def cal_loss(output, ground_truth, alpha=1):
+def cal_loss(output, ground_truth, alpha=64):
   batch_size = output.shape[0]
   loss = torch.tensor(0.0, device=output.device)
   for b, i in enumerate(ground_truth):
