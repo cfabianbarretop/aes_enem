@@ -74,7 +74,7 @@ class Graphs():
                 )
 
         # Configuración gráfico 1
-        ax1.set_title("Accuracy")
+        ax1.set_title("Acc (Y)")
         ax1.set_xlabel("Epoch")
         ax1.set_ylabel("Acc (%)")
         ax1.grid(True)
@@ -95,7 +95,7 @@ class Graphs():
         ax3.legend()
 
         # Configuración gráfico 3
-        ax4.set_title("GAcc")
+        ax4.set_title("Acc (C) ")
         ax4.set_xlabel("Epoch")
         ax4.set_ylabel("gacc")
         ax4.grid(True)
