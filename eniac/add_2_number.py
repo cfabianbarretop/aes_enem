@@ -214,7 +214,7 @@ class MNISTSum2Net(nn.Module):
 
     # The `sum_2` logical reasoning module
     # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
-    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(19)])
+    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(10)])
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
     (a_imgs, b_imgs) = x
@@ -267,7 +267,7 @@ def metrics(g1, g2, y, c1, pc1, c2, pc2, p):
           p_c1 = pc1[i]
           p_c2 = pc2[i]
           sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
-          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
           cont += 1
     else:
       peso = cy.get(pred[2], 0)
@@ -561,8 +561,8 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  # trainer.train(n_epochs)
+  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer.train(n_epochs)
   main_graph("train")
   # main_distribution(train_loader, test_loader)
   
