@@ -26,16 +26,43 @@ DATA_RESULT_PATH = "result"             # Result data path
 FILE_RESUL_METRIC = "result_metric"     # Name file result
 device = "cuda" if torch.cuda.is_available() else "cpu"
 cy = {
-  0: 1,
-  1: 3,
-  2: 5,
-  3: 7,
-  4: 9,
-  5: 11,
-  6: 13,
-  7: 15,
-  8: 17,
-  9: 19,
+  0: 19,
+  1: 1,
+  2: 2,
+  3: 2,
+  4: 3,
+  5: 2,
+  6: 4,
+  7: 2,
+  8: 4,
+  9: 3,
+  10: 2,
+  12: 4,
+  14: 2,
+  15: 2,
+  16: 3,
+  18: 4,
+  20: 2,
+  21: 2,
+  24: 4,
+  25: 1,
+  27: 2,
+  28: 2,
+  30: 2,
+  32: 2,
+  35: 2,
+  36: 3,
+  40: 2,
+  42: 2,
+  45: 2,
+  48: 2,
+  49: 1,
+  54: 2,
+  56: 2,
+  63: 2,
+  64: 1,
+  72: 2,
+  81: 1
 }
 
 print("Device: ", device)
@@ -130,7 +157,7 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     (b_img, b_digit) = self.mnist_dataset[self.index_map[idx * 2 + 1]]
 
     # Each data has two images and the GT is the sum of two digits
-    return (a_img, b_img, a_digit, b_digit, max(a_digit, b_digit))
+    return (a_img, b_img, a_digit, b_digit, a_digit * b_digit)
 
   @staticmethod
   def collate_fn(batch):
@@ -209,12 +236,11 @@ class MNISTSum2Net(nn.Module):
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
     self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
-    self.scl_ctx.add_rule("sum_2(a) :- digit_1(a), digit_2(b), a>=b")
-    self.scl_ctx.add_rule("sum_2(b) :- digit_1(a), digit_2(b), b>a")
+    self.scl_ctx.add_rule("sum_2(a * b) :- digit_1(a), digit_2(b)")
 
     # The `sum_2` logical reasoning module
     # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
-    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(10)])
+    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(82)])
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
     (a_imgs, b_imgs) = x
@@ -531,7 +557,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="cal")
+  parser.add_argument("--loss-fn", type=str, default="nll")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
@@ -561,8 +587,8 @@ if __name__ == "__main__":
   # Dataloaders
   train_loader, test_loader = mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  # trainer.train(n_epochs)
+  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  trainer.train(n_epochs)
   main_graph("train")
   # main_distribution(train_loader, test_loader)
   
