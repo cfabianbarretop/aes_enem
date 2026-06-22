@@ -55,15 +55,15 @@ class Graphs():
                     label=f"{label} - RSR"
                 )
             
-            if {"epoch", "RSRw"}.issubset(df.columns):
-                ax3.plot(
-                    df["epoch"],
-                    df["RSRw"],
-                    color = line_rsr.get_color(),
-                    marker="s",
-                    linestyle="--",
-                    label=f"{label} - RSRw"
-                )
+            # if {"epoch", "RSRw"}.issubset(df.columns):
+            #     ax3.plot(
+            #         df["epoch"],
+            #         df["RSRw"],
+            #         color = line_rsr.get_color(),
+            #         marker="s",
+            #         linestyle="--",
+            #         label=f"{label} - RSRw"
+            #     )
 
             if {"epoch", "GAcc"}.issubset(df.columns):
                 ax4.plot(
@@ -76,7 +76,7 @@ class Graphs():
         # Configuración gráfico 1
         ax1.set_title("Acc (Y)")
         ax1.set_xlabel("Epoch")
-        ax1.set_ylabel("Acc (%)")
+        ax1.set_ylabel("acc(y)")
         ax1.grid(True)
         ax1.legend()
 
@@ -97,7 +97,7 @@ class Graphs():
         # Configuración gráfico 3
         ax4.set_title("Acc (C) ")
         ax4.set_xlabel("Epoch")
-        ax4.set_ylabel("gacc")
+        ax4.set_ylabel("acc(C)")
         ax4.grid(True)
         ax4.legend()
 
