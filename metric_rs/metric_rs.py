@@ -13,8 +13,13 @@ from torchvision import transforms
 DATA_DIR = "./data"
 N_SAMPLES = 30000
 
-EASY_SUMS = [0, 1, 2, 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 18]
-HARD_SUMS = [7, 8, 9, 10, 11]
+EASY_SUMS = [
+    1, 2, 3, 4, 5, 7, 9, 10, 14, 15, 16, 20, 21, 25, 27, 28, 30,
+    32, 35, 36, 40, 42, 45, 48, 49, 54, 56, 63, 64, 72, 81
+]
+HARD_SUMS = [0, 6, 8, 12, 18, 24]
+    
+
 
 LEVELS = {
     "I":  (0.90, 0.10),
@@ -68,7 +73,7 @@ for z1 in range(10):
 
     for z2 in range(10):
 
-        y = z1 + z2
+        y = z1 * z2
 
         sum_to_pairs[y].append(
             (z1, z2)
@@ -79,6 +84,13 @@ print("\nEjemplos:")
 
 print("Suma 0 :", sum_to_pairs[0])
 print("Suma 1 :", sum_to_pairs[1])
+print("Suma 2 :", sum_to_pairs[2])
+print("Suma 3 :", sum_to_pairs[3])
+print("Suma 4 :", sum_to_pairs[4])
+print("Suma 5 :", sum_to_pairs[5])
+print("Suma 6 :", sum_to_pairs[6])
+print("Suma 7 :", sum_to_pairs[7])
+print("Suma 8 :", sum_to_pairs[8])
 print("Suma 9 :", sum_to_pairs[9])
 
 

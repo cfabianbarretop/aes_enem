@@ -25,7 +25,18 @@ DATA_LEVEL_PATH = "levels"              # Original dataset levels path
 DATA_RESULT_PATH = "result"             # Result data path
 FILE_RESUL_METRIC = "result_metric"     # Name file result
 device = "cuda" if torch.cuda.is_available() else "cpu"
-cy = {0: 1, 1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 9, 11: 8, 12: 7, 13: 6, 14: 5, 15: 4, 16: 3, 17: 2, 18: 1}
+cy = {
+  0: 1,
+  1: 3,
+  2: 5,
+  3: 7,
+  4: 9,
+  5: 11,
+  6: 13,
+  7: 15,
+  8: 17,
+  9: 19
+}
 print("Device: ", device)
 
 # ==============================================
@@ -117,8 +128,8 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     (a_img, a_digit) = self.mnist_dataset[self.index_map[idx * 2]]
     (b_img, b_digit) = self.mnist_dataset[self.index_map[idx * 2 + 1]]
 
-    # Each data has two images and the GT is the sum of two digits
-    return (a_img, b_img, a_digit, b_digit, a_digit + b_digit)
+    # Each data has two images and the GT is the max of two digits
+    return (a_img, b_img, a_digit, b_digit, max(a_digit, b_digit))
 
   @staticmethod
   def collate_fn(batch):
@@ -197,11 +208,12 @@ class MNISTSum2Net(nn.Module):
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
     self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
-    self.scl_ctx.add_rule("sum_2(a + b) :- digit_1(a), digit_2(b)")
+    self.scl_ctx.add_rule("sum_2(a) :- digit_1(a), digit_2(b), a>=b")
+    self.scl_ctx.add_rule("sum_2(b) :- digit_1(a), digit_2(b), b>a")
 
     # The `sum_2` logical reasoning module
-    # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
-    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(19)])
+    # La salida es un tensor de tamaño 64 x 10 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
+    self.sum_2 = self.scl_ctx.forward_function("sum_2", output_mapping=[(i,) for i in range(10)])
 
   def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
     (a_imgs, b_imgs) = x
@@ -254,7 +266,7 @@ def metrics(g1, g2, y, c1, pc1, c2, pc2, p):
           p_c1 = pc1[i]
           p_c2 = pc2[i]
           sum_model += (1-(p_c1*p_c2))*math.log(1/peso)
-          # print(f"Error en índice {i}: pred={pred}, gt={gt}")
+          print(f"Error en índice {i}: pred={pred}, gt={gt}")
           cont += 1
     else:
       peso = cy.get(pred[2], 0)
@@ -297,16 +309,57 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
+# def cal_loss_v1(output, ground_truth, alpha=31):
+#   batch_size = output.shape[0]
+#   loss = torch.tensor(0.0, device=output.device)
+#   for b, i in enumerate(ground_truth):
+#       y = i.item()
+#       p = torch.log(output[b, y])
+#       weight = cy.get(y, 0)
+#       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
+#       loss += -p * w 
+#   return loss / batch_size
+
 def cal_loss(output, ground_truth, alpha=31):
-  batch_size = output.shape[0]
-  loss = torch.tensor(0.0, device=output.device)
-  for b, i in enumerate(ground_truth):
-      y = i.item()
-      p = torch.log(output[b, y])
-      weight = cy.get(y, 0)
-      w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
-      loss += -p * w 
-  return loss / batch_size
+    batch_size = output.shape[0]
+    loss = torch.tensor(0.0, device=output.device)
+    for b, i in enumerate(ground_truth):
+        y = i.item()
+        p = torch.log(output[b, y].clamp(min=1e-8))
+        weight = cy.get(y, 1)
+        w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
+        w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
+        w = w.detach()
+        loss += -p * w 
+    return loss / batch_size
+
+# def cal_loss(output, ground_truth, alpha=31, lam=0.3):
+#     batch_size = output.shape[0]
+#     loss = torch.tensor(0.0, device=output.device)
+# 
+#     # constante de normalización
+#     norm = torch.log(torch.tensor(1.0 + alpha, device=output.device))
+# 
+#     for b, i in enumerate(ground_truth):
+#         y = i.item()
+# 
+#         # estabilidad numérica
+#         p = torch.log(output[b, y].clamp(min=1e-8))
+# 
+#         # obtener |C_y| y evitar división por 0
+#         weight = max(cy.get(y, 1), 1)
+# 
+#         # calcular w_i normalizado
+#         w = torch.log(torch.tensor(1.0 + alpha / weight, device=output.device)) / norm
+# 
+#         # detach para evitar gradientes indeseados
+#         w = w.detach()
+# 
+#         # loss final
+#         scaling = (1 - lam + lam * w)
+#         loss += -p * scaling
+# 
+#     return loss / batch_size
 
 def bce_cal_loss(output, ground_truth):
   loss_bce = bce_loss(output, ground_truth)
@@ -518,7 +571,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="nll")
+  parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
