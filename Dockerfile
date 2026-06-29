@@ -111,7 +111,7 @@ RUN mkdir -p /home/scallop_user/labs/nyse && \
 
 WORKDIR /home/scallop_user/labs/nyse
 
-COPY --chown=scallop_user:scallop_user NeuroSymbolic/ .
+COPY --chown=scallop_user:scallop_user eniac/ .
 
 WORKDIR /home/scallop_user/labs/nyse
 
