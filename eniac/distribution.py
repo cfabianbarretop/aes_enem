@@ -121,6 +121,7 @@ class Graphs():
         ax1.set_title("Train")
         ax1.set_xlabel("Second digit")
         ax1.set_ylabel("First digit")
+        ax1.invert_yaxis()
         ax1.set_xticks(range(10))
         ax1.set_yticks(range(10))
 

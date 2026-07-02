@@ -297,16 +297,29 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
+# def cal_loss_v1(output, ground_truth, alpha=31):
+#   batch_size = output.shape[0]
+#   loss = torch.tensor(0.0, device=output.device)
+#   for b, i in enumerate(ground_truth):
+#       y = i.item()
+#       p = torch.log(output[b, y])
+#       weight = cy.get(y, 0)
+#       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
+#       loss += -p * w 
+#   return loss / batch_size
+
 def cal_loss(output, ground_truth, alpha=31):
-  batch_size = output.shape[0]
-  loss = torch.tensor(0.0, device=output.device)
-  for b, i in enumerate(ground_truth):
-      y = i.item()
-      p = torch.log(output[b, y])
-      weight = cy.get(y, 0)
-      w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
-      loss += -p * w 
-  return loss / batch_size
+    batch_size = output.shape[0]
+    loss = torch.tensor(0.0, device=output.device)
+    for b, i in enumerate(ground_truth):
+        y = i.item()
+        p = torch.log(output[b, y].clamp(min=1e-8))
+        weight = cy.get(y, 1)
+        w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
+        w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
+        w = w.detach()
+        loss += -p * w 
+    return loss / batch_size
 
 def bce_cal_loss(output, ground_truth):
   loss_bce = bce_loss(output, ground_truth)
