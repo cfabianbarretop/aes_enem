@@ -9,6 +9,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+from sklearn.model_selection import train_test_split
+from torch.utils.data import Subset
+import numpy as np
+
 from argparse import ArgumentParser
 from tqdm import tqdm
 
@@ -106,6 +110,22 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
       target_transform=target_transform,
       download=download,
     )
+    
+    data_size = 2000
+    if train:
+      data_size = 12000
+
+    targets = self.mnist_dataset.targets.numpy()
+    indices = np.arange(len(targets))
+    selected_indices, _ = train_test_split(
+        indices,
+        train_size=data_size,
+        stratify=targets,
+        random_state=42
+    )
+    self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
+    print(f" Train : {train} -> {len(self.mnist_dataset)}")
+
     self.index_map = list(range(len(self.mnist_dataset)))
     random.shuffle(self.index_map)
 
@@ -130,24 +150,31 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
 
 
-def mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test):
-  train_loader = torch.utils.data.DataLoader(
-        MNISTSum2LevelDataset(train_file),
-        batch_size=batch_size_train,
-        shuffle=True,
-        collate_fn=MNISTSum2LevelDataset.collate_fn
-    )
+def mnist_sum_2_loader(train_file, test_file, data_dir, batch_size_train, batch_size_test):
   # train_loader = torch.utils.data.DataLoader(
-  #   MNISTSum2Dataset(
-  #     data_dir,
-  #     train=True,
-  #     download=True,
-  #     transform=mnist_img_transform,
-  #   ),
-  #   collate_fn=MNISTSum2Dataset.collate_fn,
-  #   batch_size=batch_size_train,
-  #   shuffle=True
-  # )
+  #       MNISTSum2LevelDataset(train_file),
+  #       batch_size=batch_size_train,
+  #       shuffle=True,
+  #       collate_fn=MNISTSum2LevelDataset.collate_fn
+  #   )
+  train_loader = torch.utils.data.DataLoader(
+    MNISTSum2Dataset(
+      data_dir,
+      train=True,
+      download=True,
+      transform=mnist_img_transform,
+    ),
+    collate_fn=MNISTSum2Dataset.collate_fn,
+    batch_size=batch_size_train,
+    shuffle=True
+  )
+
+  # test_loader = torch.utils.data.DataLoader(
+  #       MNISTSum2LevelDataset(test_file),
+  #       batch_size=batch_size_train,
+  #       shuffle=True,
+  #       collate_fn=MNISTSum2LevelDataset.collate_fn
+  #   )
 
   test_loader = torch.utils.data.DataLoader(
     MNISTSum2Dataset(
@@ -560,14 +587,15 @@ if __name__ == "__main__":
   # Une el directorio de base_dir con la carpeta "data"
   data_dir = os.path.abspath(os.path.join(base_dir, "..", DATA_LEAF_PATH))
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
-  train_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_VI.pt"
+  train_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_train_VI.pt"
+  test_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_test_VI.pt"
   print("PATH data -> ", data_dir)
 
   # Dataloaders
-  train_loader, test_loader = mnist_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
+  train_loader, test_loader = mnist_sum_2_loader(train_file, test_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  trainer.train(n_epochs)
-  main_graph("train")
-  # main_distribution(train_loader, test_loader)
+  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  # trainer.train(n_epochs)
+  # main_graph("train")
+  main_distribution(train_loader, test_loader)
   
