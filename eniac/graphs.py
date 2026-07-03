@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_RESULT_PATH = "result/mnist-add-natural-dist"             # Result data path
+DATA_RESULT_PATH = "result"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
 
 # ==============================================

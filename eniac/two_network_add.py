@@ -110,10 +110,12 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
       target_transform=target_transform,
       download=download,
     )
-    
-    data_size = 2000
+    # 20% of MNIST: 12000	2000
+    # 10% of MNIST: 6000	1000
+    #  1% of MNIST: 600	100
+    data_size = 100
     if train:
-      data_size = 12000
+      data_size = 600
 
     targets = self.mnist_dataset.targets.numpy()
     indices = np.arange(len(targets))
@@ -565,7 +567,7 @@ if __name__ == "__main__":
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
   parser.add_argument("--learning-rate", type=float, default=0.001)
-  parser.add_argument("--loss-fn", type=str, default="nll")
+  parser.add_argument("--loss-fn", type=str, default="cal")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
   parser.add_argument("--top-k", type=int, default=3)
