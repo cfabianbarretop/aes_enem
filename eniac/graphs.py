@@ -7,8 +7,17 @@ import matplotlib.pyplot as plt
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_RESULT_PATH = "result"             # Result data path
+DATA_RESULT_PATH = "result/mnist-add-natural-dist"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
+
+# ==============================================
+# COLOR MAP
+# ==============================================
+cmap = plt.get_cmap("tab10")
+COLOR_MAP = {
+    "aal": cmap(1),
+    "bce": cmap(0)
+}
 
 # ==============================================
 # GRAPHS
@@ -28,6 +37,16 @@ class Graphs():
 
             if self.training not in name:
                 continue
+            
+            # Extraer clave (aal o bce)
+            if "aal" in name:
+                key = "aal"
+            elif "bce" in name:
+                key = "bce"
+            else:
+                key = None
+
+            color = COLOR_MAP.get(key, "black")
 
             df = pd.read_csv(csv_file)
 
@@ -36,7 +55,8 @@ class Graphs():
                 df["epoch"],
                 df["acc"],
                 marker="o",
-                label=label
+                label=label,
+                color=color
             )
 
             # Gráfico de prob_mod_no
@@ -44,7 +64,8 @@ class Graphs():
                 df["epoch"],
                 df["loss"],
                 marker="o",
-                label=label
+                label=label,
+                color=color
             )
 
             if {"epoch", "RSR"}.issubset(df.columns):
@@ -52,7 +73,8 @@ class Graphs():
                     df["epoch"],
                     df["RSR"],
                     marker="o",
-                    label=f"{label} - RSR"
+                    label=f"{label} - RSR",
+                    color=color
                 )
             
             # if {"epoch", "RSRw"}.issubset(df.columns):
@@ -70,7 +92,8 @@ class Graphs():
                     df["epoch"],
                     df["GAcc"],
                     marker="o",
-                    label=label
+                    label=label,
+                    color=color
                 )
 
         # Configuración gráfico 1
