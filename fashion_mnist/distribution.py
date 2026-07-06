@@ -38,8 +38,8 @@ class Graphs():
 
     def show_img(self):
         samples = {}
-        for images, labels in self.train_loader:
-            for image, label in zip(images, labels):
+        for (img1, _, _), (digit1, _, _), _ in self.train_loader:
+            for image, label in zip(img1, digit1):
                 label = label.item()
 
                 if label not in samples:
@@ -70,12 +70,16 @@ class Graphs():
         test_counts = Counter()
         
         # Train
-        for _, digit in self.train_loader:
-            train_counts.update(digit.tolist())
+        for _, (digit1, digit2, digit3), _ in self.train_loader:
+            train_counts.update(digit1.tolist())
+            train_counts.update(digit2.tolist())
+            train_counts.update(digit3.tolist())
 
         # Test
-        for _, digit in self.test_loader:
-            test_counts.update(digit.tolist())
+        for _, (digit1, digit2, digit3), _ in self.test_loader:
+            test_counts.update(digit1.tolist())
+            test_counts.update(digit2.tolist())
+            test_counts.update(digit3.tolist())
 
         digits = range(10)
 

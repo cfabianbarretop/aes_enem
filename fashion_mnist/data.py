@@ -1,0 +1,297 @@
+import os
+import random
+import torch
+import torchvision
+import numpy as np
+import torchvision
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import scallopy
+
+from typing import *
+from argparse import ArgumentParser
+from distribution import main_distribution
+from sklearn.model_selection import train_test_split
+from torch.utils.data import Subset
+from tqdm import tqdm
+
+
+# ==============================================
+# CONFIG
+# ==============================================
+DATA_MNIST_FASHION_PATH = "data"        # Original dataset path
+DATA_RESULT_PATH = "result"             # Result data path
+device = "cuda" if torch.cuda.is_available() else "cpu"
+cy = {0: 988, 1: 12}
+print("Device: ", device)
+
+
+# ==============================================
+# Dataset
+# ==============================================
+mnist_img_transform = torchvision.transforms.Compose(
+    [torchvision.transforms.ToTensor()]
+)
+
+
+class MNISTFashionDataset(torch.utils.data.Dataset):
+    def __init__(
+        self,
+        root: str,
+        train: bool = True,
+        transform: Optional[Callable] = None,
+        target_transform: Optional[Callable] = None,
+        download: bool = False,
+    ):
+        # Contains a MNIST dataset
+        self.mnist_dataset = torchvision.datasets.FashionMNIST(
+            root,
+            train=train,
+            transform=transform,
+            target_transform=target_transform,
+            download=download,
+        )
+
+        if not train:
+            targets = self.mnist_dataset.targets.numpy()
+            indices = np.arange(len(targets))
+            selected_indices, _ = train_test_split(
+                indices,
+                train_size=9000,
+                stratify=targets,
+                random_state=42
+            )
+            self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
+
+        self.index_map = list(range(len(self.mnist_dataset)))
+        random.shuffle(self.index_map)
+
+    def __len__(self):
+        return len(self.mnist_dataset) // 3
+
+    def __getitem__(self, idx):
+        # Get three data points
+        i = idx * 3
+        img1, digit1 = self.mnist_dataset[self.index_map[i]]
+        img2, digit2 = self.mnist_dataset[self.index_map[i + 1]]
+        img3, digit3 = self.mnist_dataset[self.index_map[i + 2]]
+
+        # Each data has two images and the GT is the sum of two digits
+        return (img1, img2, img3, digit1, digit2, digit3, digit1 + digit2 + digit3,
+                valid_outfit(digit1, digit2, digit3)
+                )
+
+    @staticmethod
+    def collate_fn(batch):
+        img1 = torch.stack([item[0] for item in batch])
+        img2 = torch.stack([item[1] for item in batch])
+        img3 = torch.stack([item[2] for item in batch])
+        digit1 = torch.stack([torch.tensor(item[3]).long() for item in batch])
+        digit2 = torch.stack([torch.tensor(item[4]).long() for item in batch])
+        digit3 = torch.stack([torch.tensor(item[5]).long() for item in batch])
+        sum = torch.stack([torch.tensor(item[6]).long() for item in batch])
+        label = torch.stack([torch.tensor(item[6]).long() for item in batch])
+        return ((img1, img2, img3), (digit1, digit2, digit3), (sum, label))
+
+# ==============================================
+# Funcion verifica outfit
+# ==============================================
+def valid_outfit(digit1, digit2, digit3):
+    return int(
+        6 <= digit1 + digit2 + digit3 <= 16
+        and digit1 % 2 == 0
+        and digit1 != 8
+        and digit2 == 1
+        and digit3 % 2 == 1
+        and digit3 >= 5
+    )
+
+# ==============================================
+# Funcion data loader
+# ==============================================
+def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
+    train_loader = torch.utils.data.DataLoader(
+        MNISTFashionDataset(
+            data_dir,
+            train=True,
+            download=True,
+            transform=mnist_img_transform,
+        ),
+        collate_fn=MNISTFashionDataset.collate_fn,
+        batch_size=batch_size_train,
+        shuffle=True,
+    )
+
+    test_loader = torch.utils.data.DataLoader(
+        MNISTFashionDataset(
+            data_dir,
+            train=False,
+            download=True,
+            transform=mnist_img_transform,
+        ),
+        collate_fn=MNISTFashionDataset.collate_fn,
+        batch_size=batch_size_test,
+        shuffle=True,
+    )
+
+    return train_loader, test_loader
+
+# ==============================================
+# Modelo Neural
+# ==============================================
+class MNISTFashionNet(nn.Module):
+  def __init__(self):
+    super(MNISTFashionNet, self).__init__()
+    self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+    self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+    self.fc1 = nn.Linear(1024, 1024)
+    self.fc2 = nn.Linear(1024, 10)
+
+  def forward(self, x):
+    x = F.max_pool2d(self.conv1(x), 2)
+    x = F.max_pool2d(self.conv2(x), 2)
+    x = x.view(-1, 1024)
+    x = F.relu(self.fc1(x))
+    x = F.dropout(x, p = 0.5, training=self.training)
+    x = self.fc2(x)
+    return F.softmax(x, dim=1)
+
+# ==============================================
+# Modelo Lógico
+# ==============================================
+class MNISTFashionLogic(nn.Module):
+  def __init__(self, provenance, k):
+    super(MNISTFashionLogic, self).__init__()
+
+    # MNIST Digit Recognition Network
+    self.mnist_one_net = MNISTFashionNet()
+    self.mnist_two_net = MNISTFashionNet()
+    self.mnist_three_net = MNISTFashionNet()
+
+    # Scallop Context
+    self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
+    self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
+    self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
+    self.scl_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
+    self.scl_ctx.add_relation("upper", int)
+    self.scl_ctx.add_relation("lower", int)
+    self.scl_ctx.add_relation("shoe", int)
+
+    self.scl_ctx.add_facts("upper", [(0,), (2,), (4,), (6,)])
+    self.scl_ctx.add_facts("lower", [(1,)])
+    self.scl_ctx.add_facts("shoe", [(5,), (7,), (9,)])
+
+    self.scl_ctx.add_rule("valid() :- digit_1(a), digit_2(b), digit_3(c), upper(a), lower(b), shoe(c)")
+
+    # The `sum_2` logical reasoning module
+    # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
+    self.valid = self.scl_ctx.forward_function("valid")
+
+  def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
+    (a_imgs, b_imgs, c_imgs) = x
+
+    # First recognize the two digits
+    a_distrs = self.mnist_one_net(a_imgs) # Tensor 64 x 10
+    b_distrs = self.mnist_two_net(b_imgs) # Tensor 64 x 10
+    c_distrs = self.mnist_three_net(c_imgs) # Tensor 64 x 10
+
+    # Then execute the reasoning module; the result is a size 19 tensor
+    return a_distrs, b_distrs, c_distrs, self.valid(digit_1=a_distrs, digit_2=b_distrs, digit_3=c_distrs) # Tensor 64 x 19 
+
+# ==============================================
+# Calculo de error
+# ==============================================
+def bce_loss(output, ground_truth):
+  (_, dim) = output.shape
+  gt = torch.stack([torch.tensor([1.0 if i == t else 0.0 for i in range(dim)]) for t in ground_truth])
+  return F.binary_cross_entropy(output, gt)
+
+
+def nll_loss(output, ground_truth):
+  eps = 1e-8
+  return F.nll_loss(torch.log(output + eps), ground_truth)
+
+# ==============================================
+# Entrenamiento y Test
+# ==============================================
+class Trainer():
+    def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
+        self.network = MNISTFashionLogic(provenance, k).to(device)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+        self.train_loader = train_loader
+        self.test_loader = test_loader
+        self.result_dir = result_dir
+        self.metrics_train = []
+        self.metrics_test = []
+
+        if loss == "nll":
+            self.loss = nll_loss
+        elif loss == "bce":
+            self.loss = bce_loss
+        else:
+            raise Exception(f"Unknown loss function `{loss}`")
+    
+    def train_epoch(self, epoch):
+        self.network.train()
+        correct = 0
+        iter = tqdm(self.train_loader, total=len(self.train_loader))
+        num_items = len(self.train_loader.dataset)
+        for (images, digits, labels) in iter:
+            (a_imgs, b_imgs, c_imgs) = images
+            a_imgs = a_imgs.to(device)
+            b_imgs = b_imgs.to(device)
+            c_imgs = c_imgs.to(device)
+            images = (a_imgs, b_imgs, c_imgs)
+            self.optimizer.zero_grad()
+            a_distrs, b_distrs, c_distrs, output = self.network(images)
+            output = output.cpu()
+            print(f"Salida => {output}")
+           
+    def train(self, n_epochs):
+        # self.test(0)
+        for epoch in range(1, n_epochs + 1):
+            print("-----------> EPOCH: ",epoch)
+            self.train_epoch(epoch)
+            # self.test(epoch)
+            # save_metrics(self.result_dir, "train", self.metrics_train)
+            # save_metrics(self.result_dir, "test", self.metrics_test)
+
+# ==============================================
+# MAIN
+# ==============================================
+if __name__ == "__main__":
+    # Argument parser
+    parser = ArgumentParser("mnist_fashion")
+    parser.add_argument("--n-epochs", type=int, default=1)
+    parser.add_argument("--batch-size-train", type=int, default=1)
+    parser.add_argument("--batch-size-test", type=int, default=1)
+    parser.add_argument("--learning-rate", type=float, default=0.001)
+    parser.add_argument("--loss-fn", type=str, default="cal")
+    parser.add_argument("--seed", type=int, default=1234)
+    parser.add_argument("--provenance", type=str, default="difftopkproofs")
+    parser.add_argument("--top-k", type=int, default=3)
+    args = parser.parse_args()
+
+    # Parameters
+    n_epochs = args.n_epochs
+    batch_size_train = args.batch_size_train
+    batch_size_test = args.batch_size_test
+    learning_rate = args.learning_rate
+    loss_fn = args.loss_fn
+    k = args.top_k
+    provenance = args.provenance
+    torch.manual_seed(args.seed)
+    random.seed(args.seed)
+
+    # Obtiene el directorio donde está este archivo.py
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Une el directorio de base_dir con la carpeta "data"
+    data_dir = os.path.abspath(os.path.join(base_dir, "..", DATA_MNIST_FASHION_PATH))
+    result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+    print("PATH data -> ", data_dir)
+    train_loader, test_loader = mnist_fashion_loader(data_dir, batch_size_train, batch_size_test)
+    # Create trainer and train
+    trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+    trainer.train(n_epochs)
+    # main_distribution(train_loader, test_loader)
