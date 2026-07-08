@@ -14,6 +14,7 @@ import csv
 from typing import *
 from argparse import ArgumentParser
 from distribution import main_distribution
+from graphs import main_graph
 from sklearn.model_selection import train_test_split
 from torch.utils.data import Subset
 from tqdm import tqdm
@@ -25,7 +26,36 @@ DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
 DATA_RESULT_PATH = "result"  # Result data path
 FILE_RESUL_METRIC = "result_metric"  # Name file result
 device = "cuda" if torch.cuda.is_available() else "cpu"
-cy = {0: 988, 1: 12}
+cy = {
+  0: 1,
+  1: 3,
+  2: 6,
+  3: 10,
+  4: 15,
+  5: 21,
+  6: 28,
+  7: 36,
+  8: 45,
+  9: 55,
+  10: 63,
+  11: 69,
+  12: 73,
+  13: 75,
+  14: 75,
+  15: 73,
+  16: 69,
+  17: 63,
+  18: 55,
+  19: 45,
+  20: 36,
+  21: 28,
+  22: 21,
+  23: 15,
+  24: 10,
+  25: 6,
+  26: 3,
+  27: 1
+}
 print("Device: ", device)
 
 
@@ -176,8 +206,8 @@ class MNISTFashionLogic(nn.Module):
 
         # MNIST Digit Recognition Network
         self.mnist_one_net = MNISTFashionNet()
-        self.mnist_two_net = MNISTFashionNet()
-        self.mnist_three_net = MNISTFashionNet()
+        # self.mnist_two_net = MNISTFashionNet()
+        # self.mnist_three_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -208,17 +238,18 @@ class MNISTFashionLogic(nn.Module):
         )
 
         self.scl_ctx.add_rule(
-            "sum(S) :- digit_1(a), digit_2(b), digit_3(c), upper(a), lower(b), shoe(c), S == a + b + c"
+            # "sum(S) :- digit_1(a), digit_2(b), digit_3(c), upper(a), lower(b), shoe(c), S == a + b + c"
+            "sum(S) :- digit_1(a), digit_2(b), digit_3(c), S == a + b + c"
         )
-        self.scl_ctx.add_rule("valid(1) :- sum(S), S >= 6, S <= 16, S % 2 == 0")
-        self.scl_ctx.add_rule("valid(0) :- sum(S), S < 6")
-        self.scl_ctx.add_rule("valid(0) :- sum(S), S > 12")
-        self.scl_ctx.add_rule("valid(0) :- sum(S), S % 2 == 1")
+        # self.scl_ctx.add_rule("valid(1) :- sum(S), S >= 6, S <= 16, S % 2 == 0")
+        # self.scl_ctx.add_rule("valid(0) :- sum(S), S < 6")
+        # self.scl_ctx.add_rule("valid(0) :- sum(S), S > 12")
+        # self.scl_ctx.add_rule("valid(0) :- sum(S), S % 2 == 1")
 
         # The `sum_2` logical reasoning module
         # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
         self.valid = self.scl_ctx.forward_function(
-            "valid", output_mapping=[(i,) for i in range(2)]
+            "sum", output_mapping=[(i,) for i in range(28)]
         )
 
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
@@ -226,8 +257,8 @@ class MNISTFashionLogic(nn.Module):
 
         # First recognize the two digits
         a_distrs = self.mnist_one_net(a_imgs)  # Tensor 64 x 10
-        b_distrs = self.mnist_two_net(b_imgs)  # Tensor 64 x 10
-        c_distrs = self.mnist_three_net(c_imgs)  # Tensor 64 x 10
+        b_distrs = self.mnist_one_net(b_imgs)  # Tensor 64 x 10
+        c_distrs = self.mnist_one_net(c_imgs)  # Tensor 64 x 10
 
         # Then execute the reasoning module; the result is a size 19 tensor
         return (
@@ -296,7 +327,7 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
                 p_c2 = pc2[i]
                 p_c3 = pc3[i]
                 sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
-                # print(f"Error en índice {i}: pred={pred}, gt={gt}")
+                print(f"Error en índice {i}: pred={pred}, gt={gt}")
                 cont += 1
         else:
             peso = cy.get(pred[3], 0)
@@ -377,7 +408,8 @@ class Trainer:
             b_imgs = b_imgs.to(device)
             c_imgs = c_imgs.to(device)
             images = (a_imgs, b_imgs, c_imgs)
-            sum_3, target = labels
+            # sum_3, target = labels
+            target, _ = labels
             self.optimizer.zero_grad()
             a_distrs, b_distrs, c_distrs, output = self.network(images)
             output = output.cpu()
@@ -482,4 +514,5 @@ if __name__ == "__main__":
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
     trainer.train(n_epochs)
+    main_graph("train")
     # main_distribution(train_loader, test_loader)
