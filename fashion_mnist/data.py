@@ -118,6 +118,10 @@ def valid_outfit(digit1, digit2, digit3):
         elif d in SHOES:
             shoes += 1
     return int(upper == 1 and lower == 1 and shoes == 1)
+    # upper = digit1 in UPPER
+    # lower = digit2 in LOWER
+    # shoes = digit3 in SHOES
+    # return int(upper and lower and shoes)
 
 
 # ==============================================
@@ -219,6 +223,9 @@ class MNISTFashionLogic(nn.Module):
         self.scl_ctx.add_rule("has_upper(X) :- wear(X), upper(X)")
         self.scl_ctx.add_rule("has_lower(X) :- wear(X), lower(X)")
         self.scl_ctx.add_rule("has_shoe(X) :- wear(X), shoe(X)")
+        # self.scl_ctx.add_rule("has_upper(X) :- digit_1(X), upper(X)")
+        # self.scl_ctx.add_rule("has_lower(X) :- digit_2(X), lower(X)")
+        # self.scl_ctx.add_rule("has_shoe(X) :- digit_3(X), shoe(X)")
 
         self.scl_ctx.add_rule("valid() :- has_upper(U), has_lower(L), has_shoe(S)")
 
@@ -306,6 +313,7 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
                 sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
                 if gt[3] == 1:
                     count_without_1 += 1
+                    # print(f"Error en índice {i}: pred={pred}, gt={gt}")
                 else:
                     count_with_0 += 1
                 # print(f"Error en índice {i}: pred={pred}, gt={gt}")
@@ -355,6 +363,44 @@ def nll_loss(output, ground_truth):
     eps = 1e-8
     return F.nll_loss(torch.log(output + eps), ground_truth)
 
+def aal_loss(output, ground_truth, alpha=31):
+    # batch_size = output.shape[0]
+    # loss = torch.tensor(0.0, device=output.device)
+    # for b, i in enumerate(ground_truth):
+    #     y = i.item()
+    #     p = torch.log(output[b, y].clamp(min=1e-8))
+    #     weight = cy.get(y, 1)
+    #     w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
+    #     w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
+    #     w = w.detach()
+    #     loss += -p * w 
+    # return loss / batch_size
+    # output = output.view(-1)
+    # ground_truth = ground_truth.float().view(-1)
+    batch_size = output.shape[0]
+    loss = torch.tensor(0.0, device=output.device)
+
+    for b in range(batch_size):
+        y = int(ground_truth[b].item())
+
+        # Evitar log(0)
+        p = output[b].clamp(min=1e-8, max=1-1e-8)
+
+        if y == 1:
+            log_prob = torch.log(p)
+        else:
+            log_prob = torch.log(1.0 - p)
+
+        weight = cy[y]
+
+        w = torch.log(torch.tensor(1 + alpha / weight, device=output.device))
+        w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
+        w = w.detach()
+
+        loss += -w * log_prob
+
+    return loss / batch_size
+
 
 # ==============================================
 # Entrenamiento y Test
@@ -377,6 +423,8 @@ class Trainer:
             self.loss = bce_loss
         elif loss == "ll":
             self.loss = nn.BCELoss()
+        elif loss == "aal":
+            self.loss = aal_loss
         else:
             raise Exception(f"Unknown loss function `{loss}`")
 
@@ -540,11 +588,11 @@ class Trainer:
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
-    parser.add_argument("--n-epochs", type=int, default=2)
+    parser.add_argument("--n-epochs", type=int, default=20)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
-    parser.add_argument("--loss-fn", type=str, default="ll")
+    parser.add_argument("--loss-fn", type=str, default="aal")
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--provenance", type=str, default="difftopkproofs")
     parser.add_argument("--top-k", type=int, default=3)
