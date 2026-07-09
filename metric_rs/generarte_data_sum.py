@@ -11,9 +11,11 @@ from torchvision import transforms
 # =====================================================
 
 DATA_DIR = "./data"
+NAME_DATA = "mnist_addition_level_test"
+TRAIN = False
 # N_SAMPLES = 30000 # Total de instancias que deseo crear
-N_SAMPLES = 21000 # Para el train
-# N_SAMPLES = 9000 # Para el test
+# N_SAMPLES = 30000 # Para el train
+N_SAMPLES = 10000 # Para el test
 
 EASY_SUMS = [0, 1, 2, 3, 4, 5, 6, 12, 13, 14, 15, 16, 17, 18]
 HARD_SUMS = [7, 8, 9, 10, 11]
@@ -36,7 +38,7 @@ transform = transforms.ToTensor()
 
 mnist_train = MNIST(
     root=DATA_DIR,
-    train=True,
+    train=TRAIN,
     download=True,
     transform=transform
 )
@@ -270,14 +272,12 @@ for level_name in datasets:
 
 for level_name in datasets:
 
-    name_data = "mnist_addition_level_train"
-
     torch.save(
         datasets[level_name],
-        f"{name_data}_{level_name}.pt"
+        f"{NAME_DATA}_{level_name}.pt"
     )
 
     print(
         f"Guardado: "
-        f"{name_data}_{level_name}.pt"
+        f"{NAME_DATA}_{level_name}.pt"
     )

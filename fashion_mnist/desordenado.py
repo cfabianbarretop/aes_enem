@@ -622,6 +622,6 @@ if __name__ == "__main__":
     trainer = Trainer(
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
-    trainer.train(n_epochs)
+    # trainer.train(n_epochs)
     main_graph("train")
     # main_distribution(train_loader, test_loader)
