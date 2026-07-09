@@ -26,36 +26,10 @@ DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
 DATA_RESULT_PATH = "result"  # Result data path
 FILE_RESUL_METRIC = "result_metric"  # Name file result
 device = "cuda" if torch.cuda.is_available() else "cpu"
-cy = {
-  0: 1,
-  1: 3,
-  2: 6,
-  3: 10,
-  4: 15,
-  5: 21,
-  6: 28,
-  7: 36,
-  8: 45,
-  9: 55,
-  10: 63,
-  11: 69,
-  12: 73,
-  13: 75,
-  14: 75,
-  15: 73,
-  16: 69,
-  17: 63,
-  18: 55,
-  19: 45,
-  20: 36,
-  21: 28,
-  22: 21,
-  23: 15,
-  24: 10,
-  25: 6,
-  26: 3,
-  27: 1
-}
+cy = {0: 988, 1: 12}
+UPPER = {0, 2, 4, 6}
+LOWER = {1}
+SHOES = {5, 7, 9}
 print("Device: ", device)
 
 
@@ -135,14 +109,15 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
 # Funcion verifica outfit
 # ==============================================
 def valid_outfit(digit1, digit2, digit3):
-    return int(
-        6 <= digit1 + digit2 + digit3 <= 16
-        and digit1 % 2 == 0
-        and digit1 != 8
-        and digit2 == 1
-        and digit3 % 2 == 1
-        and digit3 >= 5
-    )
+    upper, lower, shoes = 0, 0, 0
+    for d in [digit1, digit2, digit3]:
+        if d in UPPER:
+            upper += 1
+        elif d in LOWER:
+            lower += 1
+        elif d in SHOES:
+            shoes += 1
+    return int(upper == 1 and lower == 1 and shoes == 1)
 
 
 # ==============================================
@@ -237,20 +212,17 @@ class MNISTFashionLogic(nn.Module):
             ],
         )
 
-        self.scl_ctx.add_rule(
-            # "sum(S) :- digit_1(a), digit_2(b), digit_3(c), upper(a), lower(b), shoe(c), S == a + b + c"
-            "sum(S) :- digit_1(a), digit_2(b), digit_3(c), S == a + b + c"
-        )
-        # self.scl_ctx.add_rule("valid(1) :- sum(S), S >= 6, S <= 16, S % 2 == 0")
-        # self.scl_ctx.add_rule("valid(0) :- sum(S), S < 6")
-        # self.scl_ctx.add_rule("valid(0) :- sum(S), S > 12")
-        # self.scl_ctx.add_rule("valid(0) :- sum(S), S % 2 == 1")
+        self.scl_ctx.add_rule("wear(X) :- digit_1(X)")
+        self.scl_ctx.add_rule("wear(X) :- digit_2(X)")
+        self.scl_ctx.add_rule("wear(X) :- digit_3(X)")
 
-        # The `sum_2` logical reasoning module
-        # La salida es un tensor de tamaño 64 x 19 (porque la suma de dos dígitos entre 0 y 9 puede dar valores de 0 a 18).
-        self.valid = self.scl_ctx.forward_function(
-            "sum", output_mapping=[(i,) for i in range(28)]
-        )
+        self.scl_ctx.add_rule("has_upper(X) :- wear(X), upper(X)")
+        self.scl_ctx.add_rule("has_lower(X) :- wear(X), lower(X)")
+        self.scl_ctx.add_rule("has_shoe(X) :- wear(X), shoe(X)")
+
+        self.scl_ctx.add_rule("valid() :- has_upper(U), has_lower(L), has_shoe(S)")
+
+        self.valid = self.scl_ctx.forward_function("valid", output_mapping=[()])
 
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
         a_imgs, b_imgs, c_imgs = x
@@ -318,7 +290,12 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
     sum_ars = 0
     sum_gt = 0
     sum_model = 0
+    count = 0
+    count_with_0 = 0
+    count_without_1 = 0
     for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
+        if pred[3] == 1:
+            count += 1
         if pred != gt:
             if pred[3] == gt[3]:
                 peso = cy.get(pred[3], 0)
@@ -327,7 +304,11 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
                 p_c2 = pc2[i]
                 p_c3 = pc3[i]
                 sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
-                print(f"Error en índice {i}: pred={pred}, gt={gt}")
+                if gt[3] == 1:
+                    count_without_1 += 1
+                else:
+                    count_with_0 += 1
+                # print(f"Error en índice {i}: pred={pred}, gt={gt}")
                 cont += 1
         else:
             peso = cy.get(pred[3], 0)
@@ -337,10 +318,15 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
             p_c3 = pc3[i]
             sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
             cont_gt += 1
+            if gt[3] == 1:
+                print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
 
-    print(f"Total de valores errados: {cont}")
-    print(f"Total de valores verdaderos: {cont_gt}")
-    print(f"Total de valores acertados: {cont + cont_gt}")
+    print(f"\tTotal de valores errados: {cont}")
+    print(f"\t                       1: {count_without_1}")
+    print(f"\t                       0: {count_with_0}")
+    print(f"\tTotal de valores verdaderos: {cont_gt}")
+    print(f"\tTotal de valores acertados: {cont + cont_gt}")
+    print(f"\tTotal del dataset original con vestimenta correcta: {count}")
     return (
         cont_gt,
         cont,
@@ -389,6 +375,8 @@ class Trainer:
             self.loss = nll_loss
         elif loss == "bce":
             self.loss = bce_loss
+        elif loss == "ll":
+            self.loss = nn.BCELoss()
         else:
             raise Exception(f"Unknown loss function `{loss}`")
 
@@ -408,8 +396,7 @@ class Trainer:
             b_imgs = b_imgs.to(device)
             c_imgs = c_imgs.to(device)
             images = (a_imgs, b_imgs, c_imgs)
-            # sum_3, target = labels
-            target, _ = labels
+            sum_3, target = labels
             self.optimizer.zero_grad()
             a_distrs, b_distrs, c_distrs, output = self.network(images)
             output = output.cpu()
@@ -420,6 +407,7 @@ class Trainer:
             t_pc2, t_c2 = b_distrs.max(dim=1)
             t_pc3, t_c3 = c_distrs.max(dim=1)
             t_pb, t_p = output.max(dim=1)
+            t_p = (t_pb >= 0.5).int()
             c1.extend(t_c1.tolist())
             c2.extend(t_c2.tolist())
             c3.extend(t_c3.tolist())
@@ -429,8 +417,9 @@ class Trainer:
             p.extend(t_p.tolist())
             pb.extend(t_pb.tolist())
             y.extend(target.tolist())
-            loss = self.loss(output, target)
-            pred = output.data.max(1, keepdim=True)[1]
+            loss = self.loss(output.squeeze(1), target.float())
+            # pred = output.data.max(1, keepdim=True)[1]
+            pred = t_p
             correct += pred.eq(target.data.view_as(pred)).sum()
             perc = 100.0 * correct / num_items
             loss.backward()
@@ -463,14 +452,86 @@ class Trainer:
             }
         )
 
+    def test(self, epoch):
+        self.network.eval()
+        num_items = len(self.test_loader.dataset)
+        test_loss = 0
+        correct = 0
+        c1, c2, c3 = [], [], []
+        pc1, pc2, pc3 = [], [], []
+        g1, g2, g3 = [], [], []
+        y, p, pb = [], [], []
+        with torch.no_grad():
+            iter = tqdm(self.test_loader, total=len(self.test_loader))
+            for images, digits, labels in iter:
+                a_imgs, b_imgs, c_imgs = images
+                a_digit, b_digit, c_digit = digits
+                a_imgs = a_imgs.to(device)
+                b_imgs = b_imgs.to(device)
+                c_imgs = c_imgs.to(device)
+                images = (a_imgs, b_imgs, c_imgs)
+                sum_3, target = labels
+                a_distrs, b_distrs, c_distrs, output = self.network(images)
+                output = output.cpu()
+                g1.extend(a_digit.tolist())
+                g2.extend(b_digit.tolist())
+                g3.extend(c_digit.tolist())
+                t_pc1, t_c1 = a_distrs.max(dim=1)
+                t_pc2, t_c2 = b_distrs.max(dim=1)
+                t_pc3, t_c3 = c_distrs.max(dim=1)
+                t_pb, t_p = output.max(dim=1)
+                t_p = (t_pb >= 0.5).int()
+                c1.extend(t_c1.tolist())
+                c2.extend(t_c2.tolist())
+                c3.extend(t_c3.tolist())
+                pc1.extend(t_pc1.tolist())
+                pc2.extend(t_pc2.tolist())
+                pc3.extend(t_pc3.tolist())
+                p.extend(t_p.tolist())
+                pb.extend(t_pb.tolist())
+                y.extend(target.tolist())
+                test_loss = self.loss(output.squeeze(1), target.float())
+                # test_loss += self.loss(output.squeeze(1), target.float()).item()
+                # pred = output.data.max(1, keepdim=True)[1]
+                pred = t_p
+                correct += pred.eq(target.data.view_as(pred)).sum()
+                perc = 100.0 * correct / num_items
+                iter.set_description(
+                    f"[Test Epoch {epoch}] Total loss: {test_loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)"
+                )
+            gt, rs, rsr, rsrw, prob_model, prob_mod_no = metrics(
+                g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p
+            )
+            correct_concepts = (
+                sum(gt == pred for gt, pred in zip(g1, c1))
+                + sum(gt == pred for gt, pred in zip(g2, c2))
+                + sum(gt == pred for gt, pred in zip(g3, c3))
+            )
+            total_concepts = 3 * len(g1)
+            gacc = 100.0 * correct_concepts / total_concepts
+            self.metrics_test.append(
+                {
+                    "epoch": epoch,
+                    "loss": test_loss.item(),
+                    "acc": perc.item(),
+                    "GAcc": gacc,
+                    "gt": gt,
+                    "rs": rs,
+                    "RSR": rsr,
+                    "RSRw": rsrw,
+                    "prob_model": prob_model,
+                    "prob_mod_no": prob_mod_no,
+                }
+            )
+
     def train(self, n_epochs):
-        # self.test(0)
+        self.test(0)
         for epoch in range(1, n_epochs + 1):
             print("-----------> EPOCH: ", epoch)
             self.train_epoch(epoch)
-            # self.test(epoch)
+            self.test(epoch)
         save_metrics(self.result_dir, "train", self.metrics_train)
-        # save_metrics(self.result_dir, "test", self.metrics_test)
+        save_metrics(self.result_dir, "test", self.metrics_test)
 
 
 # ==============================================
@@ -479,11 +540,11 @@ class Trainer:
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
-    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--n-epochs", type=int, default=2)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
-    parser.add_argument("--loss-fn", type=str, default="bce")
+    parser.add_argument("--loss-fn", type=str, default="ll")
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--provenance", type=str, default="difftopkproofs")
     parser.add_argument("--top-k", type=int, default=3)
