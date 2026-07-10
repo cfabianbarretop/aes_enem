@@ -109,20 +109,15 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
 # Funcion verifica outfit
 # ==============================================
 def valid_outfit(digit1, digit2, digit3):
-    # upper, lower, shoes = 0, 0, 0
-    # for d in [digit1, digit2, digit3]:
-    #     if d in UPPER:
-    #         upper += 1
-    #     elif d in LOWER:
-    #         lower += 1
-    #     elif d in SHOES:
-    #         shoes += 1
-    # return int(upper == 1 and lower == 1 and shoes == 1)
-    upper = digit1 in UPPER
-    lower = digit2 in LOWER
-    shoes = digit3 in SHOES
-    return int(upper and lower and shoes)
-
+    upper, lower, shoes = 0, 0, 0
+    for d in [digit1, digit2, digit3]:
+        if d in UPPER:
+            upper += 1
+        elif d in LOWER:
+            lower += 1
+        elif d in SHOES:
+            shoes += 1
+    return int(upper == 1 and lower == 1 and shoes == 1)
 
 # ==============================================
 # Funcion data loader
@@ -185,8 +180,6 @@ class MNISTFashionLogic(nn.Module):
 
         # MNIST Digit Recognition Network
         self.mnist_one_net = MNISTFashionNet()
-        # self.mnist_two_net = MNISTFashionNet()
-        # self.mnist_three_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -216,16 +209,13 @@ class MNISTFashionLogic(nn.Module):
             ],
         )
 
-        # self.scl_ctx.add_rule("wear(X) :- digit_1(X)")
-        # self.scl_ctx.add_rule("wear(X) :- digit_2(X)")
-        # self.scl_ctx.add_rule("wear(X) :- digit_3(X)")
+        self.scl_ctx.add_rule("wear(X) :- digit_1(X)")
+        self.scl_ctx.add_rule("wear(X) :- digit_2(X)")
+        self.scl_ctx.add_rule("wear(X) :- digit_3(X)")
 
-        # self.scl_ctx.add_rule("has_upper(X) :- wear(X), upper(X)")
-        # self.scl_ctx.add_rule("has_lower(X) :- wear(X), lower(X)")
-        # self.scl_ctx.add_rule("has_shoe(X) :- wear(X), shoe(X)")
-        self.scl_ctx.add_rule("has_upper(X) :- digit_1(X), upper(X)")
-        self.scl_ctx.add_rule("has_lower(X) :- digit_2(X), lower(X)")
-        self.scl_ctx.add_rule("has_shoe(X) :- digit_3(X), shoe(X)")
+        self.scl_ctx.add_rule("has_upper(X) :- wear(X), upper(X)")
+        self.scl_ctx.add_rule("has_lower(X) :- wear(X), lower(X)")
+        self.scl_ctx.add_rule("has_shoe(X) :- wear(X), shoe(X)")
 
         self.scl_ctx.add_rule("valid() :- has_upper(U), has_lower(L), has_shoe(S)")
 
@@ -364,19 +354,6 @@ def nll_loss(output, ground_truth):
     return F.nll_loss(torch.log(output + eps), ground_truth)
 
 def aal_loss(output, ground_truth, alpha=31):
-    # batch_size = output.shape[0]
-    # loss = torch.tensor(0.0, device=output.device)
-    # for b, i in enumerate(ground_truth):
-    #     y = i.item()
-    #     p = torch.log(output[b, y].clamp(min=1e-8))
-    #     weight = cy.get(y, 1)
-    #     w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
-    #     w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
-    #     w = w.detach()
-    #     loss += -p * w 
-    # return loss / batch_size
-    # output = output.view(-1)
-    # ground_truth = ground_truth.float().view(-1)
     batch_size = output.shape[0]
     loss = torch.tensor(0.0, device=output.device)
 
@@ -466,10 +443,8 @@ class Trainer:
             pb.extend(t_pb.tolist())
             y.extend(target.tolist())
             loss = self.loss(output.squeeze(1), target.float())
-            # pred = output.data.max(1, keepdim=True)[1]
             pred = t_p
-            # correct += pred.eq(target.data.view_as(pred)).sum()
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            correct += pred.eq(target.data.view_as(pred)).sum()
             perc = 100.0 * correct / num_items
             loss.backward()
             self.optimizer.step()
@@ -479,14 +454,10 @@ class Trainer:
         gt, rs, rsr, rsrw, prob_model, prob_mod_no = metrics(
             g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p
         )
-        # correct_concepts = (
-        #     sum(gt == pred for gt, pred in zip(g1, c1))
-        #     + sum(gt == pred for gt, pred in zip(g2, c2))
-        #     + sum(gt == pred for gt, pred in zip(g3, c3))
-        # )
-        correct_concepts = sum(
-            (a == b) and (c == d) and (e == f)
-            for a, b, c, d, e, f in zip(g1, c1, g2, c2, g3, c3)
+        correct_concepts = (
+            sum(gt == pred for gt, pred in zip(g1, c1))
+            + sum(gt == pred for gt, pred in zip(g2, c2))
+            + sum(gt == pred for gt, pred in zip(g3, c3))
         )
         total_concepts = 3 * len(g1)
         gacc = 100.0 * correct_concepts / total_concepts
@@ -494,8 +465,7 @@ class Trainer:
             {
                 "epoch": epoch,
                 "loss": loss.item(),
-                # "acc": perc.item(),
-                "acc": perc,
+                "acc": perc.item(),
                 "GAcc": gacc,
                 "gt": gt,
                 "rs": rs,
@@ -545,11 +515,8 @@ class Trainer:
                 pb.extend(t_pb.tolist())
                 y.extend(target.tolist())
                 test_loss = self.loss(output.squeeze(1), target.float())
-                # test_loss += self.loss(output.squeeze(1), target.float()).item()
-                # pred = output.data.max(1, keepdim=True)[1]
                 pred = t_p
-                # correct += pred.eq(target.data.view_as(pred)).sum()
-                correct += pred.eq(target.view_as(pred)).sum().item()
+                correct += pred.eq(target.data.view_as(pred)).sum()
                 perc = 100.0 * correct / num_items
                 iter.set_description(
                     f"[Test Epoch {epoch}] Total loss: {test_loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)"
@@ -557,14 +524,10 @@ class Trainer:
             gt, rs, rsr, rsrw, prob_model, prob_mod_no = metrics(
                 g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p
             )
-            # correct_concepts = (
-            #     sum(gt == pred for gt, pred in zip(g1, c1))
-            #     + sum(gt == pred for gt, pred in zip(g2, c2))
-            #     + sum(gt == pred for gt, pred in zip(g3, c3))
-            # )
-            correct_concepts = sum(
-                (a == b) and (c == d) and (e == f)
-                for a, b, c, d, e, f in zip(g1, c1, g2, c2, g3, c3)
+            correct_concepts = (
+                sum(gt == pred for gt, pred in zip(g1, c1))
+                + sum(gt == pred for gt, pred in zip(g2, c2))
+                + sum(gt == pred for gt, pred in zip(g3, c3))
             )
             total_concepts = 3 * len(g1)
             gacc = 100.0 * correct_concepts / total_concepts
@@ -572,8 +535,7 @@ class Trainer:
                 {
                     "epoch": epoch,
                     "loss": test_loss.item(),
-                    # "acc": perc.item(),
-                    "acc": perc,
+                    "acc": perc.item(),
                     "GAcc": gacc,
                     "gt": gt,
                     "rs": rs,
@@ -600,7 +562,7 @@ class Trainer:
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
-    parser.add_argument("--n-epochs", type=int, default=30)
+    parser.add_argument("--n-epochs", type=int, default=20)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)

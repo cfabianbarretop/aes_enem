@@ -14,10 +14,10 @@ GRAPH_RESULT_NAME = "result_graph"      # Result img name
 # COLOR MAP
 # ==============================================
 cmap = plt.get_cmap("tab10")
-KEY_COLOR_A = "ord"
-KEY_COLOR_B = "des"
-KEY_COLOR_C = "d"
-KEY_COLOR_D = "o"
+KEY_COLOR_A = "1"
+KEY_COLOR_B = "2"
+KEY_COLOR_C = "3"
+KEY_COLOR_D = "4"
 COLOR_MAP = {
     KEY_COLOR_A: cmap(0),
     KEY_COLOR_B: cmap(1),
@@ -135,8 +135,8 @@ class Graphs():
         ax4.legend()
 
         for ax in [ax1, ax2, ax3, ax4]:
-            ax.set_xlim(0, 31)
-            ax.set_xticks(range(0, 32, 2))
+            ax.set_xlim(0, 21)
+            ax.set_xticks(range(0, 22, 2))
 
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")

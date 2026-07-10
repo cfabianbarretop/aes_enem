@@ -9,7 +9,7 @@ import numpy as np
 DATA_RESULT_PATH = "result"                                 # Result data path
 GRAPH_NAME_DIGIT = "digit_graph"                            # Digit name
 GRAPH_NAME_DIGIT_DISTRIBUTION = "distribution_digit_graph"  # Distribution digit name
-GRAPH_NAME_SUM_DISTRIBUTION = "distribution_sum_graph"      # Distribution digit name
+GRAPH_NAME_LABEL_DISTRIBUTION = "distribution_label_graph"      # Distribution digit name
 GRAPH_NAME_COMBINATION_DIGIT = "combination_digit_graph"    # Distribution digit name
 classes = [
     "T-Shirt/Top",
@@ -27,11 +27,11 @@ classes = [
 # GRAPHS
 # ==============================================
 class Graphs():
-    def __init__(self, root: str, class_name, digit_dist: str, sum_dist: str, digit_comb: str, train_loader, test_loader):
+    def __init__(self, root: str, class_name, digit_dist: str, label_dist: str, digit_comb: str, train_loader, test_loader):
         self.result_dir = root
         self.class_name = class_name
         self.digit_dist= digit_dist
-        self.sum_dist = sum_dist
+        self.label_dist = label_dist
         self.digit_comb = digit_comb
         self.train_loader = train_loader
         self.test_loader = test_loader
@@ -107,17 +107,17 @@ class Graphs():
         plt.savefig(self.digit_dist, dpi=300, bbox_inches="tight")
         plt.show()
 
-    def sum_distribution(self):
+    def label_distribution(self):
         train_sum_counts = Counter()
         test_sum_counts = Counter()
 
-        for _, (_, _, sums) in self.train_loader:
-            train_sum_counts.update(sums.tolist())
+        for _, _, (_, label) in self.train_loader:
+            train_sum_counts.update(label.tolist())
 
-        for _, (_, _, sums) in self.test_loader:
-            test_sum_counts.update(sums.tolist())
+        for _, _, (_, label) in self.test_loader:
+            test_sum_counts.update(label.tolist())
 
-        values = range(19)
+        values = range(2)
 
         train_values = [train_sum_counts[i] for i in values]
         test_values = [test_sum_counts[i] for i in values]
@@ -125,22 +125,22 @@ class Graphs():
         plt.figure(figsize=(10,5))
 
         width = 0.4
-        x = range(19)
+        x = range(2)
 
-        plt.bar([i - width/2 for i in x], train_values,
+        plt.bar([i - width/3 for i in x], train_values,
                 width=width, label="Train")
 
-        plt.bar([i + width/2 for i in x], test_values,
+        plt.bar([i + width/3 for i in x], test_values,
                 width=width, label="Test")
 
         plt.xticks(x)
-        plt.xlabel("Sum (y)")
+        plt.xlabel("Label (y)")
         plt.ylabel("Number of smples")
-        plt.title("Sum Distribution (y)")
+        plt.title("Label Distribution (y)")
         plt.legend()
 
         plt.tight_layout()
-        plt.savefig(self.sum_dist, dpi=300, bbox_inches="tight")
+        plt.savefig(self.label_dist, dpi=300, bbox_inches="tight")
         plt.show()
 
     def digit_combination(self):
@@ -210,11 +210,11 @@ def main_distribution(train_loader, test_loader):
   # Une el directorio de base_dir con las carpetas "data" y "result"
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
   digit_dist = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT_DISTRIBUTION}.png")
-  sum_dist = os.path.join(result_dir, f"{GRAPH_NAME_SUM_DISTRIBUTION}.png")
+  label_dist = os.path.join(result_dir, f"{GRAPH_NAME_LABEL_DISTRIBUTION}.png")
   digit_comb = os.path.join(result_dir, f"{GRAPH_NAME_COMBINATION_DIGIT}.png")
   class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
-  graph = Graphs(result_dir, class_name, digit_dist, sum_dist, digit_comb, train_loader, test_loader)
-  graph.show_img()
-  graph.digit_distribution()
-#   graph.sum_distribution()
+  graph = Graphs(result_dir, class_name, digit_dist, label_dist, digit_comb, train_loader, test_loader)
+#   graph.show_img()
+#   graph.digit_distribution()
+  graph.label_distribution()
 #   graph.digit_combination()
