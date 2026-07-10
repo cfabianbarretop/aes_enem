@@ -16,7 +16,8 @@ GRAPH_RESULT_NAME = "result_graph"      # Result img name
 cmap = plt.get_cmap("tab10")
 COLOR_MAP = {
     "aal": cmap(1),
-    "bce": cmap(0)
+    "bce": cmap(0),
+    "none": cmap(2)
 }
 
 # ==============================================
@@ -44,7 +45,7 @@ class Graphs():
             elif "bce" in name:
                 key = "bce"
             else:
-                key = None
+                key = "none"
 
             color = COLOR_MAP.get(key, "black")
 
@@ -124,9 +125,9 @@ class Graphs():
         ax4.grid(True)
         ax4.legend()
 
-        for ax in [ax1, ax2, ax3, ax4]:
-            ax.set_xlim(0, 21)
-            ax.set_xticks(range(0, 22, 2))
+        for ax in [ax1, ax4, ax2, ax3]:
+            ax.set_xlim(0, 31)
+            ax.set_xticks(range(0, 32, 2))
 
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")

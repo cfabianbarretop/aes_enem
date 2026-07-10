@@ -9,15 +9,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
-from sklearn.model_selection import train_test_split
-from torch.utils.data import Subset
-import numpy as np
-
 from argparse import ArgumentParser
 from tqdm import tqdm
 
-from graphs import main_graph
-from distribution import main_distribution
+from eniac.graphs import  main_graph
+from eniac.distribution import main_distribution
 
 import scallopy
 
@@ -35,10 +31,11 @@ print("Device: ", device)
 # ==============================================
 # Dataset
 # ==============================================
-mnist_img_transform = torchvision.transforms.Compose([
+
+fashion_img_transform = torchvision.transforms.Compose([
   torchvision.transforms.ToTensor(),
   torchvision.transforms.Normalize(
-    (0.1307,), (0.3081,)
+    (0.2860,), (0.3530,)   # stats Fashion-MNIST
   )
 ])
 
@@ -93,7 +90,7 @@ class MNISTSum2LevelDataset(torch.utils.data.Dataset):
             (a_digits, b_digits, digits)
         )
 
-class MNISTSum2Dataset(torch.utils.data.Dataset):
+class FashionSum2Dataset(torch.utils.data.Dataset):
   def __init__(
     self,
     root: str,
@@ -102,44 +99,24 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     target_transform: Optional[Callable] = None,
     download: bool = False,
   ):
-    # Contains a MNIST dataset
-    self.mnist_dataset = torchvision.datasets.MNIST(
+    self.dataset = torchvision.datasets.FashionMNIST(
       root,
       train=train,
       transform=transform,
       target_transform=target_transform,
       download=download,
     )
-    # 20% of MNIST: 12000	2000
-    # 10% of MNIST: 6000	1000
-    #  1% of MNIST: 600	100
-    data_size = 100
-    if train:
-      data_size = 600
 
-    targets = self.mnist_dataset.targets.numpy()
-    indices = np.arange(len(targets))
-    selected_indices, _ = train_test_split(
-        indices,
-        train_size=data_size,
-        stratify=targets,
-        random_state=42
-    )
-    self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
-    print(f" Train : {train} -> {len(self.mnist_dataset)}")
-
-    self.index_map = list(range(len(self.mnist_dataset)))
+    self.index_map = list(range(len(self.dataset)))
     random.shuffle(self.index_map)
 
   def __len__(self):
-    return int(len(self.mnist_dataset) / 2)
+    return int(len(self.dataset) / 2)
 
   def __getitem__(self, idx):
-    # Get two data points
-    (a_img, a_digit) = self.mnist_dataset[self.index_map[idx * 2]]
-    (b_img, b_digit) = self.mnist_dataset[self.index_map[idx * 2 + 1]]
+    (a_img, a_digit) = self.dataset[self.index_map[idx * 2]]
+    (b_img, b_digit) = self.dataset[self.index_map[idx * 2 + 1]]
 
-    # Each data has two images and the GT is the sum of two digits
     return (a_img, b_img, a_digit, b_digit, a_digit + b_digit)
 
   @staticmethod
@@ -151,70 +128,41 @@ class MNISTSum2Dataset(torch.utils.data.Dataset):
     digits = torch.stack([torch.tensor(item[4]).long() for item in batch])
     return ((a_imgs, b_imgs), (a_digits, b_digits, digits))
 
+def fashion_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test):
 
-def mnist_sum_2_loader(train_file, test_file, data_dir, batch_size_train, batch_size_test):
   train_loader = torch.utils.data.DataLoader(
-        MNISTSum2LevelDataset(train_file),
-        batch_size=batch_size_train,
-        shuffle=True,
-        collate_fn=MNISTSum2LevelDataset.collate_fn
-    )
-  # train_loader = torch.utils.data.DataLoader(
-  #   MNISTSum2Dataset(
-  #     data_dir,
-  #     train=True,
-  #     download=True,
-  #     transform=mnist_img_transform,
-  #   ),
-  #   collate_fn=MNISTSum2Dataset.collate_fn,
-  #   batch_size=batch_size_train,
-  #   shuffle=True
-  # )
+    FashionSum2Dataset(
+      data_dir,
+      train=True,
+      download=True,
+      transform=fashion_img_transform,
+    ),
+    collate_fn=FashionSum2Dataset.collate_fn,
+    batch_size=batch_size_train,
+    shuffle=True
+  )
 
   test_loader = torch.utils.data.DataLoader(
-        MNISTSum2LevelDataset(test_file),
-        batch_size=batch_size_train,
-        shuffle=True,
-        collate_fn=MNISTSum2LevelDataset.collate_fn
-    )
-
-  # test_loader = torch.utils.data.DataLoader(
-  #   MNISTSum2Dataset(
-  #     data_dir,
-  #     train=False,
-  #     download=True,
-  #     transform=mnist_img_transform,
-  #   ),
-  #   collate_fn=MNISTSum2Dataset.collate_fn,
-  #   batch_size=batch_size_test,
-  #   shuffle=True
-  # )
+    FashionSum2Dataset(
+      data_dir,
+      train=False,
+      download=True,
+      transform=fashion_img_transform,
+    ),
+    collate_fn=FashionSum2Dataset.collate_fn,
+    batch_size=batch_size_test,
+    shuffle=True
+  )
 
   return train_loader, test_loader
+
 
 # ==============================================
 # Modelo Neural
 # ==============================================
-class MNISTOneNet(nn.Module):
+class MNISTNet(nn.Module):
   def __init__(self):
-    super(MNISTOneNet, self).__init__()
-    self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
-    self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
-    self.fc1 = nn.Linear(1024, 1024)
-    self.fc2 = nn.Linear(1024, 10)
-
-  def forward(self, x):
-    x = F.max_pool2d(self.conv1(x), 2)
-    x = F.max_pool2d(self.conv2(x), 2)
-    x = x.view(-1, 1024)
-    x = F.relu(self.fc1(x))
-    x = F.dropout(x, p = 0.5, training=self.training)
-    x = self.fc2(x)
-    return F.softmax(x, dim=1)
-  
-class MNISTTwoNet(nn.Module):
-  def __init__(self):
-    super(MNISTTwoNet, self).__init__()
+    super(MNISTNet, self).__init__()
     self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
     self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
     self.fc1 = nn.Linear(1024, 1024)
@@ -237,8 +185,7 @@ class MNISTSum2Net(nn.Module):
     super(MNISTSum2Net, self).__init__()
 
     # MNIST Digit Recognition Network
-    self.mnist_one_net = MNISTOneNet()
-    self.mnist_two_net = MNISTTwoNet()
+    self.mnist_net = MNISTNet()
 
     # Scallop Context
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -254,8 +201,8 @@ class MNISTSum2Net(nn.Module):
     (a_imgs, b_imgs) = x
 
     # First recognize the two digits
-    a_distrs = self.mnist_one_net(a_imgs) # Tensor 64 x 10
-    b_distrs = self.mnist_two_net(b_imgs) # Tensor 64 x 10
+    a_distrs = self.mnist_net(a_imgs) # Tensor 64 x 10
+    b_distrs = self.mnist_net(b_imgs) # Tensor 64 x 10
 
     # Then execute the reasoning module; the result is a size 19 tensor
     return a_distrs, b_distrs, self.sum_2(digit_1=a_distrs, digit_2=b_distrs) # Tensor 64 x 19 
@@ -344,18 +291,29 @@ def dpm_loss(p_c1, p_c2, output, ground_truth):
   loss_dpm = sum_dpm / sum_weight  
   return loss + loss_dpm
 
+# def cal_loss_v1(output, ground_truth, alpha=31):
+#   batch_size = output.shape[0]
+#   loss = torch.tensor(0.0, device=output.device)
+#   for b, i in enumerate(ground_truth):
+#       y = i.item()
+#       p = torch.log(output[b, y])
+#       weight = cy.get(y, 0)
+#       w = torch.tensor(math.log(1 + (alpha / weight)), device=output.device)
+#       loss += -p * w 
+#   return loss / batch_size
+
 def cal_loss(output, ground_truth, alpha=31):
-  batch_size = output.shape[0]
-  loss = torch.tensor(0.0, device=output.device)
-  for b, i in enumerate(ground_truth):
-      y = i.item()
-      p = torch.log(output[b, y].clamp(min=1e-8))
-      weight = cy.get(y, 1)
-      w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
-      w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
-      w = w.detach()
-      loss += -p * w 
-  return loss / batch_size
+    batch_size = output.shape[0]
+    loss = torch.tensor(0.0, device=output.device)
+    for b, i in enumerate(ground_truth):
+        y = i.item()
+        p = torch.log(output[b, y].clamp(min=1e-8))
+        weight = cy.get(y, 1)
+        w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
+        w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
+        w = w.detach()
+        loss += -p * w 
+    return loss / batch_size
 
 def bce_cal_loss(output, ground_truth):
   loss_bce = bce_loss(output, ground_truth)
@@ -467,18 +425,13 @@ class Trainer():
       self.optimizer.step()
       iter.set_description(f"[Train Epoch {epoch}] Loss: {loss.item():.4f} Accuracy: {correct}/{num_items} ({perc:.2f}%)")
     gt, rs, rsr, rsrw, prob_model, prob_mod_no = metrics(g1, g2, y, c1, pc1, c2, pc2, p)
-    # correct_concepts = (
-    #   sum(gt == pred for gt, pred in zip(g1, c1))
-    #   +
-    #   sum(gt == pred for gt, pred in zip(g2, c2))
-    # )
-    # total_concepts = 2 * len(g1)
-    # gacc = 100.0 * correct_concepts / total_concepts
-    correct_tuples = sum(
-        (a == b) and (c == d)
-        for a, b, c, d in zip(g1, c1, g2, c2)
-      )
-    gacc = 100.0 * correct_tuples / len(g1)
+    correct_concepts = (
+      sum(gt == pred for gt, pred in zip(g1, c1))
+      +
+      sum(gt == pred for gt, pred in zip(g2, c2))
+    )
+    total_concepts = 2 * len(g1)
+    gacc = 100.0 * correct_concepts / total_concepts
     self.metrics_train.append({
        "epoch": epoch,
        "loss": loss.item(),
@@ -535,18 +488,13 @@ class Trainer():
         perc = 100. * correct / num_items
         iter.set_description(f"[Test Epoch {epoch}] Total loss: {test_loss:.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)")
       gt, rs, rsr, rsrw, prob_model, prob_mod_no = metrics(g1, g2, y, c1, pc1, c2, pc2, p)
-      # correct_concepts = (
-      #   sum(gt == pred for gt, pred in zip(g1, c1))
-      #   +
-      #   sum(gt == pred for gt, pred in zip(g2, c2))
-      # )
-      # total_concepts = 2 * len(g1)
-      # gacc = 100.0 * correct_concepts / total_concepts
-      correct_tuples = sum(
-        (a == b) and (c == d)
-        for a, b, c, d in zip(g1, c1, g2, c2)
+      correct_concepts = (
+        sum(gt == pred for gt, pred in zip(g1, c1))
+        +
+        sum(gt == pred for gt, pred in zip(g2, c2))
       )
-      gacc = 100.0 * correct_tuples / len(g1)
+      total_concepts = 2 * len(g1)
+      gacc = 100.0 * correct_concepts / total_concepts
       self.metrics_test.append({
          "epoch": epoch,
          "loss": test_loss,
@@ -576,7 +524,7 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=20)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
-  parser.add_argument("--learning-rate", type=float, default=0.001)
+  parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
@@ -601,15 +549,13 @@ if __name__ == "__main__":
   # Une el directorio de base_dir con la carpeta "data"
   data_dir = os.path.abspath(os.path.join(base_dir, "..", DATA_LEAF_PATH))
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
-  train_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_train_VI.pt"
-  test_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_test_VI.pt"
+  train_file = f"{data_dir}/{DATA_LEVEL_PATH}/mnist_addition_level_VI.pt"
   print("PATH data -> ", data_dir)
 
   # Dataloaders
-  train_loader, test_loader = mnist_sum_2_loader(train_file, test_file, data_dir, batch_size_train, batch_size_test)
+  train_loader, test_loader = fashion_sum_2_loader(train_file, data_dir, batch_size_train, batch_size_test)
   # Create trainer and train
-  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  trainer.train(n_epochs)
-  main_graph("train")
+  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  # trainer.train(n_epochs)
+  main_graph("test")
   # main_distribution(train_loader, test_loader)
-  
