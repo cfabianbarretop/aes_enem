@@ -6,11 +6,11 @@ import numpy as np
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_RESULT_PATH = "result"                                 # Result data path
+RESULT_PATH = "result"                                      # Result path
 GRAPH_NAME_DIGIT = "digit_graph"                            # Digit name
-GRAPH_NAME_DIGIT_DISTRIBUTION = "distribution_digit_graph"  # Distribution digit name
-GRAPH_NAME_SUM_DISTRIBUTION = "distribution_sum_graph"      # Distribution digit name
-GRAPH_NAME_COMBINATION_DIGIT = "combination_digit_graph"    # Distribution digit name
+GRAPH_NAME_DIGIT_DISTRIBUTION = "digit_distribution_graph"  # Digit distribution
+GRAPH_NAME_SUM_DISTRIBUTION = "sum_distribution_graph"      # Sum distribution
+GRAPH_NAME_COMBINATION_DIGIT = "digit_combination_graph"    # Digit combination
 classes = [
     "T-Shirt/Top",
     "Trouser",
@@ -37,13 +37,6 @@ class Graphs():
         self.test_loader = test_loader
 
     def show_img(self):
-        # for batch in self.train_loader:
-        #     inputs, labels = batch
-        #     print(type(inputs), type(labels))
-        #     print(len(inputs), len(labels))
-        #     print(inputs[0].shape)
-        #     print(labels[0])
-        #     break
         
         samples = {}
         for (img1, img2, img3), (digit1, digit2, digit3, sums) in self.train_loader:
@@ -59,7 +52,7 @@ class Graphs():
             if len(samples) == 10:
                 break
 
-        # Mostrar las imágenes
+        # Show images
         plt.figure(figsize=(12, 4))
 
         for i in range(10):
@@ -106,8 +99,8 @@ class Graphs():
 
         plt.xticks(x, classes, rotation=30)
         plt.xlabel("Class")
-        plt.ylabel("Number of smples")
-        plt.title("Distribution of Fashion-MNIST")
+        plt.ylabel("Number of samples")
+        plt.title("Digit Distribution of Fashion-MNIST dataset")
         plt.legend()
 
         plt.tight_layout()
@@ -212,14 +205,14 @@ class Graphs():
         plt.show()
 
 def main_distribution(train_loader, test_loader):
-  # Obtiene el directorio donde está este archivo.py
   base_dir = os.path.dirname(os.path.abspath(__file__))
-  # Une el directorio de base_dir con las carpetas "data" y "result"
-  result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+  result_dir = os.path.join(base_dir, RESULT_PATH)
+
   digit_dist = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT_DISTRIBUTION}.png")
   sum_dist = os.path.join(result_dir, f"{GRAPH_NAME_SUM_DISTRIBUTION}.png")
   digit_comb = os.path.join(result_dir, f"{GRAPH_NAME_COMBINATION_DIGIT}.png")
   class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
+  
   graph = Graphs(result_dir, class_name, digit_dist, sum_dist, digit_comb, train_loader, test_loader)
   graph.show_img()
   graph.digit_distribution()
