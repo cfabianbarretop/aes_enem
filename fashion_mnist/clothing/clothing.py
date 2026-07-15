@@ -10,6 +10,7 @@ import torch.optim as optim
 import scallopy
 import math
 import csv
+import pickle
 
 from typing import *
 from argparse import ArgumentParser
@@ -45,11 +46,18 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         root: str,
+        cache_file: str,
         train: bool = True,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         download: bool = False,
     ):
+        # Si existe cache, cargar directamente
+        if os.path.exists(cache_file):
+            with open(cache_file, "rb") as f:
+                self.index_map, self.mnist_dataset = pickle.load(f)
+            return
+        
         # Contains a MNIST dataset
         self.mnist_dataset = torchvision.datasets.FashionMNIST(
             root,
@@ -59,37 +67,88 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             download=download,
         )
 
-        if not train:
-            targets = self.mnist_dataset.targets.numpy()
-            indices = np.arange(len(targets))
-            selected_indices, _ = train_test_split(
-                indices, train_size=9000, stratify=targets, random_state=42
-            )
-            self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
+        # if not train:
+        #     targets = self.mnist_dataset.targets.numpy()
+        #     indices = np.arange(len(targets))
+        #     selected_indices, _ = train_test_split(
+        #         indices, train_size=9000, stratify=targets, random_state=42
+        #     )
+        #     self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
+        
+        targets = np.array(self.mnist_dataset.targets)
 
-        self.index_map = list(range(len(self.mnist_dataset)))
+        # Filtrar índices
+        upper_idx = np.where(np.isin(targets, list(UPPER)))[0]
+        lower_idx = np.where(np.isin(targets, list(LOWER)))[0]
+        shoes_idx = np.where(np.isin(targets, list(SHOES)))[0]
+        all_idx = np.arange(len(targets))
+
+        # Número máximo de válidos
+        n_valid = min(len(upper_idx), len(lower_idx), len(shoes_idx))
+
+        # Selección sin repetición
+        upper_sel = np.random.choice(upper_idx, n_valid, replace=False)
+        lower_sel = np.random.choice(lower_idx, n_valid, replace=False)
+        shoes_sel = np.random.choice(shoes_idx, n_valid, replace=False)
+
+        # Guardar válidos
+        valid_outfits = [(u, l, s) for u, l, s in zip(upper_sel, lower_sel, shoes_sel)]
+
+        # Generar inválidos balanceados
+        invalid_outfits = []
+        used = set(upper_sel) | set(lower_sel) | set(shoes_sel)
+        while len(invalid_outfits) < n_valid:
+            trio = np.random.choice(all_idx, 3, replace=False)
+            d1, d2, d3 = [targets[i] for i in trio]
+            if valid_outfit(d1, d2, d3) == 0 and not any(i in used for i in trio):
+                invalid_outfits.append(tuple(trio))
+                used.update(trio)
+
+        # self.index_map = list(range(len(self.mnist_dataset)))
+        # random.shuffle(self.index_map)
+        self.index_map = [(u, l, s) for (u, l, s) in valid_outfits] + invalid_outfits
         random.shuffle(self.index_map)
 
+        # Guardar en cache
+        with open(cache_file, "wb") as f:
+            pickle.dump((self.index_map, self.mnist_dataset), f)
+
     def __len__(self):
-        return len(self.mnist_dataset) // 3
+        # return len(self.mnist_dataset) // 3
+        return len(self.index_map)
 
     def __getitem__(self, idx):
         # Get three data points
-        i = idx * 3
-        img1, digit1 = self.mnist_dataset[self.index_map[i]]
-        img2, digit2 = self.mnist_dataset[self.index_map[i + 1]]
-        img3, digit3 = self.mnist_dataset[self.index_map[i + 2]]
+        # i = idx * 3
+        # img1, digit1 = self.mnist_dataset[self.index_map[i]]
+        # img2, digit2 = self.mnist_dataset[self.index_map[i + 1]]
+        # img3, digit3 = self.mnist_dataset[self.index_map[i + 2]]
 
-        # Each data has two images and the GT is the sum of two digits
+        # # Each data has two images and the GT is the sum of two digits
+        # return (
+        #     img1,
+        #     img2,
+        #     img3,
+        #     digit1,
+        #     digit2,
+        #     digit3,
+        #     digit1 + digit2 + digit3,
+        #     valid_outfit(digit1, digit2, digit3),
+        # )
+        i1, i2, i3 = self.index_map[idx]
+        img1, d1 = self.mnist_dataset[i1]
+        img2, d2 = self.mnist_dataset[i2]
+        img3, d3 = self.mnist_dataset[i3]
+
         return (
             img1,
             img2,
             img3,
-            digit1,
-            digit2,
-            digit3,
-            digit1 + digit2 + digit3,
-            valid_outfit(digit1, digit2, digit3),
+            d1,
+            d2,
+            d3,
+            d1 + d2 + d3,
+            valid_outfit(d1, d2, d3),
         )
 
     @staticmethod
@@ -124,6 +183,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=True,
             download=True,
             transform=mnist_img_transform,
+            cache_file="fashion_outfits_train.pkl"
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_train,
@@ -136,6 +196,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=False,
             download=True,
             transform=mnist_img_transform,
+            cache_file="fashion_outfits_test.pkl"
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_test,
@@ -175,6 +236,8 @@ class MNISTFashionLogic(nn.Module):
 
         # MNIST Digit Recognition Network
         self.mnist_one_net = MNISTFashionNet()
+        self.mnist_two_net = MNISTFashionNet()
+        self.mnist_three_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -217,8 +280,8 @@ class MNISTFashionLogic(nn.Module):
 
         # First recognize the two digits
         a_distrs = self.mnist_one_net(a_imgs)  # Tensor 64 x 10
-        b_distrs = self.mnist_one_net(b_imgs)  # Tensor 64 x 10
-        c_distrs = self.mnist_one_net(c_imgs)  # Tensor 64 x 10
+        b_distrs = self.mnist_two_net(b_imgs)  # Tensor 64 x 10
+        c_distrs = self.mnist_three_net(c_imgs)  # Tensor 64 x 10
 
         # Then execute the reasoning module; the result is a size 19 tensor
         return (
@@ -306,8 +369,8 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
             p_c3 = pc3[i]
             sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
             cont_gt += 1
-            if gt[3] == 1:
-                print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
+            # if gt[3] == 1:
+                # print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
 
     print(f"\tTotal de valores errados: {cont}")
     print(f"\t                       1: {count_without_1}")
@@ -554,7 +617,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
-    parser.add_argument("--loss-fn", type=str, default="aal")
+    parser.add_argument("--loss-fn", type=str, default="ll")
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--provenance", type=str, default="difftopkproofs")
     parser.add_argument("--top-k", type=int, default=3)
@@ -574,7 +637,7 @@ if __name__ == "__main__":
     # Obtiene el directorio donde está este archivo.py
     base_dir = os.path.dirname(os.path.abspath(__file__))
     # Une el directorio de base_dir con la carpeta "data"
-    data_dir = os.path.abspath(os.path.join(base_dir, "..", DATA_MNIST_FASHION_PATH))
+    data_dir = os.path.abspath(os.path.join(base_dir, "../..", DATA_MNIST_FASHION_PATH))
     result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
     print("PATH data -> ", data_dir)
     train_loader, test_loader = mnist_fashion_loader(
@@ -584,6 +647,6 @@ if __name__ == "__main__":
     trainer = Trainer(
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
-    # trainer.train(n_epochs)
-    # main_graph("train")
-    main_distribution(train_loader, test_loader)
+    trainer.train(n_epochs)
+    main_graph("train")
+    # main_distribution(train_loader, test_loader)

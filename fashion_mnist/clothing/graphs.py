@@ -14,8 +14,8 @@ GRAPH_RESULT_NAME = "result_graph"      # Result img name
 # COLOR MAP
 # ==============================================
 cmap = plt.get_cmap("tab10")
-KEY_COLOR_A = "1"
-KEY_COLOR_B = "2"
+KEY_COLOR_A = "aal"
+KEY_COLOR_B = "bce"
 KEY_COLOR_C = "3"
 KEY_COLOR_D = "4"
 COLOR_MAP = {

@@ -38,23 +38,21 @@ class Graphs():
 
     def show_img(self):
         samples = {}
-        for (img1, _, _), (digit1, _, _), _ in self.train_loader:
-            for image, label in zip(img1, digit1):
-                label = label.item()
-
-                if label not in samples:
-                    samples[label] = image
-
-                # Cuando ya tengamos las 10 clases, terminamos
+        for (img1, img2, img3), (digit1, digit2, digit3), _ in self.train_loader:
+            for images, digits in [(img1, digit1), (img2, digit2), (img3, digit3)]:
+                for image, label in zip(images, digits):
+                    label = label.item()
+                    if label not in samples:
+                        samples[label] = image
+                    if len(samples) == 10:
+                        break
                 if len(samples) == 10:
                     break
-
             if len(samples) == 10:
                 break
 
         # Mostrar las imágenes
         plt.figure(figsize=(12, 4))
-
         for i in range(10):
             plt.subplot(2, 5, i + 1)
             plt.imshow(samples[i].squeeze(), cmap="gray")
@@ -64,6 +62,7 @@ class Graphs():
         plt.tight_layout()
         plt.savefig(self.class_name, dpi=300, bbox_inches="tight")
         plt.show()
+
 
     def digit_distribution(self):
         train_counts = Counter()
@@ -143,66 +142,43 @@ class Graphs():
         plt.savefig(self.label_dist, dpi=300, bbox_inches="tight")
         plt.show()
 
-    def digit_combination(self):
+    def show_valid_outfits(self, n_samples=3):
+        # Tomar algunos batches del loader
+        for (img1, img2, img3), (digit1, digit2, digit3), (_, label) in self.train_loader:
+            # Filtrar solo válidos
+            valid_mask = label == 1
+            img1_valid = img1[valid_mask]
+            img2_valid = img2[valid_mask]
+            img3_valid = img3[valid_mask]
+            d1_valid = digit1[valid_mask]
+            d2_valid = digit2[valid_mask]
+            d3_valid = digit3[valid_mask]
 
-        train_counts = np.zeros((10, 10), dtype=int)
-        test_counts = np.zeros((10, 10), dtype=int)
+            # Mostrar hasta n_samples
+            n = min(n_samples, len(img1_valid))
+            plt.figure(figsize=(12, 3*n))
+            for i in range(n):
+                plt.subplot(n, 3, i*3 + 1)
+                plt.imshow(img1_valid[i].squeeze().numpy(), cmap="gray")
+                plt.title(f"UPPER ({d1_valid[i].item()})")
+                plt.axis("off")
 
-        # Train
-        for _, (a_digits, b_digits, _) in self.train_loader:
-            for a, b in zip(a_digits.tolist(), b_digits.tolist()):
-                train_counts[a, b] += 1
+                plt.subplot(n, 3, i*3 + 2)
+                plt.imshow(img2_valid[i].squeeze().numpy(), cmap="gray")
+                plt.title(f"LOWER ({d2_valid[i].item()})")
+                plt.axis("off")
 
-        # Test
-        for _, (a_digits, b_digits, _) in self.test_loader:
-            for a, b in zip(a_digits.tolist(), b_digits.tolist()):
-                test_counts[a, b] += 1
+                plt.subplot(n, 3, i*3 + 3)
+                plt.imshow(img3_valid[i].squeeze().numpy(), cmap="gray")
+                plt.title(f"SHOES ({d3_valid[i].item()})")
+                plt.axis("off")
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6))
+            plt.suptitle("Exemples of outfits valid")
+            plt.tight_layout()
+            # plt.savefig(, dpi=300, bbox_inches="tight")
+            plt.show()
+            break  # solo primer batch
 
-        # Train
-        im1 = ax1.imshow(train_counts, cmap="Blues")
-        ax1.set_title("Train")
-        ax1.set_xlabel("Second digit")
-        ax1.set_ylabel("First digit")
-        ax1.invert_yaxis()
-        ax1.set_xticks(range(10))
-        ax1.set_yticks(range(10))
-
-        for i in range(10):
-            for j in range(10):
-                ax1.text(
-                    j, i,
-                    train_counts[i, j],
-                    ha="center",
-                    va="center",
-                    color="black"
-                )
-
-        # Test
-        im2 = ax2.imshow(test_counts, cmap="Blues")
-        ax2.set_title("Test")
-        ax2.set_xlabel("Second digit")
-        ax2.set_ylabel("First digit")
-        ax2.set_xticks(range(10))
-        ax2.set_yticks(range(10))
-
-        for i in range(10):
-            for j in range(10):
-                ax2.text(
-                    j, i,
-                    test_counts[i, j],
-                    ha="center",
-                    va="center",
-                    color="black"
-                )
-
-        fig.colorbar(im1, ax=ax1, fraction=0.046)
-        fig.colorbar(im2, ax=ax2, fraction=0.046)
-
-        plt.tight_layout()
-        plt.savefig(self.digit_comb, dpi=300, bbox_inches="tight")
-        plt.show()
 
 def main_distribution(train_loader, test_loader):
   # Obtiene el directorio donde está este archivo.py
@@ -216,5 +192,5 @@ def main_distribution(train_loader, test_loader):
   graph = Graphs(result_dir, class_name, digit_dist, label_dist, digit_comb, train_loader, test_loader)
 #   graph.show_img()
 #   graph.digit_distribution()
-  graph.label_distribution()
-#   graph.digit_combination()
+#   graph.label_distribution()
+  graph.show_valid_outfits()
