@@ -1,5 +1,7 @@
+from collections import defaultdict
 import os
 import random
+import time
 from typing import *
 import csv
 import math
@@ -41,56 +43,115 @@ fashion_img_transform = torchvision.transforms.Compose([
 
 class FashionSum3Dataset(torch.utils.data.Dataset):
   def __init__(
-    self,
-    root: str,
-    train: bool = True,
-    transform: Optional[Callable] = None,
-    target_transform: Optional[Callable] = None,
-    download: bool = False,
+      self,
+      root: str,
+      train: bool = True,
+      transform: Optional[Callable] = None,
+      target_transform: Optional[Callable] = None,
+      download: bool = False,
+      target_distribution: Optional[Dict[int, float]] = None,
+      dataset_size: int = 20000,  # tamaño final controlado
   ):
-    self.dataset = torchvision.datasets.FashionMNIST(
-      root,
-      train=train,
-      transform=transform,
-      target_transform=target_transform,
-      download=download,
-    )
+      self.dataset = torchvision.datasets.FashionMNIST(
+          root,
+          train=train,
+          transform=transform,
+          target_transform=target_transform,
+          download=download,
+      )
 
-    self.index_map = list(range(len(self.dataset)))
-    random.shuffle(self.index_map)
+      print(f" {train and 'Train' or 'Test'} FashionSum3Dataset: {len(self.dataset)} samples loaded from {root}")
+
+      # agrupar índices por clase (0–9)
+      self.class_to_indices = defaultdict(list)
+      for idx, (_, label) in enumerate(self.dataset):
+          self.class_to_indices[label].append(idx)
+
+      # generar tripletas válidas
+      self.triplets = []
+
+      if target_distribution is None:
+          # comportamiento original
+          all_indices = list(range(len(self.dataset)))
+          random.shuffle(all_indices)
+
+          for i in range(0, len(all_indices) - 2, 3):
+              self.triplets.append((
+                  all_indices[i],
+                  all_indices[i + 1],
+                  all_indices[i + 2],
+              ))
+      else:
+          # NUEVO: control de distribución
+          sums_to_triplets = defaultdict(list)
+
+          # generar muchas combinaciones posibles
+          for a in range(10):
+              for b in range(10):
+                  for c in range(10):
+                      s = a + b + c
+                      sums_to_triplets[s].append((a, b, c))
+
+          # normalizar distribución
+          total_prob = sum(target_distribution.values())
+          target_distribution = {
+              k: v / total_prob for k, v in target_distribution.items()
+          }
+
+          # generar dataset
+          for s, prob in target_distribution.items():
+              num_samples = int(prob * dataset_size)
+
+              combos = sums_to_triplets[s]
+
+              for _ in range(num_samples):
+                  a, b, c = random.choice(combos)
+
+                  ia = random.choice(self.class_to_indices[a])
+                  ib = random.choice(self.class_to_indices[b])
+                  ic = random.choice(self.class_to_indices[c])
+
+                  self.triplets.append((ia, ib, ic))
+
+          random.shuffle(self.triplets)
 
   def __len__(self):
-    return int(len(self.dataset) / 3)
+      return len(self.triplets)
 
   def __getitem__(self, idx):
-    (img_a, digit_a) = self.dataset[self.index_map[idx * 3]]
-    (img_b, digit_b) = self.dataset[self.index_map[idx * 3 + 1]]
-    (img_c, digit_c) = self.dataset[self.index_map[idx * 3 + 2]]
+      ia, ib, ic = self.triplets[idx]
 
-    return (
-      img_a, img_b, img_c,
-      digit_a, digit_b, digit_c,
-      digit_a + digit_b + digit_c
-    )
+      a_img, a_digit = self.dataset[ia]
+      b_img, b_digit = self.dataset[ib]
+      c_img, c_digit = self.dataset[ic]
+
+      return (
+          a_img, b_img, c_img,
+          a_digit, b_digit, c_digit,
+          a_digit + b_digit + c_digit
+      )
 
   @staticmethod
   def collate_fn(batch):
-    imgs_a = torch.stack([item[0] for item in batch])
-    imgs_b = torch.stack([item[1] for item in batch])
-    imgs_c = torch.stack([item[2] for item in batch])
+      a_imgs = torch.stack([item[0] for item in batch])
+      b_imgs = torch.stack([item[1] for item in batch])
+      c_imgs = torch.stack([item[2] for item in batch])
 
-    digits_a = torch.stack([torch.tensor(item[3]).long() for item in batch])
-    digits_b = torch.stack([torch.tensor(item[4]).long() for item in batch])
-    digits_c = torch.stack([torch.tensor(item[5]).long() for item in batch])
+      a_digits = torch.tensor([item[3] for item in batch]).long()
+      b_digits = torch.tensor([item[4] for item in batch]).long()
+      c_digits = torch.tensor([item[5] for item in batch]).long()
 
-    sums = torch.stack([torch.tensor(item[6]).long() for item in batch])
+      sums = torch.tensor([item[6] for item in batch]).long()
 
-    return (
-      (imgs_a, imgs_b, imgs_c),
-      (digits_a, digits_b, digits_c, sums)
-    )
+      return (
+          (a_imgs, b_imgs, c_imgs),
+          (a_digits, b_digits, c_digits, sums)
+      )
   
 def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test):
+  target_dist = {k: v**1 for k, v in cy.items()}
+  print("Target distribution (sum of three digits):", target_dist)
+  percentage=0.2
 
   train_loader = torch.utils.data.DataLoader(
     FashionSum3Dataset(
@@ -98,6 +159,8 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
       train=True,
       download=True,
       transform=fashion_img_transform,
+      target_distribution=target_dist,
+      dataset_size=20000*percentage
     ),
     collate_fn=FashionSum3Dataset.collate_fn,
     batch_size=batch_size_train,
@@ -110,6 +173,8 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
       train=False,
       download=True,
       transform=fashion_img_transform,
+      target_distribution=target_dist,
+      dataset_size=3333*percentage
     ),
     collate_fn=FashionSum3Dataset.collate_fn,
     batch_size=batch_size_test,
@@ -332,7 +397,7 @@ def cel_cal(output, ground_truth):
 # ==============================================
 class Trainer():
   def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
-    self.network = MNISTSum3Net_Exp2(provenance, k).to(device)
+    self.network = MNISTSum3Net(provenance, k).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -544,13 +609,37 @@ class Trainer():
       #   "pc3": pc3,
       #   "p": p
       # })
-
+  
   def train(self, n_epochs):
+    # Initial Test time
+    start_test = time.time()
     self.test(0)
+    end_test = time.time()
+    print(f"Initial Test time: {end_test - start_test:.2f} s")
+
+    train_time = 0
+    test_time = 0
+
     for epoch in range(1, n_epochs + 1):
-      print("-----------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
-      self.test(epoch)
+        print("-----------> EPOCH:", epoch)
+
+        # Training time per epoch
+        start_train = time.time()
+        self.train_epoch(epoch)
+        end_train = time.time()
+        train_time += (end_train - start_train)
+        print(f"Train epoch {epoch}: {end_train - start_train:.2f} s")
+
+        # Test time per epoch
+        start_test = time.time()
+        self.test(epoch)
+        end_test = time.time()
+        test_time += (end_test - start_test)
+        print(f"Test epoch {epoch}: {end_test - start_test:.2f} s")
+
+    print(f"Total Training Time: {train_time:.2f} s")
+    print(f"Total Test Time: {test_time:.2f} s")
+
     save_metrics(self.result_dir, "train", self.metrics_train)
     save_metrics(self.result_dir, "test", self.metrics_test)
 
@@ -561,7 +650,7 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=20)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
-  parser.add_argument("--learning-rate", type=float, default=0.001)
+  parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
@@ -594,5 +683,5 @@ if __name__ == "__main__":
   # Create trainer and train
   trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
-  # main_graph("train")
+  # main_graph("test")
   # main_distribution(train_loader, test_loader)

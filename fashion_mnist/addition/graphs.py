@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # ==============================================
 DATA_RESULT_PATH = "result"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
+EPOCHS=20
 
 # ==============================================
 # COLOR MAP
@@ -17,7 +18,11 @@ cmap = plt.get_cmap("tab10")
 COLOR_MAP = {
     "aal": cmap(1),
     "bce": cmap(0),
-    "none": cmap(2)
+    "3_net": cmap(1),
+    "single_net": cmap(0),
+    "single_3net": cmap(2),
+    "concat_3net": cmap(3),
+    "none": cmap(9)
 }
 
 # ==============================================
@@ -40,10 +45,17 @@ class Graphs():
                 continue
             
             # Extraer clave (aal o bce)
+            print(f"Processing name: {name}")
             if "aal" in name:
                 key = "aal"
             elif "bce" in name:
                 key = "bce"
+            elif "3_net" in name:
+                key = "3_net"
+            elif "single_net" in name:
+                key = "single_net"
+            elif "single_3net" in name:
+                key = "single_3net"
             else:
                 key = "none"
 
@@ -54,7 +66,7 @@ class Graphs():
             # Gráfico de Accuracy
             ax1.plot(
                 df["epoch"],
-                df["acc"],
+                df["accY"],
                 marker="o",
                 label=label,
                 color=color
@@ -88,19 +100,19 @@ class Graphs():
             #         label=f"{label} - RSRw"
             #     )
 
-            if {"epoch", "GAcc"}.issubset(df.columns):
+            if {"epoch", "accC"}.issubset(df.columns):
                 ax4.plot(
                     df["epoch"],
-                    df["GAcc"],
+                    df["accC"],
                     marker="o",
                     label=label,
                     color=color
                 )
 
         # Configuración gráfico 1
-        ax1.set_title("Acc (Y)")
+        ax1.set_title("accY (Y)")
         ax1.set_xlabel("Epoch")
-        ax1.set_ylabel("acc(y)")
+        ax1.set_ylabel("accY(y)")
         ax1.grid(True)
         ax1.legend()
 
@@ -119,15 +131,15 @@ class Graphs():
         ax3.legend()
 
         # Configuración gráfico 3
-        ax4.set_title("Acc (C) ")
+        ax4.set_title("accY (C) ")
         ax4.set_xlabel("Epoch")
-        ax4.set_ylabel("acc(C)")
+        ax4.set_ylabel("accY(C)")
         ax4.grid(True)
         ax4.legend()
 
         for ax in [ax1, ax4, ax2, ax3]:
-            ax.set_xlim(0, 31)
-            ax.set_xticks(range(0, 32, 2))
+            ax.set_xlim(0, EPOCHS+1)
+            ax.set_xticks(range(0, EPOCHS+2, 2))
 
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")

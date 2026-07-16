@@ -1,5 +1,6 @@
 import os
 import random
+import time
 from typing import *
 import csv
 import math
@@ -141,33 +142,18 @@ class MNISTNet(nn.Module):
     x = self.fc2(x)
     return F.softmax(x, dim=1)
 
-class MNISTNet3(nn.Module):
-    """
-    Modified network for Experiment 2:
-    Uses one MNISTNet instance internally, but processes
-    three images in a single forward call and returns
-    three predictions.
-    """
-    def __init__(self):
-        super(MNISTNet3, self).__init__()
-        self.base_net = MNISTNet()  # same architecture and parameters
-
-    def forward(self, imgs_a, imgs_b, imgs_c):
-        distrs_a = self.base_net(imgs_a)
-        distrs_b = self.base_net(imgs_b)
-        distrs_c = self.base_net(imgs_c)
-        return distrs_a, distrs_b, distrs_c
-
 
 # ==============================================
 # Logic Model
 # ==============================================
-class MNISTSum3Net_Exp2(nn.Module):
+class MNISTSum3Net(nn.Module):
   def __init__(self, provenance, k):
-    super().__init__()
+    super(MNISTSum3Net, self).__init__()
 
-    # MNIST Digit Recognition Network (modificada para 3 dígitos)
-    self.mnist_net3 = MNISTNet3()
+    # MNIST Digit Recognition Network
+    self.mnist_net_d1 = MNISTNet()
+    self.mnist_net_d2 = MNISTNet()
+    self.mnist_net_d3 = MNISTNet()
 
     # Scallop Context
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -177,20 +163,19 @@ class MNISTSum3Net_Exp2(nn.Module):
     self.scl_ctx.add_rule("sum_3(a + b + c) :- digit_1(a), digit_2(b), digit_3(c)")
 
     # The `sum_3` logical reasoning module
-    # La salida es un tensor de tamaño 64 x 28 (suma de tres dígitos entre 0 y 9 → valores 0 a 27).
+    # La salida es un tensor de tamaño 64 x 28 (porque la suma de tres dígitos entre 0 y 9 puede dar valores de 0 a 27).
     self.sum_3 = self.scl_ctx.forward_function("sum_3", output_mapping=[(i,) for i in range(28)])
 
-  def forward(self, x):
-    a_imgs, b_imgs, c_imgs = x
+  def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
+    (imgs_a, imgs_b, imgs_c) = x
 
-    # Reconocer los tres dígitos en un único forward
-    distrs_a, distrs_b, distrs_c = self.mnist_net3(a_imgs, b_imgs, c_imgs)
+    # First recognize the three digits
+    distrs_a = self.mnist_net_d1(imgs_a) # Tensor 64 x 10
+    distrs_b = self.mnist_net_d2(imgs_b) # Tensor 64 x 10
+    distrs_c = self.mnist_net_d3(imgs_c) # Tensor 64 x 10
 
-    # Ejecutar el módulo de razonamiento
-    sum_distrs = self.sum_3(digit_1=distrs_a, digit_2=distrs_b, digit_3=distrs_c)
-
-    # Retornar las tres distribuciones + la salida lógica
-    return distrs_a, distrs_b, distrs_c, sum_distrs
+    # Then execute the reasoning module; the result is a size 28 tensor
+    return distrs_a, distrs_b, distrs_c, self.sum_3(digit_1=distrs_a, digit_2=distrs_b, digit_3=distrs_c) # Tensor 64 x 28
 
 # ==============================================
 # Save predictions
@@ -348,7 +333,7 @@ def cel_cal(output, ground_truth):
 # ==============================================
 class Trainer():
   def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
-    self.network = MNISTSum3Net_Exp2(provenance, k).to(device)
+    self.network = MNISTSum3Net(provenance, k).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -560,13 +545,37 @@ class Trainer():
       #   "pc3": pc3,
       #   "p": p
       # })
-
+  
   def train(self, n_epochs):
+    # Initial Test time
+    start_test = time.time()
     self.test(0)
+    end_test = time.time()
+    print(f"Initial Test time: {end_test - start_test:.2f} s")
+
+    train_time = 0
+    test_time = 0
+
     for epoch in range(1, n_epochs + 1):
-      print("-----------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
-      self.test(epoch)
+        print("-----------> EPOCH:", epoch)
+
+        # Training time per epoch
+        start_train = time.time()
+        self.train_epoch(epoch)
+        end_train = time.time()
+        train_time += (end_train - start_train)
+        print(f"Train epoch {epoch}: {end_train - start_train:.2f} s")
+
+        # Test time per epoch
+        start_test = time.time()
+        self.test(epoch)
+        end_test = time.time()
+        test_time += (end_test - start_test)
+        print(f"Test epoch {epoch}: {end_test - start_test:.2f} s")
+
+    print(f"Total Training Time: {train_time:.2f} s")
+    print(f"Total Test Time: {test_time:.2f} s")
+
     save_metrics(self.result_dir, "train", self.metrics_train)
     save_metrics(self.result_dir, "test", self.metrics_test)
 
@@ -577,7 +586,7 @@ if __name__ == "__main__":
   parser.add_argument("--n-epochs", type=int, default=20)
   parser.add_argument("--batch-size-train", type=int, default=64)
   parser.add_argument("--batch-size-test", type=int, default=64)
-  parser.add_argument("--learning-rate", type=float, default=0.001)
+  parser.add_argument("--learning-rate", type=float, default=0.0001)
   parser.add_argument("--loss-fn", type=str, default="bce")
   parser.add_argument("--seed", type=int, default=1234)
   parser.add_argument("--provenance", type=str, default="difftopkproofs")
@@ -608,7 +617,7 @@ if __name__ == "__main__":
   train_loader, test_loader = fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test)
 
   # Create trainer and train
-  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  trainer.train(n_epochs)
-  # main_graph("train")
+  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  # trainer.train(n_epochs)
+  main_graph("test")
   # main_distribution(train_loader, test_loader)
