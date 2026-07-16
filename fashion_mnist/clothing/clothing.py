@@ -17,15 +17,18 @@ from argparse import ArgumentParser
 from distribution import main_distribution
 from graphs import main_graph
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from torch.utils.data import Subset
 from tqdm import tqdm
 
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
-DATA_RESULT_PATH = "result"  # Result data path
-FILE_RESUL_METRIC = "result_metric"  # Name file result
+DATA_MNIST_FASHION_PATH = "data"        # Original dataset path
+DATA_RESULT_PATH = "result"             # Result data path
+FILE_RESULT_METRIC = "result_metric"    # Name file result metrics
+FILE_RESULT_MATRIX = "result_matrix"    # Name file result matrix
 device = "cuda" if torch.cuda.is_available() else "cpu"
 cy = {0: 988, 1: 12}
 UPPER = {0, 2, 4, 6}
@@ -66,14 +69,6 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             target_transform=target_transform,
             download=download,
         )
-
-        # if not train:
-        #     targets = self.mnist_dataset.targets.numpy()
-        #     indices = np.arange(len(targets))
-        #     selected_indices, _ = train_test_split(
-        #         indices, train_size=9000, stratify=targets, random_state=42
-        #     )
-        #     self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
         
         targets = np.array(self.mnist_dataset.targets)
 
@@ -119,22 +114,6 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         # Get three data points
-        # i = idx * 3
-        # img1, digit1 = self.mnist_dataset[self.index_map[i]]
-        # img2, digit2 = self.mnist_dataset[self.index_map[i + 1]]
-        # img3, digit3 = self.mnist_dataset[self.index_map[i + 2]]
-
-        # # Each data has two images and the GT is the sum of two digits
-        # return (
-        #     img1,
-        #     img2,
-        #     img3,
-        #     digit1,
-        #     digit2,
-        #     digit3,
-        #     digit1 + digit2 + digit3,
-        #     valid_outfit(digit1, digit2, digit3),
-        # )
         i1, i2, i3 = self.index_map[idx]
         img1, d1 = self.mnist_dataset[i1]
         img2, d2 = self.mnist_dataset[i2]
@@ -236,8 +215,8 @@ class MNISTFashionLogic(nn.Module):
 
         # MNIST Digit Recognition Network
         self.mnist_one_net = MNISTFashionNet()
-        self.mnist_two_net = MNISTFashionNet()
-        self.mnist_three_net = MNISTFashionNet()
+        # self.mnist_two_net = MNISTFashionNet()
+        # self.mnist_three_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -280,8 +259,8 @@ class MNISTFashionLogic(nn.Module):
 
         # First recognize the two digits
         a_distrs = self.mnist_one_net(a_imgs)  # Tensor 64 x 10
-        b_distrs = self.mnist_two_net(b_imgs)  # Tensor 64 x 10
-        c_distrs = self.mnist_three_net(c_imgs)  # Tensor 64 x 10
+        b_distrs = self.mnist_one_net(b_imgs)  # Tensor 64 x 10
+        c_distrs = self.mnist_one_net(c_imgs)  # Tensor 64 x 10
 
         # Then execute the reasoning module; the result is a size 19 tensor
         return (
@@ -295,7 +274,7 @@ class MNISTFashionLogic(nn.Module):
 # Guardar resultados
 # ==============================================
 def save_metrics(file_path, file_name, metric):
-    name_file = f"{file_path}/{FILE_RESUL_METRIC}_{file_name}.csv"
+    name_file = f"{file_path}/{FILE_RESULT_METRIC}_{file_name}.csv"
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(
@@ -304,6 +283,9 @@ def save_metrics(file_path, file_name, metric):
                 "loss",
                 "acc",
                 "GAcc",
+                "acc_C1",
+                "acc_C2",
+                "acc_C3",
                 "gt",
                 "rs",
                 "RSR",
@@ -319,6 +301,9 @@ def save_metrics(file_path, file_name, metric):
                     row["loss"],
                     row["acc"],
                     row["GAcc"],
+                    row["acc_C1"],
+                    row["acc_C2"],
+                    row["acc_C3"],
                     row["gt"],
                     row["rs"],
                     row["RSR"],
@@ -431,6 +416,24 @@ def aal_loss(output, ground_truth, alpha=31):
 
     return loss / batch_size
 
+# ==============================================
+# Confusion Matrix
+# ==============================================
+
+def conf_matrix(file_path, file_name, data):
+    last_record = data[-1]
+    ground_truth = last_record["ground_truth"]
+    output = last_record["output"]    
+    # Crear matriz de confusión
+    cm = confusion_matrix(ground_truth, output, labels=[0, 1])
+    # Mostrar con etiquetas personalizadas
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["No Valid", "Valid"])
+    disp.plot(cmap="Blues")
+    # Añadir título
+    plt.title("Confusion Matrix - Clasification Valid/No Valid")
+    # Guardar como imagen
+    plt.savefig(f"{file_path}/{FILE_RESULT_MATRIX}_{file_name}.png", dpi=300)
+    plt.close()
 
 # ==============================================
 # Entrenamiento y Test
@@ -513,18 +516,27 @@ class Trainer:
         )
         total_concepts = 3 * len(g1)
         gacc = 100.0 * correct_concepts / total_concepts
+
+        acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+        acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+        acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
         self.metrics_train.append(
             {
                 "epoch": epoch,
                 "loss": loss.item(),
                 "acc": perc,
                 "GAcc": gacc,
+                "acc_C1": acc_c1,
+                "acc_C2": acc_c2,
+                "acc_C3": acc_c3,
                 "gt": gt,
                 "rs": rs,
                 "RSR": rsr,
                 "RSRw": rsrw,
                 "prob_model": prob_model,
                 "prob_mod_no": prob_mod_no,
+                "ground_truth": y,
+                "output": p
             }
         )
 
@@ -582,18 +594,27 @@ class Trainer:
             )
             total_concepts = 3 * len(g1)
             gacc = 100.0 * correct_concepts / total_concepts
+
+            acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+            acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+            acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
             self.metrics_test.append(
                 {
                     "epoch": epoch,
                     "loss": test_loss.item(),
                     "acc": perc,
                     "GAcc": gacc,
+                    "acc_C1": acc_c1,
+                    "acc_C2": acc_c2,
+                    "acc_C3": acc_c3,
                     "gt": gt,
                     "rs": rs,
                     "RSR": rsr,
                     "RSRw": rsrw,
                     "prob_model": prob_model,
                     "prob_mod_no": prob_mod_no,
+                    "ground_truth": y,
+                    "output": p
                 }
             )
 
@@ -605,6 +626,8 @@ class Trainer:
             self.test(epoch)
         save_metrics(self.result_dir, "train", self.metrics_train)
         save_metrics(self.result_dir, "test", self.metrics_test)
+        conf_matrix(self.result_dir, "train", self.metrics_train)
+        conf_matrix(self.result_dir, "test", self.metrics_test)
 
 
 # ==============================================
@@ -647,6 +670,6 @@ if __name__ == "__main__":
     trainer = Trainer(
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
-    trainer.train(n_epochs)
+    # trainer.train(n_epochs)
     main_graph("train")
     # main_distribution(train_loader, test_loader)

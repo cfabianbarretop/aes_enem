@@ -13,10 +13,10 @@
 
 **Nesy**: Scallopy - 0.1.4
 
-**Dataset**: MNIST-FASHION [1]
+**Dataset**: MNIST-FASHION [reference][1].
 ![MNIST-FASHION](result/digit_graph.png)
 **Neural model**:
-
+ 
 **Rules logical**:
 ```
 upper = {0,2,4,6}
@@ -48,15 +48,24 @@ To prefdict if outfit is valid or not, used a program NeSy where we have three i
 
 **Output**: A variable boolean that "**1**" is valid and "**0**" is invalid
 
-In Figure 1, you can seen the flow of work, It have three imagens as input, each one passes through the same neural network, it predict a concepts (C1, C2, C3) for each imagen, after these concepts are used in model logic, In this model predicted if outfit is valid or not according to the rules.
+In the Table 1, you can seen the flow of work, It have three imagens as input, each one passes through the same neural network, it predict a concepts (C1, C2, C3) for each imagen, after these concepts are used in model logic, In this model predicted if outfit is valid or not according to the rules.
+
+| Input |   | Network |   | Predicted Concept <br> Distribution |   |  Logic Program |   | Output |
+|:-----:|:-:|:-------:|:-:|:-----------------:|:-:|:--------------:|:-:|:------:|
+| img_a <br> img_b <br> img_c | ↘ <br> &rarr; <br> ↗ | `MNISTNet` <br> | ↗ <br> &rarr; <br> ↘ | distr_a <br> distr_b <br> distr_c | ↘ <br> &rarr; <br> ↗ | has_upper(c1)  ∧ has_lower(c2) ∧ has_shoe(c3) = y | &rarr; | ŷ |
 
 ## Result
+**Training**
+![MNIST-FASHION](result/result_graph_train.png)
+
+**Testing**
 
 ![MNIST-FASHION](result/result_graph_test.png)
-![MNIST-FASHION](result/result_graph_train.png)
+
+**Confusion Matrix**
+
 ## Conclusions and notes
 
 ## References
-```
-1. https://arxiv.org/pdf/1708.07747
-```
+
+[1]: https://arxiv.org/pdf/1708.07747 "MNIST-FASHION Dataset"

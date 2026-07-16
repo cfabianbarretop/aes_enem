@@ -8,6 +8,7 @@ import numpy as np
 # ==============================================
 DATA_RESULT_PATH = "result"                                 # Result data path
 GRAPH_NAME_DIGIT = "digit_graph"                            # Digit name
+GRAPH_NAME_VALID_OUTFIT = "valid_outfit_graph"
 GRAPH_NAME_DIGIT_DISTRIBUTION = "distribution_digit_graph"  # Distribution digit name
 GRAPH_NAME_LABEL_DISTRIBUTION = "distribution_label_graph"      # Distribution digit name
 GRAPH_NAME_COMBINATION_DIGIT = "combination_digit_graph"    # Distribution digit name
@@ -61,13 +62,13 @@ class Graphs():
 
         plt.tight_layout()
         plt.savefig(self.class_name, dpi=300, bbox_inches="tight")
-        plt.show()
+        plt.close()
 
 
     def digit_distribution(self):
         train_counts = Counter()
         test_counts = Counter()
-        
+
         # Train
         for _, (digit1, digit2, digit3), _ in self.train_loader:
             train_counts.update(digit1.tolist())
@@ -104,7 +105,7 @@ class Graphs():
 
         plt.tight_layout()
         plt.savefig(self.digit_dist, dpi=300, bbox_inches="tight")
-        plt.show()
+        plt.close()
 
     def label_distribution(self):
         train_sum_counts = Counter()
@@ -140,13 +141,20 @@ class Graphs():
 
         plt.tight_layout()
         plt.savefig(self.label_dist, dpi=300, bbox_inches="tight")
-        plt.show()
+        plt.close()
 
-    def show_valid_outfits(self, n_samples=3):
+    def show_valid_outfits(self, n_samples=3, valid = True):
+        label_valid = 0
+        name_valid = "no valid"
+        if valid: 
+            label_valid = 1
+            name_valid = "valid"
+        extension = name_valid.replace(" ", "_")
+        outfit_name = os.path.join(self.result_dir, f"{GRAPH_NAME_VALID_OUTFIT}_{extension}.png")
         # Tomar algunos batches del loader
         for (img1, img2, img3), (digit1, digit2, digit3), (_, label) in self.train_loader:
             # Filtrar solo válidos
-            valid_mask = label == 1
+            valid_mask = label == label_valid
             img1_valid = img1[valid_mask]
             img2_valid = img2[valid_mask]
             img3_valid = img3[valid_mask]
@@ -173,24 +181,42 @@ class Graphs():
                 plt.title(f"SHOES ({d3_valid[i].item()})")
                 plt.axis("off")
 
-            plt.suptitle("Exemples of outfits valid")
+            plt.suptitle(f"Exemples of outfits {name_valid}")
             plt.tight_layout()
-            # plt.savefig(, dpi=300, bbox_inches="tight")
-            plt.show()
+            plt.savefig(outfit_name, dpi=300, bbox_inches="tight")
+            plt.close()
             break  # solo primer batch
 
+def sumary_data(data_loader, training = True):
+    name = "Data Testing"
+    if training:
+        name = "Data Traing"
+
+    batch = next(iter(data_loader))
+    images, digits, labels = batch
+    print(f"======================== {name} ========================")
+    print("Batch size:", data_loader.batch_size)
+    print("Number of batches:", len(data_loader))
+    print("Dataset size:", len(data_loader.dataset))
+
+    print("Structure of batch:")
+    print("Images:", [img.shape for img in images])
+    print("Digits:", digits)
+    print("Labels:", labels)
+    print("=========================================================")
 
 def main_distribution(train_loader, test_loader):
-  # Obtiene el directorio donde está este archivo.py
-  base_dir = os.path.dirname(os.path.abspath(__file__))
-  # Une el directorio de base_dir con las carpetas "data" y "result"
-  result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
-  digit_dist = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT_DISTRIBUTION}.png")
-  label_dist = os.path.join(result_dir, f"{GRAPH_NAME_LABEL_DISTRIBUTION}.png")
-  digit_comb = os.path.join(result_dir, f"{GRAPH_NAME_COMBINATION_DIGIT}.png")
-  class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
-  graph = Graphs(result_dir, class_name, digit_dist, label_dist, digit_comb, train_loader, test_loader)
-#   graph.show_img()
-#   graph.digit_distribution()
-#   graph.label_distribution()
-  graph.show_valid_outfits()
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Une el directorio de base_dir con las carpetas "data" y "result"
+    result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+    digit_dist = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT_DISTRIBUTION}.png")
+    label_dist = os.path.join(result_dir, f"{GRAPH_NAME_LABEL_DISTRIBUTION}.png")
+    digit_comb = os.path.join(result_dir, f"{GRAPH_NAME_COMBINATION_DIGIT}.png")
+    class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
+    graph = Graphs(result_dir, class_name, digit_dist, label_dist, digit_comb, train_loader, test_loader)
+    # graph.show_img()
+    graph.show_valid_outfits(valid=False)
+    # graph.digit_distribution()
+    # graph.label_distribution()
+    # sumary_data(train_loader)
+    # sumary_data(test_loader, False)

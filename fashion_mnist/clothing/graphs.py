@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # ==============================================
 DATA_RESULT_PATH = "result"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
+GRAPH_RESULT_CONCEPT_ACC = "concept_acc_graph"      # Result img name
 
 # ==============================================
 # COLOR MAP
@@ -29,9 +30,10 @@ COLOR_MAP = {
 # GRAPHS
 # ==============================================
 class Graphs():
-    def __init__(self, root: str, img: str, training: str):
+    def __init__(self, root: str, img: str, acc_concept_img: str, training: str):
         self.result_dir = root
         self.result_img= img
+        self.acc_concept_img = acc_concept_img
         self.training = training
     
     def graph(self):
@@ -87,15 +89,6 @@ class Graphs():
                     color=color
                 )
             
-            # if {"epoch", "RSRw"}.issubset(df.columns):
-            #     ax3.plot(
-            #         df["epoch"],
-            #         df["RSRw"],
-            #         color = line_rsr.get_color(),
-            #         marker="s",
-            #         linestyle="--",
-            #         label=f"{label} - RSRw"
-            #     )
 
             if {"epoch", "GAcc"}.issubset(df.columns):
                 ax4.plot(
@@ -140,17 +133,42 @@ class Graphs():
 
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")
-        plt.show()
+        plt.close()
+    
+    def graph_concept(self):
+        for csv_file in Path(self.result_dir).glob("*.csv"):
+            name = csv_file.stem.lower()
+
+            if self.training not in name:
+                continue
+
+            df = pd.read_csv(csv_file)
+            plt.figure(figsize=(8,5))
+            plt.plot(df["epoch"], df["acc_C1"], label="C1", marker="o")
+            plt.plot(df["epoch"], df["acc_C2"], label="C2", marker="s")
+            plt.plot(df["epoch"], df["acc_C3"], label="C3", marker="^")
+
+            plt.xlabel("Epoch")
+            plt.ylabel("Accuracy (%)")
+            plt.title("Accuracy by concept")
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.savefig(self.acc_concept_img, dpi=300, bbox_inches="tight")
+            plt.close()
 
 def main_graph(training="rs"):
-  # Obtiene el directorio donde está este archivo.py
-  base_dir = os.path.dirname(os.path.abspath(__file__))
-  # Une el directorio de base_dir con las carpetas "data" y "result"
-  result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
-  name_img = f"{GRAPH_RESULT_NAME}_{training}.png"
-  result_img = os.path.join(result_dir, name_img)
-  graph = Graphs(result_dir, result_img, training)
-  graph.graph()
+    # Obtiene el directorio donde está este archivo.py
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Une el directorio de base_dir con las carpetas "data" y "result"
+    result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+    name_img = f"{GRAPH_RESULT_NAME}_{training}.png"
+    name_acc_concept_img = f"{GRAPH_RESULT_CONCEPT_ACC}_{training}.png"
+    result_img = os.path.join(result_dir, name_img)
+    result_acc_concept_img = os.path.join(result_dir, name_acc_concept_img)
+    graph = Graphs(result_dir, result_img, result_acc_concept_img, training)
+    graph.graph()
+    graph.graph_concept()
 
 if __name__ == "__main__":
   # Argument parser
