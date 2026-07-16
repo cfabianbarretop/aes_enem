@@ -143,11 +143,12 @@ class Graphs():
                 continue
 
             df = pd.read_csv(csv_file)
+            df["acc_mean"] = df[["acc_C1", "acc_C2", "acc_C3"]].mean(axis=1)
             plt.figure(figsize=(8,5))
             plt.plot(df["epoch"], df["acc_C1"], label="C1", marker="o")
             plt.plot(df["epoch"], df["acc_C2"], label="C2", marker="s")
             plt.plot(df["epoch"], df["acc_C3"], label="C3", marker="^")
-
+            plt.plot(df["epoch"], df["acc_mean"], label="Mean", marker="d",  linestyle="--", color="black")
             plt.xlabel("Epoch")
             plt.ylabel("Accuracy (%)")
             plt.title("Accuracy by concept")
