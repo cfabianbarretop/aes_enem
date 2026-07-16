@@ -148,6 +148,7 @@ class Graphs():
             plt.plot(df["epoch"], df["acc_C1"], label="C1", marker="o")
             plt.plot(df["epoch"], df["acc_C2"], label="C2", marker="s")
             plt.plot(df["epoch"], df["acc_C3"], label="C3", marker="^")
+            plt.plot(df["epoch"], df["GAcc"], label="GAcc", marker="H", linestyle="--")
             plt.plot(df["epoch"], df["acc_mean"], label="Mean", marker="d",  linestyle="--", color="black")
             plt.xlabel("Epoch")
             plt.ylabel("Accuracy (%)")
