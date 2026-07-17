@@ -25,12 +25,41 @@ from tqdm import tqdm
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_MNIST_FASHION_PATH = "data"        # Original dataset path
-DATA_RESULT_PATH = "result/clothing"             # Result data path
-FILE_RESULT_METRIC = "result_metric"    # Name file result metrics
-FILE_RESULT_MATRIX = "result_matrix"    # Name file result matrix
+DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
+DATA_RESULT_PATH = "result/addition_3"  # Result data path
+FILE_RESULT_METRIC = "result_metric"  # Name file result metrics
+FILE_RESULT_MATRIX = "result_matrix"  # Name file result matrix
 device = "cuda" if torch.cuda.is_available() else "cpu"
-cy = {0: 988, 1: 12}
+cy = {
+    0: 1,
+    1: 3,
+    2: 6,
+    3: 10,
+    4: 15,
+    5: 21,
+    6: 28,
+    7: 36,
+    8: 45,
+    9: 55,
+    10: 63,
+    11: 69,
+    12: 73,
+    13: 75,
+    14: 75,
+    15: 73,
+    16: 69,
+    17: 63,
+    18: 55,
+    19: 45,
+    20: 36,
+    21: 28,
+    22: 21,
+    23: 15,
+    24: 10,
+    25: 6,
+    26: 3,
+    27: 1,
+}
 UPPER = {0, 2, 4, 6}
 LOWER = {1}
 SHOES = {5, 7, 9}
@@ -49,18 +78,11 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
     def __init__(
         self,
         root: str,
-        cache_file: str,
         train: bool = True,
         transform: Optional[Callable] = None,
         target_transform: Optional[Callable] = None,
         download: bool = False,
     ):
-        # Si existe cache, cargar directamente
-        if os.path.exists(cache_file):
-            with open(cache_file, "rb") as f:
-                self.index_map, self.mnist_dataset = pickle.load(f)
-            return
-        
         # Contains a MNIST dataset
         self.mnist_dataset = torchvision.datasets.FashionMNIST(
             root,
@@ -69,65 +91,38 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             target_transform=target_transform,
             download=download,
         )
-        
-        targets = np.array(self.mnist_dataset.targets)
 
-        # Filtrar índices
-        upper_idx = np.where(np.isin(targets, list(UPPER)))[0]
-        lower_idx = np.where(np.isin(targets, list(LOWER)))[0]
-        shoes_idx = np.where(np.isin(targets, list(SHOES)))[0]
-        all_idx = np.arange(len(targets))
+        # if not train:
+        #     targets = self.mnist_dataset.targets.numpy()
+        #     indices = np.arange(len(targets))
+        #     selected_indices, _ = train_test_split(
+        #         indices, train_size=9000, stratify=targets, random_state=42
+        #     )
+        #     self.mnist_dataset = Subset(self.mnist_dataset, selected_indices)
 
-        # Número máximo de válidos
-        n_valid = min(len(upper_idx), len(lower_idx), len(shoes_idx))
-
-        # Selección sin repetición
-        upper_sel = np.random.choice(upper_idx, n_valid, replace=False)
-        lower_sel = np.random.choice(lower_idx, n_valid, replace=False)
-        shoes_sel = np.random.choice(shoes_idx, n_valid, replace=False)
-
-        # Guardar válidos
-        valid_outfits = [(u, l, s) for u, l, s in zip(upper_sel, lower_sel, shoes_sel)]
-
-        # Generar inválidos balanceados
-        invalid_outfits = []
-        used = set(upper_sel) | set(lower_sel) | set(shoes_sel)
-        while len(invalid_outfits) < n_valid:
-            trio = np.random.choice(all_idx, 3, replace=False)
-            d1, d2, d3 = [targets[i] for i in trio]
-            if valid_outfit(d1, d2, d3) == 0 and not any(i in used for i in trio):
-                invalid_outfits.append(tuple(trio))
-                used.update(trio)
-
-        # self.index_map = list(range(len(self.mnist_dataset)))
-        # random.shuffle(self.index_map)
-        self.index_map = [(u, l, s) for (u, l, s) in valid_outfits] + invalid_outfits
+        self.index_map = list(range(len(self.mnist_dataset)))
         random.shuffle(self.index_map)
 
-        # Guardar en cache
-        with open(cache_file, "wb") as f:
-            pickle.dump((self.index_map, self.mnist_dataset), f)
-
     def __len__(self):
-        # return len(self.mnist_dataset) // 3
-        return len(self.index_map)
+        return len(self.mnist_dataset) // 3
 
     def __getitem__(self, idx):
         # Get three data points
-        i1, i2, i3 = self.index_map[idx]
-        img1, d1 = self.mnist_dataset[i1]
-        img2, d2 = self.mnist_dataset[i2]
-        img3, d3 = self.mnist_dataset[i3]
+        i = idx * 3
+        img1, digit1 = self.mnist_dataset[self.index_map[i]]
+        img2, digit2 = self.mnist_dataset[self.index_map[i + 1]]
+        img3, digit3 = self.mnist_dataset[self.index_map[i + 2]]
 
+        # Each data has two images and the GT is the sum of two digits
         return (
             img1,
             img2,
             img3,
-            d1,
-            d2,
-            d3,
-            d1 + d2 + d3,
-            valid_outfit(d1, d2, d3),
+            digit1,
+            digit2,
+            digit3,
+            digit1 + digit2 + digit3,
+            valid_outfit(digit1, digit2, digit3),
         )
 
     @staticmethod
@@ -141,6 +136,7 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
         sum_3 = torch.stack([torch.tensor(item[6]).long() for item in batch])
         label = torch.stack([torch.tensor(item[7]).long() for item in batch])
         return ((img1, img2, img3), (digit1, digit2, digit3), (sum_3, label))
+
 
 # ==============================================
 # Funcion verifica outfit
@@ -162,7 +158,6 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=True,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_train.pkl"
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_train,
@@ -175,7 +170,6 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=False,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_test.pkl"
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_test,
@@ -214,61 +208,36 @@ class MNISTFashionLogic(nn.Module):
         super(MNISTFashionLogic, self).__init__()
 
         # MNIST Digit Recognition Network
-        self.mnist_one_net = MNISTFashionNet()
-        # self.mnist_two_net = MNISTFashionNet()
-        # self.mnist_three_net = MNISTFashionNet()
+        self.mnist_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
         self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
         self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
         self.scl_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
-        self.scl_ctx.add_relation("upper", int)
-        self.scl_ctx.add_relation("lower", int)
-        self.scl_ctx.add_relation("shoe", int)
+        self.scl_ctx.add_rule("sum_3(a + b + c) :- digit_1(a), digit_2(b), digit_3(c)")
 
-        self.scl_ctx.add_facts(
-            "upper",
-            [
-                (torch.tensor(1.0, device=device), (0,)),
-                (torch.tensor(1.0, device=device), (2,)),
-                (torch.tensor(1.0, device=device), (4,)),
-                (torch.tensor(1.0, device=device), (6,)),
-            ],
-        )
-        self.scl_ctx.add_facts("lower", [(torch.tensor(1.0, device=device), (1,))])
-        self.scl_ctx.add_facts(
-            "shoe",
-            [
-                (torch.tensor(1.0, device=device), (5,)),
-                (torch.tensor(1.0, device=device), (7,)),
-                (torch.tensor(1.0, device=device), (9,)),
-            ],
+        # The `sum_3` logical reasoning module
+        # La salida es un tensor de tamaño 64 x 28 (porque la suma de tres dígitos entre 0 y 9 puede dar valores de 0 a 27).
+        self.sum_3 = self.scl_ctx.forward_function(
+            "sum_3", output_mapping=[(i,) for i in range(28)]
         )
 
-        self.scl_ctx.add_rule("has_upper(X) :- digit_1(X), upper(X)")
-        self.scl_ctx.add_rule("has_lower(X) :- digit_2(X), lower(X)")
-        self.scl_ctx.add_rule("has_shoe(X) :- digit_3(X), shoe(X)")
-
-        self.scl_ctx.add_rule("valid() :- has_upper(U), has_lower(L), has_shoe(S)")
-
-        self.valid = self.scl_ctx.forward_function("valid", output_mapping=[()])
-
-    def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
+    def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
         a_imgs, b_imgs, c_imgs = x
 
-        # First recognize the two digits
-        a_distrs = self.mnist_one_net(a_imgs)  # Tensor 64 x 10
-        b_distrs = self.mnist_one_net(b_imgs)  # Tensor 64 x 10
-        c_distrs = self.mnist_one_net(c_imgs)  # Tensor 64 x 10
+        # First recognize the three digits
+        a_distrs = self.mnist_net(a_imgs)  # Tensor 64 x 10
+        b_distrs = self.mnist_net(b_imgs)  # Tensor 64 x 10
+        c_distrs = self.mnist_net(c_imgs)  # Tensor 64 x 10
 
-        # Then execute the reasoning module; the result is a size 19 tensor
+        # Then execute the reasoning module; the result is a size 28 tensor
         return (
             a_distrs,
             b_distrs,
             c_distrs,
-            self.valid(digit_1=a_distrs, digit_2=b_distrs, digit_3=c_distrs),
-        )  # Tensor 64 x 19
+            self.sum_3(digit_1=a_distrs, digit_2=b_distrs, digit_3=c_distrs),
+        )  # Tensor 64 x 28
 
 # ==============================================
 # Guardar resultados
@@ -325,12 +294,7 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
     sum_ars = 0
     sum_gt = 0
     sum_model = 0
-    count = 0
-    count_with_0 = 0
-    count_without_1 = 0
     for i, (pred, gt) in enumerate(zip(pred_tuples, gt_tuples)):
-        if pred[3] == 1:
-            count += 1
         if pred != gt:
             if pred[3] == gt[3]:
                 peso = cy.get(pred[3], 0)
@@ -339,12 +303,6 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
                 p_c2 = pc2[i]
                 p_c3 = pc3[i]
                 sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
-                if gt[3] == 1:
-                    count_without_1 += 1
-                    # print(f"Error en índice {i}: pred={pred}, gt={gt}")
-                else:
-                    count_with_0 += 1
-                # print(f"Error en índice {i}: pred={pred}, gt={gt}")
                 cont += 1
         else:
             peso = cy.get(pred[3], 0)
@@ -354,15 +312,10 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
             p_c3 = pc3[i]
             sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
             cont_gt += 1
-            # if gt[3] == 1:
-                # print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
 
     print(f"\tTotal de valores errados: {cont}")
-    print(f"\t                       1: {count_without_1}")
-    print(f"\t                       0: {count_with_0}")
     print(f"\tTotal de valores verdaderos: {cont_gt}")
     print(f"\tTotal de valores acertados: {cont + cont_gt}")
-    print(f"\tTotal del dataset original con vestimenta correcta: {count}")
     return (
         cont_gt,
         cont,
@@ -391,6 +344,7 @@ def nll_loss(output, ground_truth):
     eps = 1e-8
     return F.nll_loss(torch.log(output + eps), ground_truth)
 
+
 def aal_loss(output, ground_truth, alpha=31):
     batch_size = output.shape[0]
     loss = torch.tensor(0.0, device=output.device)
@@ -399,7 +353,7 @@ def aal_loss(output, ground_truth, alpha=31):
         y = int(ground_truth[b].item())
 
         # Evitar log(0)
-        p = output[b].clamp(min=1e-8, max=1-1e-8)
+        p = output[b].clamp(min=1e-8, max=1 - 1e-8)
 
         if y == 1:
             log_prob = torch.log(p)
@@ -416,9 +370,11 @@ def aal_loss(output, ground_truth, alpha=31):
 
     return loss / batch_size
 
+
 # ==============================================
 # Confusion Matrix
 # ==============================================
+
 
 def conf_matrix(file_path, file_name, data):
     last_record = data[-1]
@@ -437,6 +393,7 @@ def conf_matrix(file_path, file_name, data):
     # Guardar como imagen
     plt.savefig(f"{file_path}/{FILE_RESULT_MATRIX}_{file_name}.png", dpi=300)
     plt.close()
+
 
 # ==============================================
 # Entrenamiento y Test
@@ -480,7 +437,7 @@ class Trainer:
             b_imgs = b_imgs.to(device)
             c_imgs = c_imgs.to(device)
             images = (a_imgs, b_imgs, c_imgs)
-            sum_3, target = labels
+            target, _ = labels
             self.optimizer.zero_grad()
             a_distrs, b_distrs, c_distrs, output = self.network(images)
             output = output.cpu()
@@ -491,7 +448,6 @@ class Trainer:
             t_pc2, t_c2 = b_distrs.max(dim=1)
             t_pc3, t_c3 = c_distrs.max(dim=1)
             t_pb, t_p = output.max(dim=1)
-            t_p = (t_pb >= 0.5).int()
             c1.extend(t_c1.tolist())
             c2.extend(t_c2.tolist())
             c3.extend(t_c3.tolist())
@@ -501,8 +457,8 @@ class Trainer:
             p.extend(t_p.tolist())
             pb.extend(t_pb.tolist())
             y.extend(target.tolist())
-            loss = self.loss(output.squeeze(1), target.float())
-            pred = t_p
+            loss = self.loss(output, target)
+            pred = output.data.max(1, keepdim=True)[1]
             correct += pred.eq(target.view_as(pred)).sum().item()
             perc = 100.0 * correct / num_items
             loss.backward()
@@ -538,7 +494,7 @@ class Trainer:
                 "prob_model": prob_model,
                 "prob_mod_no": prob_mod_no,
                 "ground_truth": y,
-                "output": p
+                "output": p,
             }
         )
 
@@ -560,7 +516,7 @@ class Trainer:
                 b_imgs = b_imgs.to(device)
                 c_imgs = c_imgs.to(device)
                 images = (a_imgs, b_imgs, c_imgs)
-                sum_3, target = labels
+                target, _ = labels
                 a_distrs, b_distrs, c_distrs, output = self.network(images)
                 output = output.cpu()
                 g1.extend(a_digit.tolist())
@@ -570,7 +526,6 @@ class Trainer:
                 t_pc2, t_c2 = b_distrs.max(dim=1)
                 t_pc3, t_c3 = c_distrs.max(dim=1)
                 t_pb, t_p = output.max(dim=1)
-                t_p = (t_pb >= 0.5).int()
                 c1.extend(t_c1.tolist())
                 c2.extend(t_c2.tolist())
                 c3.extend(t_c3.tolist())
@@ -580,8 +535,8 @@ class Trainer:
                 p.extend(t_p.tolist())
                 pb.extend(t_pb.tolist())
                 y.extend(target.tolist())
-                test_loss = self.loss(output.squeeze(1), target.float())
-                pred = t_p
+                test_loss = self.loss(output, target)
+                pred = output.data.max(1, keepdim=True)[1]
                 correct += pred.eq(target.view_as(pred)).sum().item()
                 perc = 100.0 * correct / num_items
                 iter.set_description(
@@ -615,7 +570,7 @@ class Trainer:
                     "prob_model": prob_model,
                     "prob_mod_no": prob_mod_no,
                     "ground_truth": y,
-                    "output": p
+                    "output": p,
                 }
             )
 
@@ -641,7 +596,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
-    parser.add_argument("--loss-fn", type=str, default="ll")
+    parser.add_argument("--loss-fn", type=str, default="bce")
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--provenance", type=str, default="difftopkproofs")
     parser.add_argument("--top-k", type=int, default=3)
@@ -671,7 +626,7 @@ if __name__ == "__main__":
     trainer = Trainer(
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
-    trainer.train(n_epochs)
+    # trainer.train(n_epochs)
     main_graph("train", DATA_RESULT_PATH)
     main_graph("test", DATA_RESULT_PATH)
-    main_distribution(train_loader, test_loader)
+    # main_distribution(train_loader, test_loader)

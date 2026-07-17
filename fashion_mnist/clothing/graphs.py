@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_RESULT_PATH = "result"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
 GRAPH_RESULT_CONCEPT_ACC = "concept_acc_graph"      # Result img name
 
@@ -17,8 +16,8 @@ GRAPH_RESULT_CONCEPT_ACC = "concept_acc_graph"      # Result img name
 cmap = plt.get_cmap("tab10")
 KEY_COLOR_A = "aal"
 KEY_COLOR_B = "bce"
-KEY_COLOR_C = "3"
-KEY_COLOR_D = "4"
+KEY_COLOR_C = "train"
+KEY_COLOR_D = "test"
 COLOR_MAP = {
     KEY_COLOR_A: cmap(0),
     KEY_COLOR_B: cmap(1),
@@ -159,11 +158,11 @@ class Graphs():
             plt.savefig(self.acc_concept_img, dpi=300, bbox_inches="tight")
             plt.close()
 
-def main_graph(training="rs"):
+def main_graph(training="rs", dir_result = ""):
     # Obtiene el directorio donde está este archivo.py
     base_dir = os.path.dirname(os.path.abspath(__file__))
     # Une el directorio de base_dir con las carpetas "data" y "result"
-    result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
+    result_dir = os.path.join(base_dir, dir_result)
     name_img = f"{GRAPH_RESULT_NAME}_{training}.png"
     name_acc_concept_img = f"{GRAPH_RESULT_CONCEPT_ACC}_{training}.png"
     result_img = os.path.join(result_dir, name_img)

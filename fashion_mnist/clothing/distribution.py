@@ -117,15 +117,16 @@ class Graphs():
         for _, _, (_, label) in self.test_loader:
             test_sum_counts.update(label.tolist())
 
-        values = range(2)
+        # values = range(2)
+        all_labels = sorted(set(train_sum_counts.keys()) | set(test_sum_counts.keys()))
 
-        train_values = [train_sum_counts[i] for i in values]
-        test_values = [test_sum_counts[i] for i in values]
+        train_values = [train_sum_counts[i] for i in all_labels]
+        test_values = [test_sum_counts[i] for i in all_labels]
 
         plt.figure(figsize=(10,5))
 
         width = 0.4
-        x = range(2)
+        x = range(len(all_labels))
 
         plt.bar([i - width/3 for i in x], train_values,
                 width=width, label="Train")
@@ -214,9 +215,9 @@ def main_distribution(train_loader, test_loader):
     digit_comb = os.path.join(result_dir, f"{GRAPH_NAME_COMBINATION_DIGIT}.png")
     class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
     graph = Graphs(result_dir, class_name, digit_dist, label_dist, digit_comb, train_loader, test_loader)
-    # graph.show_img()
-    graph.show_valid_outfits(valid=False)
-    # graph.digit_distribution()
-    # graph.label_distribution()
+    graph.show_img()
+    # graph.show_valid_outfits(valid=False)
+    graph.digit_distribution()
+    graph.label_distribution()
     # sumary_data(train_loader)
     # sumary_data(test_loader, False)

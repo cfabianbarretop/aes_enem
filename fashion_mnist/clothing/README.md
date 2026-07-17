@@ -14,7 +14,7 @@
 **Nesy**: Scallopy - 0.1.4
 
 **Dataset**: MNIST-FASHION [reference][1].
-![MNIST-FASHION](result/digit_graph.png)
+![MNIST-FASHION](result/clothing/digit_graph.png)
 **Neural model**:
  
 **Rules logical**:
@@ -56,13 +56,15 @@ In the Table 1, you can seen the flow of work, It have three imagens as input, e
 
 ## Result
 **Training**
-![MNIST-FASHION](result/result_graph_train.png)
+![MNIST-FASHION](result/clothing/result_graph_train.png)
 
 **Testing**
 
-![MNIST-FASHION](result/result_graph_test.png)
+![MNIST-FASHION](result/clothing/result_graph_test.png)
 
 **Confusion Matrix**
+
+![MNIST-FASHION](result/clothing/result_matrix_test.png)
 
 ## Conclusions and notes
 
