@@ -384,26 +384,14 @@ def nll_loss(output, ground_truth):
 def aal_loss(output, ground_truth, alpha=31):
     batch_size = output.shape[0]
     loss = torch.tensor(0.0, device=output.device)
-
-    for b in range(batch_size):
-        y = int(ground_truth[b].item())
-
-        # Evitar log(0)
-        p = output[b].clamp(min=1e-8, max=1 - 1e-8)
-
-        if y == 1:
-            log_prob = torch.log(p)
-        else:
-            log_prob = torch.log(1.0 - p)
-
-        weight = cy[y]
-
-        w = torch.log(torch.tensor(1 + alpha / weight, device=output.device))
+    for b, i in enumerate(ground_truth):
+        y = i.item()
+        p = torch.log(output[b, y].clamp(min=1e-8))
+        weight = cy.get(y, 1)
+        w = torch.log(torch.tensor(1 + (alpha / weight), device=output.device))
         w = w / torch.log(torch.tensor(1 + alpha, device=output.device))
         w = w.detach()
-
-        loss += -w * log_prob
-
+        loss += -p * w 
     return loss / batch_size
 
 
@@ -632,7 +620,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
-    parser.add_argument("--loss-fn", type=str, default="bce")
+    parser.add_argument("--loss-fn", type=str, default="aal")
     parser.add_argument("--seed", type=int, default=1234)
     parser.add_argument("--provenance", type=str, default="difftopkproofs")
     parser.add_argument("--top-k", type=int, default=3)
@@ -662,7 +650,7 @@ if __name__ == "__main__":
     trainer = Trainer(
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
-    trainer.train(n_epochs)
+    # trainer.train(n_epochs)
     main_graph("train", DATA_RESULT_PATH)
     main_graph("test", DATA_RESULT_PATH)
-    main_distribution(train_loader, test_loader)
+    # main_distribution(train_loader, test_loader)
