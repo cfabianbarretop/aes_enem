@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # ==============================================
 DATA_RESULT_PATH = "result"             # Result data path
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
+GRAPH_RESULT_ACC_CONCEPT = "acc_graph" 
 EPOCHS=20
 
 # ==============================================
@@ -29,9 +30,10 @@ COLOR_MAP = {
 # GRAPHS
 # ==============================================
 class Graphs():
-    def __init__(self, root: str, img: str, training: str):
+    def __init__(self, root: str, img: str, result_accC_img: str, training: str):
         self.result_dir = root
         self.result_img= img
+        self.result_accC_img = result_accC_img
         self.training = training
     
     def graph(self):
@@ -144,6 +146,30 @@ class Graphs():
         plt.tight_layout()
         plt.savefig(self.result_img, dpi=300, bbox_inches="tight")
         plt.show()
+    
+    def graph_concept(self):
+        for csv_file in Path(self.result_dir).glob("*.csv"):
+            name = csv_file.stem.lower()
+
+            if self.training not in name:
+                continue
+
+            df = pd.read_csv(csv_file)
+            df["acc_mean"] = df[["acc_C1", "acc_C2", "acc_C3"]].mean(axis=1)
+            plt.figure(figsize=(8,5))
+            plt.plot(df["epoch"], df["acc_C1"], label="C1", marker="o")
+            plt.plot(df["epoch"], df["acc_C2"], label="C2", marker="s")
+            plt.plot(df["epoch"], df["acc_C3"], label="C3", marker="^")
+            plt.plot(df["epoch"], df["accC"], label="accC", marker="H", linestyle="--")
+            plt.plot(df["epoch"], df["acc_mean"], label="Mean", marker="d",  linestyle="--", color="black")
+            plt.xlabel("Epoch")
+            plt.ylabel("Accuracy (%)")
+            plt.title("Accuracy by concept")
+            plt.legend()
+            plt.grid(True)
+            plt.tight_layout()
+            plt.savefig(self.result_accC_img, dpi=300, bbox_inches="tight")
+            plt.close()
 
 def main_graph(training="rs"):
   # Obtiene el directorio donde está este archivo.py
@@ -151,9 +177,12 @@ def main_graph(training="rs"):
   # Une el directorio de base_dir con las carpetas "data" y "result"
   result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
   name_img = f"{GRAPH_RESULT_NAME}_{training}.png"
+  name_acc_concept_img = f"{GRAPH_RESULT_ACC_CONCEPT}_{training}.png"
   result_img = os.path.join(result_dir, name_img)
-  graph = Graphs(result_dir, result_img, training)
+  result_accC_img = os.path.join(result_dir, name_acc_concept_img)
+  graph = Graphs(result_dir, result_img, result_accC_img, training)
   graph.graph()
+#   graph.graph_concept()
 
 if __name__ == "__main__":
   # Argument parser

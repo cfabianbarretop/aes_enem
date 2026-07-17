@@ -1,7 +1,7 @@
-from collections import defaultdict
 import os
 import random
 import time
+from collections import defaultdict
 from typing import *
 import csv
 import math
@@ -43,111 +43,112 @@ fashion_img_transform = torchvision.transforms.Compose([
 
 class FashionSum3Dataset(torch.utils.data.Dataset):
   def __init__(
-      self,
-      root: str,
-      train: bool = True,
-      transform: Optional[Callable] = None,
-      target_transform: Optional[Callable] = None,
-      download: bool = False,
-      target_distribution: Optional[Dict[int, float]] = None,
-      dataset_size: int = 20000,  # tamaño final controlado
+    self,
+    root: str,
+    train: bool = True,
+    transform: Optional[Callable] = None,
+    target_transform: Optional[Callable] = None,
+    download: bool = False,
+    target_distribution: Optional[Dict[int, float]] = None,
+    dataset_size: int = 20000,
   ):
-      self.dataset = torchvision.datasets.FashionMNIST(
-          root,
-          train=train,
-          transform=transform,
-          target_transform=target_transform,
-          download=download,
-      )
+    self.dataset = torchvision.datasets.FashionMNIST(
+      root,
+      train=train,
+      transform=transform,
+      target_transform=target_transform,
+      download=download,
+    )
 
-      print(f" {train and 'Train' or 'Test'} FashionSum3Dataset: {len(self.dataset)} samples loaded from {root}")
+    print(f" {train and 'Train' or 'Test'} FashionSum3Dataset: {len(self.dataset)} samples loaded from {root}")
 
-      # agrupar índices por clase (0–9)
-      self.class_to_indices = defaultdict(list)
-      for idx, (_, label) in enumerate(self.dataset):
-          self.class_to_indices[label].append(idx)
+    # agrupar índices por clase (0–9)
+    self.class_to_indices = defaultdict(list)
+    for idx, (_, label) in enumerate(self.dataset):
+        self.class_to_indices[label].append(idx)
 
-      # generar tripletas válidas
-      self.triplets = []
+    # generar tripletas válidas
+    self.triplets = []
 
-      if target_distribution is None:
-          # comportamiento original
-          all_indices = list(range(len(self.dataset)))
-          random.shuffle(all_indices)
+    if target_distribution is None:
+      all_indices = list(range(len(self.dataset)))
+      random.shuffle(all_indices)
 
-          for i in range(0, len(all_indices) - 2, 3):
-              self.triplets.append((
-                  all_indices[i],
-                  all_indices[i + 1],
-                  all_indices[i + 2],
-              ))
-      else:
-          # NUEVO: control de distribución
-          sums_to_triplets = defaultdict(list)
+      for i in range(0, len(all_indices) - 2, 3):
+        self.triplets.append((
+          all_indices[i],
+          all_indices[i + 1],
+          all_indices[i + 2],
+        ))
+    else:
+      # NUEVO: control de distribución
+      sums_to_triplets = defaultdict(list)
 
-          # generar muchas combinaciones posibles
-          for a in range(10):
-              for b in range(10):
-                  for c in range(10):
-                      s = a + b + c
-                      sums_to_triplets[s].append((a, b, c))
+      # generar muchas combinaciones posibles
+      for a in range(10):
+        for b in range(10):
+          for c in range(10):
+            s = a + b + c
+            sums_to_triplets[s].append((a, b, c))
 
-          # normalizar distribución
-          total_prob = sum(target_distribution.values())
-          target_distribution = {
-              k: v / total_prob for k, v in target_distribution.items()
-          }
+      # normalizar distribución
+      total_prob = sum(target_distribution.values())
+      target_distribution = {
+        k: v / total_prob for k, v in target_distribution.items()
+      }
 
-          # generar dataset
-          for s, prob in target_distribution.items():
-              num_samples = int(prob * dataset_size)
+      for s, prob in target_distribution.items():
+        num_samples = int(prob * dataset_size)
 
-              combos = sums_to_triplets[s]
+        combos = sums_to_triplets[s]
 
-              for _ in range(num_samples):
-                  a, b, c = random.choice(combos)
+        for _ in range(num_samples):
+          a, b, c = random.choice(combos)
 
-                  ia = random.choice(self.class_to_indices[a])
-                  ib = random.choice(self.class_to_indices[b])
-                  ic = random.choice(self.class_to_indices[c])
+          ia = random.choice(self.class_to_indices[a])
+          ib = random.choice(self.class_to_indices[b])
+          ic = random.choice(self.class_to_indices[c])
 
-                  self.triplets.append((ia, ib, ic))
-
-          random.shuffle(self.triplets)
+          self.triplets.append((ia, ib, ic))
+        
+      random.shuffle(self.triplets)
 
   def __len__(self):
-      return len(self.triplets)
-
+    return len(self.triplets)
+  
   def __getitem__(self, idx):
-      ia, ib, ic = self.triplets[idx]
+    ia, ib, ic = self.triplets[idx]
 
-      a_img, a_digit = self.dataset[ia]
-      b_img, b_digit = self.dataset[ib]
-      c_img, c_digit = self.dataset[ic]
+    img_a, digit_a = self.dataset[ia]
+    img_b, digit_b = self.dataset[ib]
+    img_c, digit_c = self.dataset[ic]
 
-      return (
-          a_img, b_img, c_img,
-          a_digit, b_digit, c_digit,
-          a_digit + b_digit + c_digit
-      )
+    return (
+      img_a, img_b, img_c,
+      digit_a, digit_b, digit_c,
+      digit_a + digit_b + digit_c
+    )
 
   @staticmethod
   def collate_fn(batch):
-      a_imgs = torch.stack([item[0] for item in batch])
-      b_imgs = torch.stack([item[1] for item in batch])
-      c_imgs = torch.stack([item[2] for item in batch])
+    imgs_a = torch.stack([item[0] for item in batch])
+    imgs_b = torch.stack([item[1] for item in batch])
+    imgs_c = torch.stack([item[2] for item in batch])
 
-      a_digits = torch.tensor([item[3] for item in batch]).long()
-      b_digits = torch.tensor([item[4] for item in batch]).long()
-      c_digits = torch.tensor([item[5] for item in batch]).long()
+    imgs_concat = torch.cat([imgs_a, imgs_b, imgs_c], dim=1)
 
-      sums = torch.tensor([item[6] for item in batch]).long()
+    digits_a = torch.tensor([item[3] for item in batch]).long()
+    digits_b = torch.tensor([item[4] for item in batch]).long()
+    digits_c = torch.tensor([item[5] for item in batch]).long()
 
-      return (
-          (a_imgs, b_imgs, c_imgs),
-          (a_digits, b_digits, c_digits, sums)
-      )
-  
+    sums = torch.tensor([item[6] for item in batch]).long()
+
+    return (
+      imgs_concat,
+      (digits_a, digits_b, digits_c, sums)
+    )
+
+
 def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test):
   target_dist = {k: v**1 for k, v in cy.items()}
   print("Target distribution (sum of three digits):", target_dist)
@@ -273,13 +274,16 @@ def save_metrics(file_path, file_name, metric):
     name_file = f"{file_path}/{FILE_RESUL_METRIC}_{file_name}.csv"
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["epoch","loss","accY", "accC", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
+        writer.writerow(["epoch","loss","accY", "accC", "acc_C1", "acc_C2", "acc_C3", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
         for row in metric:
             writer.writerow([
                 row["epoch"],
                 row["loss"],
                 row["accY"],
                 row["accC"],
+                row["acc_C1"],
+                row["acc_C2"],
+                row["acc_C3"],
                 row["gt"],
                 row["rs"],
                 row["RSR"],
@@ -482,18 +486,25 @@ class Trainer():
         for a, b, c, d, e, f in zip(g1, c1, g2, c2, g3, c3)
       )
     accC = 100.0 * correct_triplets / len(g1)
+
+    acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+    acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+    acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
     
     self.metrics_train.append({
-       "epoch": epoch,
-       "loss": loss.item(),
-       "accY": 100.0 * correct / num_items,
-       "accC": accC,
-       "gt": gt,
-       "rs": rs,
-       "RSR": rsr,
-       "RSRw": rsrw,
-       "prob_model": prob_model,
-       "prob_mod_no": prob_mod_no
+      "epoch": epoch,
+      "loss": loss.item(),
+      "accY": 100.0 * correct / num_items,
+      "accC": accC,
+      "acc_C1": acc_c1,
+      "acc_C2": acc_c2,
+      "acc_C3": acc_c3,
+      "gt": gt,
+      "rs": rs,
+      "RSR": rsr,
+      "RSRw": rsrw,
+      "prob_model": prob_model,
+      "prob_mod_no": prob_mod_no
     })
     # save_predictions(self.result_dir, f"train_epoch_{epoch}", {
     #   "g1": g1,
@@ -579,17 +590,24 @@ class Trainer():
       )
       accC = 100.0 * correct_triplets / len(g1)
 
+      acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+      acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+      acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
+
       self.metrics_test.append({
-         "epoch": epoch,
-         "loss": test_loss,
-         "accY": 100.0 * correct / num_items,
-         "accC": accC,
-         "gt": gt,
-         "rs": rs,
-         "RSR": rsr,
-         "RSRw": rsrw,
-         "prob_model": prob_model,
-         "prob_mod_no": prob_mod_no
+        "epoch": epoch,
+        "loss": test_loss,
+        "accY": 100.0 * correct / num_items,
+        "accC": accC,
+        "acc_C1": acc_c1,
+        "acc_C2": acc_c2,
+        "acc_C3": acc_c3,
+        "gt": gt,
+        "rs": rs,
+        "RSR": rsr,
+        "RSRw": rsrw,
+        "prob_model": prob_model,
+        "prob_mod_no": prob_mod_no
       })
       # save_predictions(self.result_dir, f"test_epoch_{epoch}", {
       #   "g1": g1,

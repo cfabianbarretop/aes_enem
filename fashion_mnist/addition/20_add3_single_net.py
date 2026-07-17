@@ -277,13 +277,16 @@ def save_metrics(file_path, file_name, metric):
     name_file = f"{file_path}/{FILE_RESUL_METRIC}_{file_name}.csv"
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["epoch","loss","accY", "accC", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
+        writer.writerow(["epoch","loss","accY", "accC", "acc_C1", "acc_C2", "acc_C3", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
         for row in metric:
             writer.writerow([
                 row["epoch"],
                 row["loss"],
                 row["accY"],
                 row["accC"],
+                row["acc_C1"],
+                row["acc_C2"],
+                row["acc_C3"],
                 row["gt"],
                 row["rs"],
                 row["RSR"],
@@ -485,12 +488,19 @@ class Trainer():
         for a, b, c, d, e, f in zip(g1, c1, g2, c2, g3, c3)
       )
     accC = 100.0 * correct_triplets / len(g1)
+
+    acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+    acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+    acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
     
     self.metrics_train.append({
        "epoch": epoch,
        "loss": loss.item(),
        "accY": 100.0 * correct / num_items,
        "accC": accC,
+       "acc_C1": acc_c1,
+       "acc_C2": acc_c2,
+       "acc_C3": acc_c3,
        "gt": gt,
        "rs": rs,
        "RSR": rsr,
@@ -581,11 +591,18 @@ class Trainer():
       )
       accC = 100.0 * correct_triplets / len(g1)
 
+      acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+      acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+      acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
+
       self.metrics_test.append({
          "epoch": epoch,
          "loss": test_loss,
          "accY": 100.0 * correct / num_items,
          "accC": accC,
+         "acc_C1": acc_c1,
+         "acc_C2": acc_c2,
+         "acc_C3": acc_c3,
          "gt": gt,
          "rs": rs,
          "RSR": rsr,
