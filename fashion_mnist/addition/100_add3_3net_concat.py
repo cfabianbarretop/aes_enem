@@ -1,5 +1,6 @@
 import os
 import random
+import time
 from typing import *
 import csv
 import math
@@ -75,20 +76,19 @@ class FashionSum3Dataset(torch.utils.data.Dataset):
 
   @staticmethod
   def collate_fn(batch):
-    imgs_a = torch.stack([item[0] for item in batch])
-    imgs_b = torch.stack([item[1] for item in batch])
-    imgs_c = torch.stack([item[2] for item in batch])
+    imgs_a = torch.stack([item[0] for item in batch])  # [batch, 1, 28, 28]
+    imgs_b = torch.stack([item[1] for item in batch])  # [batch, 1, 28, 28]
+    imgs_c = torch.stack([item[2] for item in batch])  # [batch, 1, 28, 28]
+
+    # Concatenar en el canal → [batch, 3, 28, 28]
+    imgs_concat = torch.cat([imgs_a, imgs_b, imgs_c], dim=1)
 
     digits_a = torch.stack([torch.tensor(item[3]).long() for item in batch])
     digits_b = torch.stack([torch.tensor(item[4]).long() for item in batch])
     digits_c = torch.stack([torch.tensor(item[5]).long() for item in batch])
-
     sums = torch.stack([torch.tensor(item[6]).long() for item in batch])
 
-    return (
-      (imgs_a, imgs_b, imgs_c),
-      (digits_a, digits_b, digits_c, sums)
-    )
+    return imgs_concat, (digits_a, digits_b, digits_c, sums)
   
 def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test):
 
@@ -127,7 +127,7 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
 class MNISTNet(nn.Module):
   def __init__(self):
     super(MNISTNet, self).__init__()
-    self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+    self.conv1 = nn.Conv2d(3, 32, kernel_size=5)
     self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
     self.fc1 = nn.Linear(1024, 1024)
     self.fc2 = nn.Linear(1024, 10)
@@ -145,36 +145,29 @@ class MNISTNet(nn.Module):
 # ==============================================
 # Logic Model
 # ==============================================
-class MNISTSum3Net(nn.Module):
+class MNISTSum3Net_Exp4(nn.Module):
   def __init__(self, provenance, k):
-    super(MNISTSum3Net, self).__init__()
+    super().__init__()
 
-    # MNIST Digit Recognition Network
     self.mnist_net_d1 = MNISTNet()
     self.mnist_net_d2 = MNISTNet()
     self.mnist_net_d3 = MNISTNet()
 
-    # Scallop Context
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
     self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
     self.scl_ctx.add_rule("sum_3(a + b + c) :- digit_1(a), digit_2(b), digit_3(c)")
 
-    # The `sum_3` logical reasoning module
-    # La salida es un tensor de tamaño 64 x 28 (porque la suma de tres dígitos entre 0 y 9 puede dar valores de 0 a 27).
     self.sum_3 = self.scl_ctx.forward_function("sum_3", output_mapping=[(i,) for i in range(28)])
 
-  def forward(self, x: Tuple[torch.Tensor, torch.Tensor]):
-    (imgs_a, imgs_b, imgs_c) = x
+  def forward(self, x: torch.Tensor):
+    distrs_a = self.mnist_net_d1(x)
+    distrs_b = self.mnist_net_d2(x)
+    distrs_c = self.mnist_net_d3(x)
 
-    # First recognize the three digits
-    distrs_a = self.mnist_net_d1(imgs_a) # Tensor 64 x 10
-    distrs_b = self.mnist_net_d2(imgs_b) # Tensor 64 x 10
-    distrs_c = self.mnist_net_d3(imgs_c) # Tensor 64 x 10
-
-    # Then execute the reasoning module; the result is a size 28 tensor
-    return distrs_a, distrs_b, distrs_c, self.sum_3(digit_1=distrs_a, digit_2=distrs_b, digit_3=distrs_c) # Tensor 64 x 28
+    sum_distrs = self.sum_3(digit_1=distrs_a, digit_2=distrs_b, digit_3=distrs_c)
+    return distrs_a, distrs_b, distrs_c, sum_distrs
 
 # ==============================================
 # Save predictions
@@ -187,7 +180,7 @@ def save_predictions(file_path, file_name, data):
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
 
-        # Header correcto
+        # Correct header
         writer.writerow([
             "g1", "g2", "g3", "y",
             "c1", "pc1",
@@ -332,7 +325,7 @@ def cel_cal(output, ground_truth):
 # ==============================================
 class Trainer():
   def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
-    self.network = MNISTSum3Net_Exp2(provenance, k).to(device)
+    self.network = MNISTSum3Net_Exp4(provenance, k).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -373,14 +366,15 @@ class Trainer():
     p  = []
     pb  = []
     for (data, data_des) in iter:
-      (imgs_a, imgs_b, imgs_c) = data
-      imgs_a = imgs_a.to(device)
-      imgs_b = imgs_b.to(device)
-      imgs_c = imgs_c.to(device)
-      data = (imgs_a, imgs_b, imgs_c)
+      x = data.to(device)
+      # (imgs_a, imgs_b, imgs_c) = data
+      # imgs_a = imgs_a.to(device)
+      # imgs_b = imgs_b.to(device)
+      # imgs_c = imgs_c.to(device)
+      # data = (imgs_a, imgs_b, imgs_c)
       (digits_a, digits_b, digits_c, target) = data_des
       self.optimizer.zero_grad()
-      distrs_a, distrs_b, distrs_c, output = self.network(data)
+      distrs_a, distrs_b, distrs_c, output = self.network(x)
       output = output.cpu()
       g1.extend(digits_a.tolist())
       g2.extend(digits_b.tolist())
@@ -470,13 +464,14 @@ class Trainer():
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
-        (imgs_a, imgs_b, imgs_c) = data
-        imgs_a = imgs_a.to(device)
-        imgs_b = imgs_b.to(device)
-        imgs_c = imgs_c.to(device)
-        data = (imgs_a, imgs_b, imgs_c)
+        x = data.to(device) 
+        # (imgs_a, imgs_b, imgs_c) = data
+        # imgs_a = imgs_a.to(device)
+        # imgs_b = imgs_b.to(device)
+        # imgs_c = imgs_c.to(device)
+        # data = (imgs_a, imgs_b, imgs_c)
         (digits_a, digits_b, digits_c, target) = data_des
-        distrs_a, distrs_b, distrs_c, output = self.network(data)
+        distrs_a, distrs_b, distrs_c, output = self.network(x)
         output = output.cpu()
         g1.extend(digits_a.tolist())
         g2.extend(digits_b.tolist())
@@ -546,11 +541,35 @@ class Trainer():
       # })
 
   def train(self, n_epochs):
+    # Initial Test time
+    start_test = time.time()
     self.test(0)
+    end_test = time.time()
+    print(f"Initial Test time: {end_test - start_test:.2f} s")
+
+    train_time = 0
+    test_time = 0
+
     for epoch in range(1, n_epochs + 1):
-      print("-----------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
-      self.test(epoch)
+        print("-----------> EPOCH:", epoch)
+
+        # Training time per epoch
+        start_train = time.time()
+        self.train_epoch(epoch)
+        end_train = time.time()
+        train_time += (end_train - start_train)
+        print(f"Train epoch {epoch}: {end_train - start_train:.2f} s")
+
+        # Test time per epoch
+        start_test = time.time()
+        self.test(epoch)
+        end_test = time.time()
+        test_time += (end_test - start_test)
+        print(f"Test epoch {epoch}: {end_test - start_test:.2f} s")
+
+    print(f"Total Training Time: {train_time:.2f} s")
+    print(f"Total Test Time: {test_time:.2f} s")
+
     save_metrics(self.result_dir, "train", self.metrics_train)
     save_metrics(self.result_dir, "test", self.metrics_test)
 
@@ -594,5 +613,5 @@ if __name__ == "__main__":
   # Create trainer and train
   trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
   trainer.train(n_epochs)
-  # main_graph("train")
+  # main_graph("test")
   # main_distribution(train_loader, test_loader)

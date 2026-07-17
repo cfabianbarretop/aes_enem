@@ -214,7 +214,7 @@ def main_distribution(train_loader, test_loader):
   class_name = os.path.join(result_dir, f"{GRAPH_NAME_DIGIT}.png")
   
   graph = Graphs(result_dir, class_name, digit_dist, sum_dist, digit_comb, train_loader, test_loader)
-  graph.show_img()
+#   graph.show_img()
   graph.digit_distribution()
   graph.sum_distribution()
 #   graph.digit_combination()

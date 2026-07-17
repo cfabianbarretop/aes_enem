@@ -1,5 +1,7 @@
 import os
 import random
+import time
+from collections import defaultdict
 from typing import *
 import csv
 import math
@@ -47,6 +49,8 @@ class FashionSum3Dataset(torch.utils.data.Dataset):
     transform: Optional[Callable] = None,
     target_transform: Optional[Callable] = None,
     download: bool = False,
+    target_distribution: Optional[Dict[int, float]] = None,
+    dataset_size: int = 20000,
   ):
     self.dataset = torchvision.datasets.FashionMNIST(
       root,
@@ -56,16 +60,68 @@ class FashionSum3Dataset(torch.utils.data.Dataset):
       download=download,
     )
 
-    self.index_map = list(range(len(self.dataset)))
-    random.shuffle(self.index_map)
+    print(f" {train and 'Train' or 'Test'} FashionSum3Dataset: {len(self.dataset)} samples loaded from {root}")
+
+    # agrupar índices por clase (0–9)
+    self.class_to_indices = defaultdict(list)
+    for idx, (_, label) in enumerate(self.dataset):
+        self.class_to_indices[label].append(idx)
+
+    # generar tripletas válidas
+    self.triplets = []
+
+    if target_distribution is None:
+      all_indices = list(range(len(self.dataset)))
+      random.shuffle(all_indices)
+
+      for i in range(0, len(all_indices) - 2, 3):
+        self.triplets.append((
+          all_indices[i],
+          all_indices[i + 1],
+          all_indices[i + 2],
+        ))
+    else:
+      # NUEVO: control de distribución
+      sums_to_triplets = defaultdict(list)
+
+      # generar muchas combinaciones posibles
+      for a in range(10):
+        for b in range(10):
+          for c in range(10):
+            s = a + b + c
+            sums_to_triplets[s].append((a, b, c))
+
+      # normalizar distribución
+      total_prob = sum(target_distribution.values())
+      target_distribution = {
+        k: v / total_prob for k, v in target_distribution.items()
+      }
+
+      for s, prob in target_distribution.items():
+        num_samples = int(prob * dataset_size)
+
+        combos = sums_to_triplets[s]
+
+        for _ in range(num_samples):
+          a, b, c = random.choice(combos)
+
+          ia = random.choice(self.class_to_indices[a])
+          ib = random.choice(self.class_to_indices[b])
+          ic = random.choice(self.class_to_indices[c])
+
+          self.triplets.append((ia, ib, ic))
+        
+      random.shuffle(self.triplets)
 
   def __len__(self):
-    return int(len(self.dataset) / 3)
-
+    return len(self.triplets)
+  
   def __getitem__(self, idx):
-    (img_a, digit_a) = self.dataset[self.index_map[idx * 3]]
-    (img_b, digit_b) = self.dataset[self.index_map[idx * 3 + 1]]
-    (img_c, digit_c) = self.dataset[self.index_map[idx * 3 + 2]]
+    ia, ib, ic = self.triplets[idx]
+
+    img_a, digit_a = self.dataset[ia]
+    img_b, digit_b = self.dataset[ib]
+    img_c, digit_c = self.dataset[ic]
 
     return (
       img_a, img_b, img_c,
@@ -79,18 +135,24 @@ class FashionSum3Dataset(torch.utils.data.Dataset):
     imgs_b = torch.stack([item[1] for item in batch])
     imgs_c = torch.stack([item[2] for item in batch])
 
-    digits_a = torch.stack([torch.tensor(item[3]).long() for item in batch])
-    digits_b = torch.stack([torch.tensor(item[4]).long() for item in batch])
-    digits_c = torch.stack([torch.tensor(item[5]).long() for item in batch])
+    imgs_concat = torch.cat([imgs_a, imgs_b, imgs_c], dim=1)
 
-    sums = torch.stack([torch.tensor(item[6]).long() for item in batch])
+    digits_a = torch.tensor([item[3] for item in batch]).long()
+    digits_b = torch.tensor([item[4] for item in batch]).long()
+    digits_c = torch.tensor([item[5] for item in batch]).long()
+
+    sums = torch.tensor([item[6] for item in batch]).long()
 
     return (
-      (imgs_a, imgs_b, imgs_c),
+      imgs_concat,
       (digits_a, digits_b, digits_c, sums)
     )
-  
+
+
 def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test):
+  target_dist = {k: v**1 for k, v in cy.items()}
+  print("Target distribution (sum of three digits):", target_dist)
+  percentage=0.2
 
   train_loader = torch.utils.data.DataLoader(
     FashionSum3Dataset(
@@ -98,6 +160,8 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
       train=True,
       download=True,
       transform=fashion_img_transform,
+      target_distribution=target_dist,
+      dataset_size=20000*percentage
     ),
     collate_fn=FashionSum3Dataset.collate_fn,
     batch_size=batch_size_train,
@@ -110,6 +174,8 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
       train=False,
       download=True,
       transform=fashion_img_transform,
+      target_distribution=target_dist,
+      dataset_size=3333*percentage
     ),
     collate_fn=FashionSum3Dataset.collate_fn,
     batch_size=batch_size_test,
@@ -127,7 +193,7 @@ def fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test
 class MNISTNet(nn.Module):
   def __init__(self):
     super(MNISTNet, self).__init__()
-    self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+    self.conv1 = nn.Conv2d(3, 32, kernel_size=5)
     self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
     self.fc1 = nn.Linear(1024, 1024)
     self.fc2 = nn.Linear(1024, 10)
@@ -141,55 +207,32 @@ class MNISTNet(nn.Module):
     x = self.fc2(x)
     return F.softmax(x, dim=1)
 
-class MNISTNet3(nn.Module):
-    """
-    Modified network for Experiment 2:
-    Uses one MNISTNet instance internally, but processes
-    three images in a single forward call and returns
-    three predictions.
-    """
-    def __init__(self):
-        super(MNISTNet3, self).__init__()
-        self.base_net = MNISTNet()  # same architecture and parameters
-
-    def forward(self, imgs_a, imgs_b, imgs_c):
-        distrs_a = self.base_net(imgs_a)
-        distrs_b = self.base_net(imgs_b)
-        distrs_c = self.base_net(imgs_c)
-        return distrs_a, distrs_b, distrs_c
-
 
 # ==============================================
 # Logic Model
 # ==============================================
-class MNISTSum3Net_Exp2(nn.Module):
+class MNISTSum3Net_Exp4(nn.Module):
   def __init__(self, provenance, k):
     super().__init__()
 
-    # MNIST Digit Recognition Network (modificada para 3 dígitos)
-    self.mnist_net3 = MNISTNet3()
+    self.mnist_net_d1 = MNISTNet()
+    self.mnist_net_d2 = MNISTNet()
+    self.mnist_net_d3 = MNISTNet()
 
-    # Scallop Context
     self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
     self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
     self.scl_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
     self.scl_ctx.add_rule("sum_3(a + b + c) :- digit_1(a), digit_2(b), digit_3(c)")
 
-    # The `sum_3` logical reasoning module
-    # La salida es un tensor de tamaño 64 x 28 (suma de tres dígitos entre 0 y 9 → valores 0 a 27).
     self.sum_3 = self.scl_ctx.forward_function("sum_3", output_mapping=[(i,) for i in range(28)])
 
-  def forward(self, x):
-    a_imgs, b_imgs, c_imgs = x
+  def forward(self, x: torch.Tensor):
+    distrs_a = self.mnist_net_d1(x)
+    distrs_b = self.mnist_net_d2(x)
+    distrs_c = self.mnist_net_d3(x)
 
-    # Reconocer los tres dígitos en un único forward
-    distrs_a, distrs_b, distrs_c = self.mnist_net3(a_imgs, b_imgs, c_imgs)
-
-    # Ejecutar el módulo de razonamiento
     sum_distrs = self.sum_3(digit_1=distrs_a, digit_2=distrs_b, digit_3=distrs_c)
-
-    # Retornar las tres distribuciones + la salida lógica
     return distrs_a, distrs_b, distrs_c, sum_distrs
 
 # ==============================================
@@ -203,7 +246,7 @@ def save_predictions(file_path, file_name, data):
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
 
-        # Header correcto
+        # Correct header
         writer.writerow([
             "g1", "g2", "g3", "y",
             "c1", "pc1",
@@ -231,13 +274,16 @@ def save_metrics(file_path, file_name, metric):
     name_file = f"{file_path}/{FILE_RESUL_METRIC}_{file_name}.csv"
     with open(name_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["epoch","loss","accY", "accC", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
+        writer.writerow(["epoch","loss","accY", "accC", "acc_C1", "acc_C2", "acc_C3", "gt", "rs", "RSR", "RSRw", "prob_model", "prob_mod_no"])
         for row in metric:
             writer.writerow([
                 row["epoch"],
                 row["loss"],
                 row["accY"],
                 row["accC"],
+                row["acc_C1"],
+                row["acc_C2"],
+                row["acc_C3"],
                 row["gt"],
                 row["rs"],
                 row["RSR"],
@@ -348,7 +394,7 @@ def cel_cal(output, ground_truth):
 # ==============================================
 class Trainer():
   def __init__(self, result_dir, train_loader, test_loader, learning_rate, loss, k, provenance):
-    self.network = MNISTSum3Net_Exp2(provenance, k).to(device)
+    self.network = MNISTSum3Net_Exp4(provenance, k).to(device)
     self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
     self.train_loader = train_loader
     self.test_loader = test_loader
@@ -389,14 +435,15 @@ class Trainer():
     p  = []
     pb  = []
     for (data, data_des) in iter:
-      (imgs_a, imgs_b, imgs_c) = data
-      imgs_a = imgs_a.to(device)
-      imgs_b = imgs_b.to(device)
-      imgs_c = imgs_c.to(device)
-      data = (imgs_a, imgs_b, imgs_c)
+      x = data.to(device)
+      # (imgs_a, imgs_b, imgs_c) = data
+      # imgs_a = imgs_a.to(device)
+      # imgs_b = imgs_b.to(device)
+      # imgs_c = imgs_c.to(device)
+      # data = (imgs_a, imgs_b, imgs_c)
       (digits_a, digits_b, digits_c, target) = data_des
       self.optimizer.zero_grad()
-      distrs_a, distrs_b, distrs_c, output = self.network(data)
+      distrs_a, distrs_b, distrs_c, output = self.network(x)
       output = output.cpu()
       g1.extend(digits_a.tolist())
       g2.extend(digits_b.tolist())
@@ -439,18 +486,25 @@ class Trainer():
         for a, b, c, d, e, f in zip(g1, c1, g2, c2, g3, c3)
       )
     accC = 100.0 * correct_triplets / len(g1)
+
+    acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+    acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+    acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
     
     self.metrics_train.append({
-       "epoch": epoch,
-       "loss": loss.item(),
-       "accY": 100.0 * correct / num_items,
-       "accC": accC,
-       "gt": gt,
-       "rs": rs,
-       "RSR": rsr,
-       "RSRw": rsrw,
-       "prob_model": prob_model,
-       "prob_mod_no": prob_mod_no
+      "epoch": epoch,
+      "loss": loss.item(),
+      "accY": 100.0 * correct / num_items,
+      "accC": accC,
+      "acc_C1": acc_c1,
+      "acc_C2": acc_c2,
+      "acc_C3": acc_c3,
+      "gt": gt,
+      "rs": rs,
+      "RSR": rsr,
+      "RSRw": rsrw,
+      "prob_model": prob_model,
+      "prob_mod_no": prob_mod_no
     })
     # save_predictions(self.result_dir, f"train_epoch_{epoch}", {
     #   "g1": g1,
@@ -486,13 +540,14 @@ class Trainer():
     with torch.no_grad():
       iter = tqdm(self.test_loader, total=len(self.test_loader))
       for (data, data_des) in iter:
-        (imgs_a, imgs_b, imgs_c) = data
-        imgs_a = imgs_a.to(device)
-        imgs_b = imgs_b.to(device)
-        imgs_c = imgs_c.to(device)
-        data = (imgs_a, imgs_b, imgs_c)
+        x = data.to(device) 
+        # (imgs_a, imgs_b, imgs_c) = data
+        # imgs_a = imgs_a.to(device)
+        # imgs_b = imgs_b.to(device)
+        # imgs_c = imgs_c.to(device)
+        # data = (imgs_a, imgs_b, imgs_c)
         (digits_a, digits_b, digits_c, target) = data_des
-        distrs_a, distrs_b, distrs_c, output = self.network(data)
+        distrs_a, distrs_b, distrs_c, output = self.network(x)
         output = output.cpu()
         g1.extend(digits_a.tolist())
         g2.extend(digits_b.tolist())
@@ -535,17 +590,24 @@ class Trainer():
       )
       accC = 100.0 * correct_triplets / len(g1)
 
+      acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
+      acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
+      acc_c3 = 100.0 * sum(a == b for a, b in zip(g3, c3)) / len(g3)
+
       self.metrics_test.append({
-         "epoch": epoch,
-         "loss": test_loss,
-         "accY": 100.0 * correct / num_items,
-         "accC": accC,
-         "gt": gt,
-         "rs": rs,
-         "RSR": rsr,
-         "RSRw": rsrw,
-         "prob_model": prob_model,
-         "prob_mod_no": prob_mod_no
+        "epoch": epoch,
+        "loss": test_loss,
+        "accY": 100.0 * correct / num_items,
+        "accC": accC,
+        "acc_C1": acc_c1,
+        "acc_C2": acc_c2,
+        "acc_C3": acc_c3,
+        "gt": gt,
+        "rs": rs,
+        "RSR": rsr,
+        "RSRw": rsrw,
+        "prob_model": prob_model,
+        "prob_mod_no": prob_mod_no
       })
       # save_predictions(self.result_dir, f"test_epoch_{epoch}", {
       #   "g1": g1,
@@ -562,11 +624,35 @@ class Trainer():
       # })
 
   def train(self, n_epochs):
+    # Initial Test time
+    start_test = time.time()
     self.test(0)
+    end_test = time.time()
+    print(f"Initial Test time: {end_test - start_test:.2f} s")
+
+    train_time = 0
+    test_time = 0
+
     for epoch in range(1, n_epochs + 1):
-      print("-----------> EPOCH: ",epoch)
-      self.train_epoch(epoch)
-      self.test(epoch)
+        print("-----------> EPOCH:", epoch)
+
+        # Training time per epoch
+        start_train = time.time()
+        self.train_epoch(epoch)
+        end_train = time.time()
+        train_time += (end_train - start_train)
+        print(f"Train epoch {epoch}: {end_train - start_train:.2f} s")
+
+        # Test time per epoch
+        start_test = time.time()
+        self.test(epoch)
+        end_test = time.time()
+        test_time += (end_test - start_test)
+        print(f"Test epoch {epoch}: {end_test - start_test:.2f} s")
+
+    print(f"Total Training Time: {train_time:.2f} s")
+    print(f"Total Test Time: {test_time:.2f} s")
+
     save_metrics(self.result_dir, "train", self.metrics_train)
     save_metrics(self.result_dir, "test", self.metrics_test)
 
@@ -608,7 +694,7 @@ if __name__ == "__main__":
   train_loader, test_loader = fashion_sum_3_loader(train_file, data_dir, batch_size_train, batch_size_test)
 
   # Create trainer and train
-  trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
-  trainer.train(n_epochs)
-  # main_graph("train")
+  # trainer = Trainer(result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance)
+  # trainer.train(n_epochs)
+  main_graph("test")
   # main_distribution(train_loader, test_loader)
