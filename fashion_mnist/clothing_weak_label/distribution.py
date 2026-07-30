@@ -2,6 +2,7 @@ import os
 from collections import Counter
 import matplotlib.pyplot as plt
 import numpy as np
+import torch
 
 # ==============================================
 # CONFIG
@@ -24,6 +25,8 @@ classes = [
     "Bag",
     "Ankle boots"
 ]
+mean = torch.tensor([0.48145466, 0.4578275, 0.40821073]).view(3,1,1)
+std = torch.tensor([0.26862954, 0.26130258, 0.27577711]).view(3,1,1)
 # ==============================================
 # GRAPHS
 # ==============================================
@@ -56,7 +59,9 @@ class Graphs():
         plt.figure(figsize=(12, 4))
         for i in range(10):
             plt.subplot(2, 5, i + 1)
-            plt.imshow(samples[i].squeeze(), cmap="gray")
+            # plt.imshow(samples[i].squeeze(), cmap="gray")
+            img_show = samples[i] * std + mean
+            plt.imshow(img_show.permute(1,2,0))
             plt.title(f"{i}\n{classes[i]}")
             plt.axis("off")
 

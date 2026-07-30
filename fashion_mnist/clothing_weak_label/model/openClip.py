@@ -10,7 +10,7 @@ import open_clip
 device = "cuda" if torch.cuda.is_available() else "cpu"
 DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
 base_dir = os.path.dirname(os.path.abspath(__file__))
-data_dir = os.path.abspath(os.path.join(base_dir, "../..", DATA_MNIST_FASHION_PATH))
+data_dir = os.path.abspath(os.path.join(base_dir, "../../..", DATA_MNIST_FASHION_PATH))
 print(data_dir)
 print(device)
 
@@ -77,7 +77,7 @@ with torch.no_grad():
         image_features = model.encode_image(image)
         image_features /= image_features.norm(dim=-1, keepdim=True)
 
-        probs = image_features @ text_features.T
+        probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
 
         prediction = probs.argmax(dim=-1).item()
         ground_truth.append(gt)

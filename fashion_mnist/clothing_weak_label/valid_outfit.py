@@ -11,6 +11,7 @@ import scallopy
 import math
 import csv
 import pickle
+import open_clip
 
 from typing import *
 from argparse import ArgumentParser
@@ -19,16 +20,16 @@ from graphs import main_graph
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-from torch.utils.data import Subset
+from torchvision.transforms.functional import to_pil_image
 from tqdm import tqdm
 
 # ==============================================
 # CONFIG
 # ==============================================
-DATA_MNIST_FASHION_PATH = "data"        # Original dataset path
-DATA_RESULT_PATH = "result/clothing"             # Result data path
-FILE_RESULT_METRIC = "result_metric"    # Name file result metrics
-FILE_RESULT_MATRIX = "result_matrix"    # Name file result matrix
+DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
+DATA_RESULT_PATH = "result"  # Result data path
+FILE_RESULT_METRIC = "result_metric"  # Name file result metrics
+FILE_RESULT_MATRIX = "result_matrix"  # Name file result matrix
 device = "cuda" if torch.cuda.is_available() else "cpu"
 cy = {0: 988, 1: 12}
 UPPER = {0, 2, 4, 6}
@@ -40,10 +41,19 @@ print("Device: ", device)
 # ==============================================
 # Dataset
 # ==============================================
-mnist_img_transform = torchvision.transforms.Compose(
-    [torchvision.transforms.ToTensor()]
-)
+# mnist_img_transform = torchvision.transforms.Compose(
+#     [torchvision.transforms.ToTensor()]
+# )
 
+mnist_img_transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((224,224)),
+    torchvision.transforms.Grayscale(num_output_channels=3),
+    torchvision.transforms.ToTensor(),
+    torchvision.transforms.Normalize(
+        mean=(0.48145466, 0.4578275, 0.40821073),
+        std=(0.26862954, 0.26130258, 0.27577711)
+    )
+])
 
 class MNISTFashionDataset(torch.utils.data.Dataset):
     def __init__(
@@ -60,7 +70,7 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             with open(cache_file, "rb") as f:
                 self.index_map, self.mnist_dataset = pickle.load(f)
             return
-        
+
         # Contains a MNIST dataset
         self.mnist_dataset = torchvision.datasets.FashionMNIST(
             root,
@@ -69,7 +79,7 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             target_transform=target_transform,
             download=download,
         )
-        
+
         targets = np.array(self.mnist_dataset.targets)
 
         # Filtrar índices
@@ -142,6 +152,7 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
         label = torch.stack([torch.tensor(item[7]).long() for item in batch])
         return ((img1, img2, img3), (digit1, digit2, digit3), (sum_3, label))
 
+
 # ==============================================
 # Funcion verifica outfit
 # ==============================================
@@ -162,7 +173,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=True,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_train.pkl"
+            cache_file="fashion_outfits_train.pkl",
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_train,
@@ -175,7 +186,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=False,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_test.pkl"
+            cache_file="fashion_outfits_test.pkl",
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_test,
@@ -188,23 +199,45 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
 # ==============================================
 # Modelo Neural
 # ==============================================
-class MNISTFashionNet(nn.Module):
+class MNISTFashionModel(nn.Module):
     def __init__(self):
-        super(MNISTFashionNet, self).__init__()
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
-        self.fc1 = nn.Linear(1024, 1024)
-        self.fc2 = nn.Linear(1024, 10)
+        super().__init__()
+        self.model, _, self.preprocess = open_clip.create_model_and_transforms(
+            "ViT-B-32", pretrained="laion2b_s34b_b79k"
+        )
+        tokenizer = open_clip.get_tokenizer("ViT-B-32")
+        self.model.to(device)
+        self.model.eval()
+
+        labels = [
+            "a grayscale image of a single T-shirt or top, centered on a black background",
+            "a grayscale image of a single pair of trousers, centered on a black background",
+            "a grayscale image of a single pullover sweater, centered on a black background",
+            "a grayscale image of a single dress, centered on a black background",
+            "a grayscale image of a single coat, centered on a black background",
+            "a grayscale image of a single sandal, centered on a black background",
+            "a grayscale image of a single shirt, centered on a black background",
+            "a grayscale image of a single sneaker, centered on a black background",
+            "a grayscale image of a single bag, centered on a black background",
+            "a grayscale image of a single ankle boot, centered on a black background",
+        ]
+
+        text = tokenizer(labels).to(device)
+        with torch.no_grad():
+            self.text_features = self.model.encode_text(text)
+            self.text_features /= self.text_features.norm(dim=-1, keepdim=True)
 
     def forward(self, x):
-        x = F.max_pool2d(self.conv1(x), 2)
-        x = F.max_pool2d(self.conv2(x), 2)
-        x = x.view(-1, 1024)
-        x = F.relu(self.fc1(x))
-        x = F.dropout(x, p=0.5, training=self.training)
-        x = self.fc2(x)
-        return F.softmax(x, dim=1)
+        # print(f"IMAGE ------------> {x.shape}")
+        # image = to_pil_image(x.cpu())
+        # image = self.preprocess(image).unsqueeze(0).to(device)
 
+        with torch.no_grad():
+            image_features = self.model.encode_image(x)
+            image_features /= image_features.norm(dim=-1, keepdim=True)
+            logits = 100.0 * image_features @ self.text_features.T
+
+        return logits.softmax(dim=-1)
 
 # ==============================================
 # Modelo Lógico
@@ -214,9 +247,7 @@ class MNISTFashionLogic(nn.Module):
         super(MNISTFashionLogic, self).__init__()
 
         # MNIST Digit Recognition Network
-        self.mnist_one_net = MNISTFashionNet()
-        # self.mnist_two_net = MNISTFashionNet()
-        # self.mnist_three_net = MNISTFashionNet()
+        self.mnist_one_net = MNISTFashionModel()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -269,6 +300,7 @@ class MNISTFashionLogic(nn.Module):
             c_distrs,
             self.valid(digit_1=a_distrs, digit_2=b_distrs, digit_3=c_distrs),
         )  # Tensor 64 x 19
+
 
 # ==============================================
 # Guardar resultados
@@ -355,7 +387,7 @@ def metrics(g1, g2, g3, y, c1, pc1, c2, pc2, c3, pc3, p):
             sum_model += (1 - (p_c1 * p_c2 * p_c3)) * math.log(1 / peso)
             cont_gt += 1
             # if gt[3] == 1:
-                # print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
+            # print(f"Correcto ----> {i}: pred={pred}, gt={gt}")
 
     print(f"\tTotal de valores errados: {cont}")
     print(f"\t                       1: {count_without_1}")
@@ -391,6 +423,7 @@ def nll_loss(output, ground_truth):
     eps = 1e-8
     return F.nll_loss(torch.log(output + eps), ground_truth)
 
+
 def aal_loss(output, ground_truth, alpha=31):
     batch_size = output.shape[0]
     loss = torch.tensor(0.0, device=output.device)
@@ -399,7 +432,7 @@ def aal_loss(output, ground_truth, alpha=31):
         y = int(ground_truth[b].item())
 
         # Evitar log(0)
-        p = output[b].clamp(min=1e-8, max=1-1e-8)
+        p = output[b].clamp(min=1e-8, max=1 - 1e-8)
 
         if y == 1:
             log_prob = torch.log(p)
@@ -416,9 +449,11 @@ def aal_loss(output, ground_truth, alpha=31):
 
     return loss / batch_size
 
+
 # ==============================================
 # Confusion Matrix
 # ==============================================
+
 
 def conf_matrix(file_path, file_name, data):
     last_record = data[-1]
@@ -428,15 +463,14 @@ def conf_matrix(file_path, file_name, data):
     labels = np.unique(np.concatenate([ground_truth, output]))
     cm = confusion_matrix(ground_truth, output, labels=labels)
     # Mostrar con etiquetas personalizadas
-    disp = ConfusionMatrixDisplay(
-        confusion_matrix=cm, display_labels=labels
-    )
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=labels)
     disp.plot(cmap="Blues", xticks_rotation="vertical")
     # Añadir título
     plt.title("Confusion Matrix - Clasification")
     # Guardar como imagen
     plt.savefig(f"{file_path}/{FILE_RESULT_MATRIX}_{file_name}.png", dpi=300)
     plt.close()
+
 
 # ==============================================
 # Entrenamiento y Test
@@ -538,7 +572,7 @@ class Trainer:
                 "prob_model": prob_model,
                 "prob_mod_no": prob_mod_no,
                 "ground_truth": y,
-                "output": p
+                "output": p,
             }
         )
 
@@ -615,7 +649,7 @@ class Trainer:
                     "prob_model": prob_model,
                     "prob_mod_no": prob_mod_no,
                     "ground_truth": y,
-                    "output": p
+                    "output": p,
                 }
             )
 
@@ -637,7 +671,7 @@ class Trainer:
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
-    parser.add_argument("--n-epochs", type=int, default=20)
+    parser.add_argument("--n-epochs", type=int, default=10)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
@@ -672,6 +706,6 @@ if __name__ == "__main__":
         result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
     )
     trainer.train(n_epochs)
-    # main_graph("train", DATA_RESULT_PATH)
+    main_graph("train", DATA_RESULT_PATH)
     # main_graph("test", DATA_RESULT_PATH)
     # main_distribution(train_loader, test_loader)
