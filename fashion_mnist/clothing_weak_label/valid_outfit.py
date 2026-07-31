@@ -173,7 +173,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=True,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_train.pkl",
+            cache_file="3_fashion_outfits_train.pkl",
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_train,
@@ -186,7 +186,7 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
             train=False,
             download=True,
             transform=mnist_img_transform,
-            cache_file="fashion_outfits_test.pkl",
+            cache_file="3_fashion_outfits_test.pkl",
         ),
         collate_fn=MNISTFashionDataset.collate_fn,
         batch_size=batch_size_test,
@@ -200,43 +200,35 @@ def mnist_fashion_loader(data_dir, batch_size_train, batch_size_test):
 # Modelo Neural
 # ==============================================
 class MNISTFashionModel(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.model, _, self.preprocess = open_clip.create_model_and_transforms(
-            "ViT-B-32", pretrained="laion2b_s34b_b79k"
-        )
-        tokenizer = open_clip.get_tokenizer("ViT-B-32")
-        self.model.to(device)
-        self.model.eval()
-
-        labels = [
-            "a grayscale image of a single T-shirt or top, centered on a black background",
-            "a grayscale image of a single pair of trousers, centered on a black background",
-            "a grayscale image of a single pullover sweater, centered on a black background",
-            "a grayscale image of a single dress, centered on a black background",
-            "a grayscale image of a single coat, centered on a black background",
-            "a grayscale image of a single sandal, centered on a black background",
-            "a grayscale image of a single shirt, centered on a black background",
-            "a grayscale image of a single sneaker, centered on a black background",
-            "a grayscale image of a single bag, centered on a black background",
-            "a grayscale image of a single ankle boot, centered on a black background",
-        ]
-
-        text = tokenizer(labels).to(device)
-        with torch.no_grad():
-            self.text_features = self.model.encode_text(text)
-            self.text_features /= self.text_features.norm(dim=-1, keepdim=True)
-
-    def forward(self, x):
-        # print(f"IMAGE ------------> {x.shape}")
-        # image = to_pil_image(x.cpu())
-        # image = self.preprocess(image).unsqueeze(0).to(device)
-
-        with torch.no_grad():
-            image_features = self.model.encode_image(x)
-            image_features /= image_features.norm(dim=-1, keepdim=True)
-            logits = 100.0 * image_features @ self.text_features.T
-
+    def __init__(
+            self,
+            model_name="ViT-B-32",
+            pretrained="laion2b_s34b_b79k",
+            num_classes=10,
+            freeze_backbone=False,
+        ):
+            super().__init__()
+    
+            self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(
+                model_name=model_name,
+                pretrained=pretrained,
+            )
+    
+            if freeze_backbone:
+                for param in self.clip_model.parameters():
+                    param.requires_grad = False
+    
+            embedding_dim = self.clip_model.visual.output_dim
+    
+            self.classifier = nn.Linear(
+                embedding_dim,
+                num_classes,
+            )
+    
+    def forward(self, images):
+        features = self.clip_model.encode_image(images)
+        features = features / features.norm(dim=-1, keepdim=True)
+        logits = self.classifier(features)
         return logits.softmax(dim=-1)
 
 # ==============================================
@@ -672,7 +664,7 @@ if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
     parser.add_argument("--n-epochs", type=int, default=10)
-    parser.add_argument("--batch-size-train", type=int, default=64)
+    parser.add_argument("--batch-size-train", type=int, default=32)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--loss-fn", type=str, default="ll")
@@ -707,5 +699,5 @@ if __name__ == "__main__":
     )
     trainer.train(n_epochs)
     main_graph("train", DATA_RESULT_PATH)
-    # main_graph("test", DATA_RESULT_PATH)
+    main_graph("test", DATA_RESULT_PATH)
     # main_distribution(train_loader, test_loader)
