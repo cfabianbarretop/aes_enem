@@ -14,7 +14,7 @@ GRAPH_RESULT_CONCEPT_ACC = "concept_acc_graph"      # Result img name
 # COLOR MAP
 # ==============================================
 cmap = plt.get_cmap("tab10")
-KEY_COLOR_A = "aal"
+KEY_COLOR_A = "open"
 KEY_COLOR_B = "bce"
 KEY_COLOR_C = "train"
 KEY_COLOR_D = "test"

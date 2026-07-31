@@ -238,7 +238,7 @@ correct = 0
 acc_1 = 0
 acc_2 = 0
 acc_3 = 0
-dataset = train_loader
+dataset = test_loader
 iter = tqdm(dataset, total=len(dataset))
 text = tokenizer(labels).to(device)
 ground_truth = []
