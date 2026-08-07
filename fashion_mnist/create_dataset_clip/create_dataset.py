@@ -13,10 +13,10 @@ import csv
 # ==============================================
 device = "cuda" if torch.cuda.is_available() else "cpu"
 DATA_MNIST_FASHION_PATH = "data"  # Original dataset path
-DATA_RESULT_PATH = "result"  # Result data path
+DATA_RESULT_PATH = "result/dataset"  # Result dataset path
 FILE_RESULT_LABELING = "result_label"  # Name file result and probabilities
 FILE_RESULT_MATRIX = "result_matrix"  # Name file result matrix
-TRAINING = False  # Identified if it is traing or testing
+TRAINING = True  # Identified if it is traing or testing
 base_dir = os.path.dirname(os.path.abspath(__file__))
 data_dir = os.path.abspath(os.path.join(base_dir, "../../..", DATA_MNIST_FASHION_PATH))
 result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
@@ -126,16 +126,15 @@ with torch.no_grad():
         prediction = probs.argmax(dim=-1).item()
         ground_truth.append(gt)
         output.append(prediction)
-        probs = probs.squeeze(0).tolist()
         sample = {
             "id": idx,
             "image": image,
             "ground_truth": gt,
             "output": prediction,
-            "probability": probs,
+            "probability": probs.squeeze(0).cpu(),
         }
         probabilities.append(
-            {"no": idx, "ground_truth": gt, "output": prediction, "probability": probs}
+            {"no": idx, "ground_truth": gt, "output": prediction, "probability": probs.squeeze(0).cpu().tolist()}
         )
         dataset_clip.append(sample)
         if prediction == gt:
