@@ -17,7 +17,7 @@ from typing import *
 from argparse import ArgumentParser
 from distribution import main_distribution
 
-# from graphs import main_graph
+from graphs import main_graph
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
@@ -66,7 +66,7 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
         transform=None,
     ):
         self.transform = transform
-        
+
         # Si existe cache, cargar directamente
         if os.path.exists(cache_file):
             with open(cache_file, "rb") as f:
@@ -221,37 +221,22 @@ def mnist_fashion_loader(data_result, batch_size_train, batch_size_test):
 # ==============================================
 # Modelo Neural
 # ==============================================
-class MNISTFashionModel(nn.Module):
-    def __init__(
-        self,
-        model_name="ViT-B-32",
-        pretrained="laion2b_s34b_b79k",
-        num_classes=10,
-        freeze_backbone=False,
-    ):
-        super().__init__()
-
-        self.clip_model, _, self.preprocess = open_clip.create_model_and_transforms(
-            model_name=model_name,
-            pretrained=pretrained,
-        )
-
-        if freeze_backbone:
-            for param in self.clip_model.parameters():
-                param.requires_grad = False
-
-        embedding_dim = self.clip_model.visual.output_dim
-
-        self.classifier = nn.Linear(
-            embedding_dim,
-            num_classes,
-        )
-
-    def forward(self, images):
-        features = self.clip_model.encode_image(images)
-        features = features / features.norm(dim=-1, keepdim=True)
-        logits = self.classifier(features)
-        return logits.softmax(dim=-1)
+class MNISTFashionNet(nn.Module):
+    def __init__(self):
+            super(MNISTFashionNet, self).__init__()
+            self.conv1 = nn.Conv2d(1, 32, kernel_size=5)
+            self.conv2 = nn.Conv2d(32, 64, kernel_size=5)
+            self.fc1 = nn.Linear(1024, 1024)
+            self.fc2 = nn.Linear(1024, 10)
+    
+    def forward(self, x):
+        x = F.max_pool2d(self.conv1(x), 2)
+        x = F.max_pool2d(self.conv2(x), 2)
+        x = x.view(-1, 1024)
+        x = F.relu(self.fc1(x))
+        x = F.dropout(x, p=0.5, training=self.training)
+        x = self.fc2(x)
+        return F.softmax(x, dim=1)
 
 
 # ==============================================
@@ -262,7 +247,7 @@ class MNISTFashionLogic(nn.Module):
         super(MNISTFashionLogic, self).__init__()
 
         # MNIST Digit Recognition Network
-        self.mnist_one_net = MNISTFashionModel()
+        self.mnist_one_net = MNISTFashionNet()
 
         # Scallop Context
         self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
@@ -310,6 +295,9 @@ class MNISTFashionLogic(nn.Module):
 
         # Then execute the reasoning module; the result is a size 19 tensor
         return (
+            # a_distrs.detach(),
+            # b_distrs.detach(),
+            # c_distrs.detach(),
             a_distrs,
             b_distrs,
             c_distrs,
@@ -464,6 +452,24 @@ def aal_loss(output, ground_truth, alpha=31):
 
     return loss / batch_size
 
+def con_loss(output, target, clip1, clip2, clip3, pred1, pred2, pred3):
+    loss = torch.tensor(0.0, device=output.device)
+    lamb = torch.tensor(0.8, device=output.device)
+
+    loss_label = nn.BCELoss()
+    loss_label = loss_label(output, target)
+    loss_concep =torch.tensor(0.0, device=clip1.device)
+
+    loss1 = -(clip1 * torch.log(pred1 + 1e-8)).sum(dim=1).mean()
+    loss2 = -(clip2 * torch.log(pred2 + 1e-8)).sum(dim=1).mean()
+    loss3 = -(clip3 * torch.log(pred3 + 1e-8)).sum(dim=1).mean()
+
+    # print(f"loss1 -> {loss1}")
+
+    loss_concep = loss1 + loss2 + loss3
+    loss = lamb*loss_concep+(1 - lamb)*loss_label
+    return loss
+
 
 # ==============================================
 # Confusion Matrix
@@ -507,7 +513,7 @@ class Trainer:
         elif loss == "bce":
             self.loss = bce_loss
         elif loss == "ll":
-            self.loss = nn.BCELoss()
+            self.loss = con_loss
         elif loss == "aal":
             self.loss = aal_loss
         else:
@@ -522,24 +528,29 @@ class Trainer:
         pc1, pc2, pc3 = [], [], []
         g1, g2, g3 = [], [], []
         y, p, pb = [], [], []
-        for images, digits, labels in iter:
+        for images, probs, digits, labels in iter:
             a_imgs, b_imgs, c_imgs = images
+            a_prob, b_prob, c_prob = probs
+            a_prob = a_prob.to(device)
+            b_prob = b_prob.to(device)
+            c_prob = c_prob.to(device)
             a_digit, b_digit, c_digit = digits
             a_imgs = a_imgs.to(device)
             b_imgs = b_imgs.to(device)
             c_imgs = c_imgs.to(device)
             images = (a_imgs, b_imgs, c_imgs)
             sum_3, target = labels
+            target = target.to(device)
             self.optimizer.zero_grad()
             a_distrs, b_distrs, c_distrs, output = self.network(images)
-            output = output.cpu()
+            # output = output.cpu()
             g1.extend(a_digit.tolist())
             g2.extend(b_digit.tolist())
             g3.extend(c_digit.tolist())
             t_pc1, t_c1 = a_distrs.max(dim=1)
             t_pc2, t_c2 = b_distrs.max(dim=1)
             t_pc3, t_c3 = c_distrs.max(dim=1)
-            t_pb, t_p = output.max(dim=1)
+            t_pb, t_p = output.cpu().max(dim=1)
             t_p = (t_pb >= 0.5).int()
             c1.extend(t_c1.tolist())
             c2.extend(t_c2.tolist())
@@ -550,9 +561,9 @@ class Trainer:
             p.extend(t_p.tolist())
             pb.extend(t_pb.tolist())
             y.extend(target.tolist())
-            loss = self.loss(output.squeeze(1), target.float())
+            loss = self.loss(output.squeeze(1), target.float(), a_prob, b_prob, c_prob, a_distrs, b_distrs, c_distrs)
             pred = t_p
-            correct += pred.eq(target.view_as(pred)).sum().item()
+            correct += pred.eq(target.cpu().view_as(pred)).sum().item()
             perc = 100.0 * correct / num_items
             loss.backward()
             self.optimizer.step()
@@ -602,23 +613,28 @@ class Trainer:
         y, p, pb = [], [], []
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
-            for images, digits, labels in iter:
+            for images, probs, digits, labels in iter:
                 a_imgs, b_imgs, c_imgs = images
+                a_prob, b_prob, c_prob = probs
+                a_prob = a_prob.to(device)
+                b_prob = b_prob.to(device)
+                c_prob = c_prob.to(device)
                 a_digit, b_digit, c_digit = digits
                 a_imgs = a_imgs.to(device)
                 b_imgs = b_imgs.to(device)
                 c_imgs = c_imgs.to(device)
                 images = (a_imgs, b_imgs, c_imgs)
                 sum_3, target = labels
+                target = target.to(device)
                 a_distrs, b_distrs, c_distrs, output = self.network(images)
-                output = output.cpu()
+                # output = output.cpu()
                 g1.extend(a_digit.tolist())
                 g2.extend(b_digit.tolist())
                 g3.extend(c_digit.tolist())
                 t_pc1, t_c1 = a_distrs.max(dim=1)
                 t_pc2, t_c2 = b_distrs.max(dim=1)
                 t_pc3, t_c3 = c_distrs.max(dim=1)
-                t_pb, t_p = output.max(dim=1)
+                t_pb, t_p = output.cpu().max(dim=1)
                 t_p = (t_pb >= 0.5).int()
                 c1.extend(t_c1.tolist())
                 c2.extend(t_c2.tolist())
@@ -629,9 +645,9 @@ class Trainer:
                 p.extend(t_p.tolist())
                 pb.extend(t_pb.tolist())
                 y.extend(target.tolist())
-                test_loss = self.loss(output.squeeze(1), target.float())
+                test_loss = self.loss(output.squeeze(1), target.float(), a_prob, b_prob, c_prob, a_distrs, b_distrs, c_distrs)
                 pred = t_p
-                correct += pred.eq(target.view_as(pred)).sum().item()
+                correct += pred.eq(target.cpu().view_as(pred)).sum().item()
                 perc = 100.0 * correct / num_items
                 iter.set_description(
                     f"[Test Epoch {epoch}] Total loss: {test_loss.item():.4f}, Accuracy: {correct}/{num_items} ({perc:.2f}%)"
@@ -687,7 +703,7 @@ if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
     parser.add_argument("--n-epochs", type=int, default=10)
-    parser.add_argument("--batch-size-train", type=int, default=32)
+    parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
     parser.add_argument("--loss-fn", type=str, default="ll")
@@ -719,10 +735,10 @@ if __name__ == "__main__":
         data_dir, batch_size_train, batch_size_test
     )
     # Create trainer and train
-    # trainer = Trainer(
-    #     result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
-    # )
-    # trainer.train(n_epochs)
-    # main_graph("train", DATA_RESULT_PATH)
-    # main_graph("test", DATA_RESULT_PATH)
-    main_distribution(train_loader, test_loader)
+    trainer = Trainer(
+        result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
+    )
+    trainer.train(n_epochs)
+    main_graph("train", DATA_RESULT_PATH)
+    main_graph("test", DATA_RESULT_PATH)
+    # main_distribution(train_loader, test_loader)
