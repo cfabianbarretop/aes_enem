@@ -249,60 +249,41 @@ class MNISTFashionLogic(nn.Module):
         # MNIST Digit Recognition Network
         self.mnist_one_net = MNISTFashionNet()
 
-        # Scallop Context
-        self.scl_ctx = scallopy.ScallopContext(provenance=provenance, k=k)
-        self.scl_ctx.add_relation("digit_1", int, input_mapping=list(range(10)))
-        self.scl_ctx.add_relation("digit_2", int, input_mapping=list(range(10)))
-        self.scl_ctx.add_relation("digit_3", int, input_mapping=list(range(10)))
-        self.scl_ctx.add_relation("upper", int)
-        self.scl_ctx.add_relation("lower", int)
-        self.scl_ctx.add_relation("shoe", int)
-
-        self.scl_ctx.add_facts(
-            "upper",
-            [
-                (torch.tensor(1.0, device=device), (0,)),
-                (torch.tensor(1.0, device=device), (2,)),
-                (torch.tensor(1.0, device=device), (4,)),
-                (torch.tensor(1.0, device=device), (6,)),
-            ],
-        )
-        self.scl_ctx.add_facts("lower", [(torch.tensor(1.0, device=device), (1,))])
-        self.scl_ctx.add_facts(
-            "shoe",
-            [
-                (torch.tensor(1.0, device=device), (5,)),
-                (torch.tensor(1.0, device=device), (7,)),
-                (torch.tensor(1.0, device=device), (9,)),
-            ],
-        )
-
-        self.scl_ctx.add_rule("has_upper(X) :- digit_1(X), upper(X)")
-        self.scl_ctx.add_rule("has_lower(X) :- digit_2(X), lower(X)")
-        self.scl_ctx.add_rule("has_shoe(X) :- digit_3(X), shoe(X)")
-
-        self.scl_ctx.add_rule("valid() :- has_upper(U), has_lower(L), has_shoe(S)")
-
-        self.valid = self.scl_ctx.forward_function("valid", output_mapping=[()])
-
     def forward(self, x: Tuple[torch.Tensor, torch.Tensor, torch.Tensor]):
         a_imgs, b_imgs, c_imgs = x
 
-        # First recognize the two digits
-        a_distrs = self.mnist_one_net(a_imgs)  # Tensor 64 x 10
-        b_distrs = self.mnist_one_net(b_imgs)  # Tensor 64 x 10
-        c_distrs = self.mnist_one_net(c_imgs)  # Tensor 64 x 10
+        # (batch, 10)
+        a_probs = self.mnist_one_net(a_imgs)
+        b_probs = self.mnist_one_net(b_imgs)
+        c_probs = self.mnist_one_net(c_imgs)
 
-        # Then execute the reasoning module; the result is a size 19 tensor
+        # Probabilidad de que la primera imagen sea Upper
+        p_upper = (
+            a_probs[:, 0] +
+            a_probs[:, 2] +
+            a_probs[:, 4] +
+            a_probs[:, 6]
+        )
+
+        # Probabilidad de que la segunda imagen sea Lower
+        p_lower = b_probs[:, 1]
+
+        # Probabilidad de que la tercera imagen sea Shoe
+        p_shoe = (
+            c_probs[:, 5] +
+            c_probs[:, 7] +
+            c_probs[:, 9]
+        )
+
+        # Probabilidad de que el outfit sea válido
+        p_valid = p_upper * p_lower * p_shoe
+
         return (
-            # a_distrs.detach(),
-            # b_distrs.detach(),
-            # c_distrs.detach(),
-            a_distrs,
-            b_distrs,
-            c_distrs,
-            self.valid(digit_1=a_distrs, digit_2=b_distrs, digit_3=c_distrs),
-        )  # Tensor 64 x 19
+            a_probs,
+            b_probs,
+            c_probs,
+            p_valid.unsqueeze(1)
+        )
 
 
 # ==============================================
@@ -454,20 +435,34 @@ def aal_loss(output, ground_truth, alpha=31):
 
 def con_loss(output, target, clip1, clip2, clip3, pred1, pred2, pred3):
     loss = torch.tensor(0.0, device=output.device)
-    lamb = torch.tensor(0.8, device=output.device)
-
-    loss_label = nn.BCELoss()
-    loss_label = loss_label(output, target)
     loss_concep =torch.tensor(0.0, device=clip1.device)
+    entropy =torch.tensor(0.0, device=clip1.device)
+
+    # Experimento 1
+    # Experimento 2
+    lamb = torch.tensor(0.3, device=output.device)
+    # Experimento 3
+    # lambda_label   = torch.tensor(1.0, device=output.device)
+    # lambda_concept = torch.tensor(0.1, device=output.device)
+    # lambda_entropy = torch.tensor(0.001, device=output.device)
+
+    loss_label = nn.BCELoss()(output, target)
+    
 
     loss1 = -(clip1 * torch.log(pred1 + 1e-8)).sum(dim=1).mean()
     loss2 = -(clip2 * torch.log(pred2 + 1e-8)).sum(dim=1).mean()
     loss3 = -(clip3 * torch.log(pred3 + 1e-8)).sum(dim=1).mean()
 
-    # print(f"loss1 -> {loss1}")
+    entropy1 = -(pred1 * torch.log(pred1 + 1e-8)).sum(dim=1).mean()
+    entropy2 = -(pred2 * torch.log(pred2 + 1e-8)).sum(dim=1).mean()
+    entropy3 = -(pred3 * torch.log(pred3 + 1e-8)).sum(dim=1).mean()
 
     loss_concep = loss1 + loss2 + loss3
-    loss = lamb*loss_concep+(1 - lamb)*loss_label
+    entropy = entropy1 + entropy2 + entropy3
+
+    loss = lamb*(loss_concep) + (1 -lamb)*loss_label
+    # loss = lamb*(loss_concep + entropy) + (1 -lamb)*loss_label
+    # loss = (lambda_concept*loss_concep + lambda_entropy*entropy + lambda_label*loss_label)
     return loss
 
 
@@ -543,7 +538,8 @@ class Trainer:
             target = target.to(device)
             self.optimizer.zero_grad()
             a_distrs, b_distrs, c_distrs, output = self.network(images)
-            # output = output.cpu()
+            # print("Output ---> ", output.shape)
+            # print("Target ---> ", target.shape)
             g1.extend(a_digit.tolist())
             g2.extend(b_digit.tolist())
             g3.extend(c_digit.tolist())
@@ -702,7 +698,7 @@ class Trainer:
 if __name__ == "__main__":
     # Argument parser
     parser = ArgumentParser("mnist_fashion")
-    parser.add_argument("--n-epochs", type=int, default=10)
+    parser.add_argument("--n-epochs", type=int, default=20)
     parser.add_argument("--batch-size-train", type=int, default=64)
     parser.add_argument("--batch-size-test", type=int, default=64)
     parser.add_argument("--learning-rate", type=float, default=0.0001)
@@ -731,14 +727,14 @@ if __name__ == "__main__":
     )
     result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
     print("PATH data -> ", data_dir)
-    train_loader, test_loader = mnist_fashion_loader(
-        data_dir, batch_size_train, batch_size_test
-    )
+    # train_loader, test_loader = mnist_fashion_loader(
+    #     data_dir, batch_size_train, batch_size_test
+    # )
     # Create trainer and train
-    trainer = Trainer(
-        result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
-    )
-    trainer.train(n_epochs)
+    # trainer = Trainer(
+    #     result_dir, train_loader, test_loader, learning_rate, loss_fn, k, provenance
+    # )
+    # trainer.train(n_epochs)
     main_graph("train", DATA_RESULT_PATH)
     main_graph("test", DATA_RESULT_PATH)
     # main_distribution(train_loader, test_loader)
