@@ -1,6 +1,6 @@
 tmp/
 data/
-leaf/api_key.json
+api_key.json
 __pycache__/
 results/leaf_hf_dataset
 results/leaf_h5py_dataset_test.h5

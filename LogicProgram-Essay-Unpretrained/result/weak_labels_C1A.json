@@ -1,0 +1,2924 @@
+[
+    {
+        "id": "103.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Infelizmente muitos usuários anônimos, julgam-se sábios, o suficiente ao ponto de opinar, sobre a vida de algo ou alguém,que na maioria dos casos, não se tem argumentos válidos ou concretos, sobre a situação que se ocorre ou que já ocorreu.",
+                        "tipo": "período com articulação sintática problemática",
+                        "explicacao": "O período acumula orações e complementos de modo pouco organizado, com relação imprecisa entre as partes, o que prejudica a clareza da construção."
+                    },
+                    {
+                        "trecho": "Logo,os famosos,artistas de ruas,ou até mesmo pessoas simples que ganham fama por memes,nas quais que muitas das vezes contém verdades das quais jornais,sites que informam as populações, não tem certeza do que ocorreu e mesmo assim , querem ganhar fama em cima de assuntos trágicos ou até mesmo mal interpretado,seja, a uma grande população,como São Paulo,ou de até vilas ou aldeias.",
+                        "tipo": "período truncado e excessivamente justaposto",
+                        "explicacao": "Há encadeamento pouco controlado de segmentos, com mudanças de referente e relações sintáticas confusas, dificultando a compreensão do período como um todo."
+                    },
+                    {
+                        "trecho": "Nem sempre os tais influenciadores digitais ou celebridades famosas novas ou antigas, se tem total noção ou senso,ao ponto de defender ou capacidade de fala,por si só.",
+                        "tipo": "construção sintática incompleta ou mal articulada",
+                        "explicacao": "A sequência 'ao ponto de defender ou capacidade de fala' apresenta ausência ou inadequação de elementos necessários, deixando a construção pouco clara."
+                    },
+                    {
+                        "trecho": "E conforme não se tem projetos,palestras, que procuram explicar como faz e acontece,cada ano que se passa mais alguém é cancelado e não entende o motivo,mesmo que seja, muito maior os casos de tal ídolo, estar errado,talvez á pessoa em si, nunca teve uma oportunidade de que alguém á explicasse de fato oque aconteceu ou acontece, a não ser que a pessoa tenha tal experiencia de vida,ou foi pesquisar sobre oque ocorreu.para que ai sim,tenha um bom argumento,e também,não influenciar mal.",
+                        "tipo": "período longo com justaposição inadequada e quebra indevida",
+                        "explicacao": "O trecho reúne muitas orações sem articulação sintática suficiente e apresenta separação inadequada antes de 'para que', o que compromete a fluidez e a organização do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "Infelizmente muitos usuários anônimos, julgam-se sábios, o suficiente ao ponto de opinar, sobre a vida de algo ou alguém,que",
+                        "tipo": "pontuação e espaçamento",
+                        "explicacao": "Há vírgulas inadequadas separando sujeito e verbo e outros termos ligados, além de ausência de espaço após vírgula em 'alguém,que'."
+                    },
+                    {
+                        "trecho": "Muitos internautas deixam se levar, por fake news, histórias sem começo,ou fim, sempre faltando algo,ao ponto de terem zero compreendimento",
+                        "tipo": "emprego pronominal, pontuação, espaçamento e escolha vocabular",
+                        "explicacao": "Em registro formal, espera-se 'deixam-se levar'; há vírgulas e espaços inadequados, além do uso de 'compreendimento', forma vocabular inadequada ao contexto."
+                    },
+                    {
+                        "trecho": "Logo,os famosos,artistas de ruas,ou até mesmo pessoas simples que ganham fama por memes,nas quais que muitas das vezes contém verdades",
+                        "tipo": "pontuação, espaçamento, concordância e emprego pronominal",
+                        "explicacao": "Há ausência de espaço após vírgulas, uso inadequado de 'nas quais que' e problema de concordância em 'muitas das vezes contém'."
+                    },
+                    {
+                        "trecho": "jornais,sites que informam as populações, não tem certeza",
+                        "tipo": "acentuação/concordância e espaçamento",
+                        "explicacao": "Falta espaço após a vírgula e há desvio de concordância/acentuação em 'não tem', que deveria concordar com o sujeito plural."
+                    },
+                    {
+                        "trecho": "assuntos trágicos ou até mesmo mal interpretado",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O adjetivo/particípio deveria concordar com 'assuntos', resultando em 'mal interpretados'."
+                    },
+                    {
+                        "trecho": "talvez á pessoa em si, nunca teve uma oportunidade de que alguém á explicasse de fato oque aconteceu",
+                        "tipo": "acentuação, crase e grafia",
+                        "explicacao": "Há uso indevido de 'á' e grafia inadequada de 'oque', que deve ser separado em 'o que'."
+                    },
+                    {
+                        "trecho": "experiencia de vida,ou foi pesquisar sobre oque ocorreu.para que ai sim",
+                        "tipo": "acentuação, grafia, pontuação e espaçamento",
+                        "explicacao": "Faltam acentos em 'experiência' e 'aí', há grafia inadequada de 'oque', ausência de espaço após ponto e vírgula/espaçamento inadequado."
+                    },
+                    {
+                        "trecho": "aqueles quais não vão queixar-se e apenas vai atormentar outros internautas",
+                        "tipo": "concordância verbal e regência/emprego pronominal",
+                        "explicacao": "Há problema de concordância em 'aqueles... vai atormentar' e construção pronominal pouco adequada em 'aqueles quais' no contexto."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "113.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "O ser humano como ser pensante e racional é dotado do pensamento crítico, a internet se transformou em um segundo universo totalmente paralelo ao nosso, faz com que hábitos culturais já existentes sejam transportados para esse mundo virtual e alguns são até reinventados, como é o caso do linchamento que hoje se assemelha a cultura do cancelamento nas redes sociais.",
+                        "tipo": "justaposição inadequada de orações/período excessivamente encadeado",
+                        "explicacao": "Há várias orações independentes ou pouco articuladas unidas por vírgulas, o que compromete a organização do período e a fluidez da leitura."
+                    },
+                    {
+                        "trecho": "Em primeiro plano, por muito tempo as pessoas foram linchadas por praticarem atos que destoavam dos demais membros da sociedade, como por exemplo as mulheres acusadas de serem bruxas, apenas porque tinham conhecimento sobre algumas ervas medicinais, eram queimadas em fogueiras, agredidas em praça pública.",
+                        "tipo": "construção sintática pouco organizada",
+                        "explicacao": "O período acumula informações e muda o foco sintático de forma pouco clara, passando de 'as pessoas foram linchadas' para o exemplo das mulheres sem articulação adequada."
+                    },
+                    {
+                        "trecho": "Em segundo lugar, atualmente esta prática é realizada pelo \"Tribunal da Internet\" que minuciosamente se atenta a temas como violência contra a mulher, racismo, meio ambiente, política e outros temas, as ações humanas principalmente de autoridades ou celebridades que possuem muitos seguidores nas redes sociais podem desagradar uma certa parcela da população e gerar críticas que dado o tamanho da repercussão custa a essas pessoas o próprio emprego, desgasta a imagem, e em alguns casos rendem até ações judiciais.",
+                        "tipo": "justaposição inadequada e excesso de encadeamento",
+                        "explicacao": "O período reúne muitas orações e ideias sem segmentação adequada, especialmente na passagem de 'outros temas' para 'as ações humanas', prejudicando a clareza sintática."
+                    },
+                    {
+                        "trecho": "cabe às redes sociais determinarem normas de convívio e aturem com mais rigidez e garantir a fiscalização dos conflitos",
+                        "tipo": "coordenação/paralelismo sintático inadequado",
+                        "explicacao": "A sequência coordenada apresenta formas verbais incompatíveis entre si, o que prejudica a construção da oração."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "O que é o essa cultura e quais são seus motivos e consequências?",
+                        "tipo": "desvio gramatical/emprego indevido de artigo",
+                        "explicacao": "Há uso inadequado e duplicado de determinante em 'o essa cultura'."
+                    },
+                    {
+                        "trecho": "se assemelha a cultura do cancelamento",
+                        "tipo": "crase",
+                        "explicacao": "O verbo 'assemelhar-se' exige complemento introduzido por preposição, e o substantivo feminino admite artigo: o esperado seria 'assemelha-se à cultura'."
+                    },
+                    {
+                        "trecho": "Esse senso quase que comum, se enraizou na sociedade",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula separa indevidamente o sujeito do predicado."
+                    },
+                    {
+                        "trecho": "linchamentopara para o ambito das redes sociais",
+                        "tipo": "ortografia/acentuação",
+                        "explicacao": "Há junção indevida de palavras e ausência de acento em 'âmbito'."
+                    },
+                    {
+                        "trecho": "gerar críticas que dado o tamanho da repercussão custa a essas pessoas o próprio emprego",
+                        "tipo": "concordância verbal/pontuação",
+                        "explicacao": "Há problema de concordância em 'críticas que ... custa' e ausência de isolamento adequado da expressão intercalada 'dado o tamanho da repercussão'."
+                    },
+                    {
+                        "trecho": "práticas vistas como inadequadas na redes",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há discordância entre 'na' e 'redes'; o esperado seria 'nas redes'."
+                    },
+                    {
+                        "trecho": "e aturem com mais rigidez",
+                        "tipo": "escolha vocabular/forma verbal inadequada",
+                        "explicacao": "A forma 'aturem' não se ajusta ao sentido pretendido no contexto; provavelmente seria 'atuem' ou construção equivalente."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "33.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 5,
+                "evidencias": [
+                    {
+                        "trecho": "Tal fato ocorre por causa da intolerância presente na sociedade virtual, que produz o desrespeito ao próximo, impedindo o diálogo e realizando um julgamento sem direito à defesa.",
+                        "tipo": "período bem articulado",
+                        "explicacao": "O período apresenta oração principal, oração subordinada adjetiva e formas reduzidas articuladas de modo claro, sem truncamento."
+                    },
+                    {
+                        "trecho": "Contrariamente a tal desejo, os praticantes da cultura do cancelamento desrespeitam os demais usuários ao impedir o diálogo, julgando-os sem direito à defesa e levando-os à exclusão dos grupos sociais virtuais.",
+                        "tipo": "boa organização sintática",
+                        "explicacao": "As relações entre as orações e os termos do período são claras, com encadeamento adequado das ações atribuídas ao sujeito."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "direito de liberdade de opinião e de expressão garantidos pelo artigo 19º",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há inadequação de concordância em “garantidos”, pois o termo se relaciona de modo problemático com “direito de liberdade” ou com os nomes femininos coordenados."
+                    },
+                    {
+                        "trecho": "motiva muitos internautas a não se expressem",
+                        "tipo": "regência/forma verbal",
+                        "explicacao": "Após a construção “motiva ... a”, seria esperado o infinitivo, como “a não se expressarem” ou “a não se expressar”, e não a forma no subjuntivo “expressem”."
+                    },
+                    {
+                        "trecho": "Para que essa prática venha cessar",
+                        "tipo": "regência/locução verbal",
+                        "explicacao": "A construção formal esperada é “venha a cessar”; há ausência da preposição exigida na locução."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "desvios": [
+                0,
+                0,
+                0,
+                1,
+                0
+            ]
+        }
+    },
+    {
+        "id": "39.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "A internet no dias de hoje ganhou muita influência das pessoas, por ser um meio de comunicação rápido e eficaz, a maioria da população tem e usa a internet.",
+                        "tipo": "justaposição inadequada de orações",
+                        "explicacao": "O período reúne ideias que deveriam estar mais bem articuladas; a relação entre a influência da internet e o fato de a maioria da população usá-la fica sintaticamente pouco clara."
+                    },
+                    {
+                        "trecho": "Ou seja,se percebe que há várias vantagens em ter acesso à internet, mas infelizmente por ter toda essa rapidez de informação, fez com que as pessoas soubessem mais sobre a vida das outras, começando a expor suas opiniões, e desencadeando assim a cultura do cancelamento.",
+                        "tipo": "construção sintática pouco clara",
+                        "explicacao": "Há acúmulo de orações e ausência de um referente sintático claro para a forma verbal 'fez', o que prejudica a organização do período."
+                    },
+                    {
+                        "trecho": "Cancelar se tornou uma forma de oposição a algo ou alguém, as pessoas começaram a cancelar as outras por suas más ações sobre a sociedade, isso para elas, é uma como forma de lição para quem praticou esse determinado ato poder refletir e mudar a sua conduta.",
+                        "tipo": "justaposição de orações independentes",
+                        "explicacao": "Orações independentes são encadeadas apenas por vírgulas, sem articulação sintática adequada, o que reduz a fluidez do período."
+                    },
+                    {
+                        "trecho": "isso para elas, é uma como forma de lição",
+                        "tipo": "excesso/duplicação de elementos sintáticos",
+                        "explicacao": "A construção apresenta acúmulo inadequado de termos em 'é uma como forma', comprometendo a estrutura da oração."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "A internet no dias de hoje",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há inadequação em 'no dias', pois o esperado seria 'nos dias'."
+                    },
+                    {
+                        "trecho": "internet.Ou seja,se percebe",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "Há ausência de espaço após o ponto final e após a vírgula, em desacordo com as convenções da escrita."
+                    },
+                    {
+                        "trecho": "ganhou muita influência das pessoas",
+                        "tipo": "escolha vocabular/regência",
+                        "explicacao": "A expressão é inadequada ao contexto; a ideia esperada seria algo como exercer influência sobre as pessoas ou ganhar influência entre elas."
+                    },
+                    {
+                        "trecho": "as pessoas começaram a cancelar as outras por suas más ações sobre a sociedade",
+                        "tipo": "escolha vocabular/regência",
+                        "explicacao": "O uso de 'sobre a sociedade' é inadequado nesse contexto; seria mais adequado empregar construção como 'na sociedade' ou 'contra a sociedade', conforme o sentido pretendido."
+                    },
+                    {
+                        "trecho": "ansiedade e até a depressão.\".",
+                        "tipo": "pontuação",
+                        "explicacao": "Há combinação inadequada de ponto final dentro e fora das aspas."
+                    },
+                    {
+                        "trecho": "afinal todos somos seres humanos , podendo errar",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "Há espaço indevido antes da vírgula."
+                    },
+                    {
+                        "trecho": "cancelar alguém por qualquer motivo, tornou-se algo legal",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula separa indevidamente o sujeito oracional do predicado."
+                    },
+                    {
+                        "trecho": "fez as pessoas esquecerem do verdadeiro propósito",
+                        "tipo": "regência verbal",
+                        "explicacao": "Na modalidade formal, com o verbo 'esquecer' não pronominal, recomenda-se 'esquecer o verdadeiro propósito'; com pronome, 'esquecer-se do verdadeiro propósito'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "41.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Cabe ao Poder Legislativo dos países que vivem nessa realidade, criar e reformular leis de crimes cibernéticos, punições como: pagamento de tratamento psicológico à vítima do cancelamento; além de palestras em escolas públicas e privadas, para que haja consciência de aceitação de pensamentos divergentes.",
+                        "tipo": "construção sintática pouco fluida",
+                        "explicacao": "O período apresenta articulação pouco clara entre as ações atribuídas ao Poder Legislativo e os elementos introduzidos por 'punições como' e 'além de palestras', o que prejudica parcialmente a organização sintática."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "uma vez que, as pessoas são vítimas de ódio por erros ou visões diferentes.",
+                        "tipo": "pontuação",
+                        "explicacao": "Há uso indevido de vírgula após a locução conjuntiva 'uma vez que', separando-a da oração que introduz."
+                    },
+                    {
+                        "trecho": "não só a intolerância, mas as doenças mentais estão diretamente ligados a essa temática.",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O adjetivo 'ligados' deveria concordar com os núcleos femininos 'intolerância' e 'doenças mentais', resultando em 'ligadas'."
+                    },
+                    {
+                        "trecho": "o aumento de doenças como ansiedade e depressão estão relacionadas ao uso de redes sociais.",
+                        "tipo": "concordância verbal/nominal",
+                        "explicacao": "O núcleo do sujeito é 'aumento', no singular, o que exigiria construção como 'o aumento ... está relacionado'."
+                    },
+                    {
+                        "trecho": "Cabe ao Poder Legislativo dos países que vivem nessa realidade, criar e reformular leis de crimes cibernéticos",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula separa indevidamente a estrutura 'Cabe ao Poder Legislativo' do infinitivo que completa a construção."
+                    },
+                    {
+                        "trecho": "criar e reformular leis de crimes cibernéticos, punições como: pagamento de tratamento psicológico à vítima do cancelamento; além de palestras",
+                        "tipo": "pontuação",
+                        "explicacao": "O uso de dois-pontos e ponto e vírgula nesse trecho é inadequado, gerando enumeração pouco regular na modalidade escrita formal."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "66.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "porém sabe-se que no meio virtual é impossível acontecer um debate saudável e a criação de fakes para atacar, fazer discursos de ódio contra as pessoas só aumentam",
+                        "tipo": "organização sintática pouco clara",
+                        "explicacao": "O período articula muitas ideias por coordenação, com relação pouco clara entre as orações, prejudicando a fluidez e a compreensão precisa."
+                    },
+                    {
+                        "trecho": "pois uma simples fala pode gerar uma bola de neve , por outro lado, alguns perdem a total razão quando praticam atitudes discriminatórias, injustas",
+                        "tipo": "justaposição inadequada de orações",
+                        "explicacao": "Há união de ideias independentes no mesmo período sem articulação sintática adequada, o que torna a construção menos fluida."
+                    },
+                    {
+                        "trecho": "Portanto, tais medidas seriam suficientes para combater a cultura do cancelamento na sociedade contemporânea, os empresários dessas redes sociais devem fiscalizar de maneira reforçada páginas que podem ser fakes, por meio de detectores, deletando automaticamente os discursos de ódio e criar campanhas onlines para conscientização",
+                        "tipo": "período excessivamente encadeado",
+                        "explicacao": "O período reúne várias ações e orações sem segmentação adequada, gerando encadeamento pouco organizado e comprometendo a clareza."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "está sendo criados inúmeros fakes",
+                        "tipo": "concordância verbal",
+                        "explicacao": "A locução verbal deveria concordar com o sujeito plural: “estão sendo criados inúmeros fakes”."
+                    },
+                    {
+                        "trecho": "o que torna merecedora do cancelamento",
+                        "tipo": "concordância nominal/referência",
+                        "explicacao": "O termo “merecedora” não concorda claramente com o referente anterior, que parece ser plural ou masculino, causando inadequação gramatical."
+                    },
+                    {
+                        "trecho": "campanhas onlines",
+                        "tipo": "ortografia/flexão vocabular",
+                        "explicacao": "Na modalidade formal, a forma adequada seria “campanhas online” ou “campanhas on-line”, sem a flexão “onlines”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "72.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "A prática que consiste em punir atitudes reprováveis de marcas ou pessoas por meio de críticas e deixando de segui-las é crescente.",
+                        "tipo": "articulação sintática pouco paralela",
+                        "explicacao": "A coordenação entre “por meio de críticas” e “deixando de segui-las” torna a construção menos fluida, embora o sentido geral permaneça compreensível."
+                    },
+                    {
+                        "trecho": "Publicações ou atos que desagradam os seguidores podem facilmente gerar a revolta e consequente anulação por meio desses .",
+                        "tipo": "construção com referência sintática pouco clara",
+                        "explicacao": "O segmento “por meio desses” fica pouco claro e prejudica a articulação do período, pois o referente não é explicitado de modo adequado."
+                    },
+                    {
+                        "trecho": "Ademais, as causas que geram maior revolta do público em sua maioria não são por motivos banais, mas causas significantes como as ambientais, políticas ou racistas por exemplo.",
+                        "tipo": "organização sintática irregular",
+                        "explicacao": "Há uma construção pouco precisa entre “as causas” e “não são por motivos banais, mas causas...”, o que gera certa quebra na organização do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "No ápice da utilização das redes sociais a cultura do cancelamento ganha destaque.",
+                        "tipo": "pontuação",
+                        "explicacao": "Há ausência de vírgula após o adjunto adverbial deslocado “No ápice da utilização das redes sociais”."
+                    },
+                    {
+                        "trecho": "Sendo assim é fundamental que figuras públicas busquem manter um padrão comportamental responsável diante da sociedade",
+                        "tipo": "pontuação",
+                        "explicacao": "Há ausência de vírgula após a expressão conclusiva “Sendo assim”."
+                    },
+                    {
+                        "trecho": "devido a perda de credibilidade diante do mercado.",
+                        "tipo": "crase",
+                        "explicacao": "O correto, na norma-padrão, seria “devido à perda”, pois há a preposição “a” exigida por “devido” e o artigo definido feminino antes de “perda”."
+                    },
+                    {
+                        "trecho": "as ambientais, políticas ou racistas por exemplo.",
+                        "tipo": "pontuação",
+                        "explicacao": "A expressão intercalada “por exemplo” deveria ser isolada por vírgula."
+                    },
+                    {
+                        "trecho": "As próprias plataformas digitais como youtube, instagram e facebook podem atuar",
+                        "tipo": "emprego de letras maiúsculas e minúsculas",
+                        "explicacao": "Nomes próprios de plataformas digitais devem ser grafados com inicial maiúscula: “YouTube”, “Instagram” e “Facebook”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "74.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "O homo sapiens sempre foi incitado a praticar o linchamento, classificando ações, condutas morais do outro- como o caso da mulher adúltera citado na Bíblia .",
+                        "tipo": "organização sintática prejudicada",
+                        "explicacao": "A sequência com gerúndio e o trecho iniciado por “como o caso” ficam mal articulados, gerando construção pouco clara e parcialmente truncada."
+                    },
+                    {
+                        "trecho": "Outrossim é a má influência que a mídia desempenha no sistema do cancelamento .",
+                        "tipo": "construção sintática pouco fluida",
+                        "explicacao": "A formulação introdutória do período é compreensível, mas pouco natural e mal articulada como tópico do parágrafo."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "cujo o objetivo",
+                        "tipo": "emprego de pronome relativo",
+                        "explicacao": "O uso de “cujo” não admite artigo em seguida; a forma esperada seria “cujo objetivo”."
+                    },
+                    {
+                        "trecho": "favoráveis a própria imagem",
+                        "tipo": "crase",
+                        "explicacao": "Há ausência de crase antes de expressão feminina determinada: “favoráveis à própria imagem”."
+                    },
+                    {
+                        "trecho": "ação que expõe pessoas e marcas ao linchamento e instauram uma postura totalmente desrespeitosa",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo “instauram” deveria concordar com “ação”, núcleo retomado pelo relativo: “instaura”."
+                    },
+                    {
+                        "trecho": "a sede de \"justiça pelas próprias mãos\" aliado ao desejo de restabelecer o equilíbrio social",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O particípio/adjetivo “aliado” deveria concordar com “sede”: “aliada”."
+                    },
+                    {
+                        "trecho": "reprimem-o",
+                        "tipo": "emprego de pronome",
+                        "explicacao": "Após forma verbal terminada em nasal, a forma pronominal adequada seria “reprimem-no”."
+                    },
+                    {
+                        "trecho": "princípios que lhes convém",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo deveria concordar com “princípios”, no plural: “convêm”."
+                    },
+                    {
+                        "trecho": "medidas ardis",
+                        "tipo": "escolha vocabular",
+                        "explicacao": "A expressão é inadequada ao contexto formal pretendido; “ardis” designa artifícios ou estratagemas, não medidas eficazes ou adequadas."
+                    },
+                    {
+                        "trecho": "as versão apresentadas",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há discordância entre artigo, substantivo e particípio; o esperado seria “as versões apresentadas”."
+                    },
+                    {
+                        "trecho": "aliado à instituições educacionais",
+                        "tipo": "crase",
+                        "explicacao": "O uso de crase antes de substantivo plural sem artigo definido plural é inadequado; seria “aliado a instituições” ou “aliado às instituições”, conforme o sentido."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "86.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "A rede social é composta por pessoas ou organizações que se conecta por vários motivos, pra se conectar e interagir um com os outros, é um lugar de entretenimento, onde um vídeo, uma foto ou até mesmo frase, pode repercutir de forma positiva ou negativa, por ser um espaço onde as pessoas ganham voz por trás de um teclado.",
+                        "tipo": "justaposição inadequada de orações/período muito acumulado",
+                        "explicacao": "O período reúne muitas informações com articulação frágil entre as orações, gerando mudança pouco clara de foco entre definição de rede social, finalidade e efeitos das publicações."
+                    },
+                    {
+                        "trecho": "Surgiu recentemente um termo nas rede sociais como cancelamento , a qual o indivíduo é cancelado por um ato que a sociedade julga ser errado, alguém grava ou tira foto e publica e é compartilhado com várias pessoas .",
+                        "tipo": "construção sintática confusa e justaposição",
+                        "explicacao": "Há encadeamento inadequado de orações, com relação pouco clara entre 'termo', 'cancelamento' e 'indivíduo', além de união de ações sucessivas sem boa organização sintática."
+                    },
+                    {
+                        "trecho": "No entanto cancelar, desprezar alguém não é uma boa forma de corrigir quem errou, pois acaba errando também , essa nova cultura de cancelamento nas redes sociais revela o quanto a sociedade se encontra intolerante a falhas e distante de pensar no outro, de se colocar no lugar de quem errou.",
+                        "tipo": "justaposição de orações independentes",
+                        "explicacao": "O trecho une, por vírgula, duas construções independentes, prejudicando a organização do período e a fluidez da leitura."
+                    },
+                    {
+                        "trecho": "Sendo assim, este caso precisa de um olhar especial do Ministério da Educação e do Poder Público, faz-se necessário implementar campanhas, projetos, palestras com profissionais da área humana e educação em escola pública e privada com o objetivo de ensinar, e fazer refletir nas suas palavras, para que venha ter respeito e empatia com o outro em diversas situações.",
+                        "tipo": "período acumulativo com articulação sintática frágil",
+                        "explicacao": "O período combina muitas ações e finalidades, com encadeamento pouco preciso entre as partes, especialmente na transição entre a necessidade de olhar especial e a implementação de medidas."
+                    },
+                    {
+                        "trecho": "Verificar casos de agressões estabelecendo uma multa a fim de diminuir a cultura de cancelamento em rede social.",
+                        "tipo": "oração/frase com estrutura incompleta",
+                        "explicacao": "A construção aparece isolada em forma infinitiva, sem sujeito ou verbo principal claramente articulado ao período anterior, funcionando como fragmento."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "pessoas ou organizações que se conecta",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo 'conecta' deveria concordar com o antecedente plural, resultando em 'se conectam'."
+                    },
+                    {
+                        "trecho": "pra se conectar",
+                        "tipo": "registro inadequado",
+                        "explicacao": "A forma 'pra' é marca de oralidade e não é adequada à modalidade escrita formal."
+                    },
+                    {
+                        "trecho": "interagir um com os outros",
+                        "tipo": "concordância/emprego pronominal",
+                        "explicacao": "Há inadequação na combinação entre singular e plural; seria esperado algo como 'uns com os outros'."
+                    },
+                    {
+                        "trecho": "nas rede sociais",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O determinante plural 'nas' exige o substantivo no plural: 'nas redes sociais'."
+                    },
+                    {
+                        "trecho": "um termo nas rede sociais como cancelamento , a qual o indivíduo é cancelado",
+                        "tipo": "emprego de pronome relativo",
+                        "explicacao": "O pronome 'a qual' não retoma adequadamente 'termo' ou 'cancelamento', produzindo inadequação gramatical."
+                    },
+                    {
+                        "trecho": "A pessoa passa ser julgada",
+                        "tipo": "regência verbal",
+                        "explicacao": "O verbo 'passar', nesse contexto, exige a preposição 'a': 'passa a ser julgada'."
+                    },
+                    {
+                        "trecho": "perdendo seguidores, patrocínio, eventos, serviços que fazia usando sua imagem, sendo grandemente prejudicadas",
+                        "tipo": "concordância nominal/verbal",
+                        "explicacao": "Há problema de concordância em 'prejudicadas', que não se articula adequadamente com 'A pessoa'."
+                    },
+                    {
+                        "trecho": "celebridades, mais pode ocorrer com anônimo também",
+                        "tipo": "ortografia/emprego vocabular",
+                        "explicacao": "Foi usado 'mais' no lugar de 'mas', conjunção adversativa exigida pelo contexto."
+                    },
+                    {
+                        "trecho": "No entanto cancelar, desprezar alguém",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após a expressão conectiva 'No entanto'."
+                    },
+                    {
+                        "trecho": "pois acaba errando também , essa nova cultura",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula separa de modo inadequado duas orações independentes, em lugar de ponto ou outro recurso de articulação."
+                    },
+                    {
+                        "trecho": "em escola pública e privada",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Como a referência é genérica e plural, seria esperado 'em escolas públicas e privadas'."
+                    },
+                    {
+                        "trecho": "para que venha ter respeito e empatia",
+                        "tipo": "regência verbal",
+                        "explicacao": "A locução exige preposição: 'venha a ter respeito e empatia'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "103.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Decorrente dos casos citados acima é de total importância o governo juntamente com a secretaria de saúde de cada município investir em campanhas de vacinação",
+                        "tipo": "construção sintática pouco articulada",
+                        "explicacao": "O termo inicial 'Decorrente dos casos citados acima' fica mal integrado ao restante do período, tornando a construção menos fluida, embora o sentido global permaneça compreensível."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "graças a utilização de vacinas",
+                        "tipo": "crase",
+                        "explicacao": "Há ausência de crase em 'graças à utilização', pois a locução exige preposição 'a' e o substantivo feminino admite artigo."
+                    },
+                    {
+                        "trecho": "determinadas doenças .",
+                        "tipo": "convenção da escrita / pontuação",
+                        "explicacao": "Há espaço indevido antes do ponto final."
+                    },
+                    {
+                        "trecho": "toda a população está protegida .",
+                        "tipo": "convenção da escrita / pontuação",
+                        "explicacao": "Há espaço indevido antes do ponto final."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                0,
+                1,
+                0
+            ]
+        }
+    },
+    {
+        "id": "113.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "O Ministério da Saúde lançou um programa de atualização da caderneta de vacinação que são oferecidas todas as vacinas do calendário básico infantil e é fundamental que os pais ou responsáveis compareçam aos postos de saúde aproveitando a campanha de multivacinação para imunizar seus filhos.",
+                        "tipo": "articulação sintática imprecisa entre orações",
+                        "explicacao": "O período reúne muitas informações e a oração relativa iniciada por “que” não se articula de forma clara ao termo anterior, o que prejudica parcialmente a fluidez da construção."
+                    },
+                    {
+                        "trecho": "E além disso, é necessário que o Ministério da Saúde em parceria com a mídia e escolas faça campanhas com o intuito de informar a população da importância das vacinas e da responsabilidade de proteger a sociedade dessas doenças, que mesmo algumas estando erradicadas, podem voltar caso não vacinem.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "O período final apresenta encadeamento extenso de orações e o trecho final gera certa imprecisão na relação entre os termos, embora a compreensão global seja preservada."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "por ser indicado duas doses",
+                        "tipo": "concordância nominal/verbal",
+                        "explicacao": "A construção esperada seria “por serem indicadas duas doses”, com concordância no plural e no feminino com “duas doses”."
+                    },
+                    {
+                        "trecho": "muitos pais alegam que têm dificuldades de acessos aos postos de saúde",
+                        "tipo": "escolha vocabular/concordância nominal",
+                        "explicacao": "A forma mais adequada seria “dificuldade de acesso” ou “dificuldades de acesso”; o plural “acessos” soa inadequado nesse contexto."
+                    },
+                    {
+                        "trecho": "as vacinas são um dos mecanismos mais eficazes na defesa do organismo humano contra agentes infecciosos e bacterianos, e consiste na proteção do corpo",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo “consiste” não concorda com o sujeito plural “as vacinas”; a forma esperada seria “consistem”."
+                    },
+                    {
+                        "trecho": "É de suma relevância que toda a população vacine .",
+                        "tipo": "regência/emprego pronominal",
+                        "explicacao": "O verbo “vacinar”, nesse contexto, pede construção como “se vacine” ou “seja vacinada”."
+                    },
+                    {
+                        "trecho": "caso não vacinem",
+                        "tipo": "emprego verbal/referência pronominal",
+                        "explicacao": "A forma verbal no plural fica sem referente claro no período; considerando “a população”, seria mais adequado “caso não se vacine” ou construção equivalente."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "33.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "A vacinação é muito mais do que apenas medida preventiva de doenças, trata-se de questão de saúde pública , ogo, é dever do Estado não só garantir sua ampla distribuição para todas as camadas da sociedade, mas também a difusão de informações explicando sua importância para a sociedade.",
+                        "tipo": "justaposição inadequada de orações/períodos",
+                        "explicacao": "O período reúne orações independentes por meio de vírgulas, especialmente em “doenças, trata-se”, o que torna a articulação sintática menos adequada, embora a compreensão global seja preservada."
+                    },
+                    {
+                        "trecho": "com vistas a garantir a ampla aplicação das vacinas, consequentemente, o aumento da cobertura vacinal no país.",
+                        "tipo": "construção sintática pouco articulada",
+                        "explicacao": "A relação entre “garantir a ampla aplicação das vacinas” e “o aumento da cobertura vacinal” fica pouco fluida, pois o segundo termo aparece sem uma articulação verbal mais explícita, embora o sentido seja recuperável."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "ogo",
+                        "tipo": "ortografia",
+                        "explicacao": "Há provável erro ortográfico por ausência da letra inicial em “logo”."
+                    },
+                    {
+                        "trecho": "o que sugere o ressurgimento de doenças como o Sarampo por exemplo",
+                        "tipo": "pontuação/emprego de maiúscula",
+                        "explicacao": "A expressão “por exemplo” deveria estar isolada por vírgulas; além disso, “Sarampo”, nome comum de doença, aparece com inicial maiúscula sem justificativa contextual."
+                    },
+                    {
+                        "trecho": "que hajam vacinas suficientes para toda a população",
+                        "tipo": "concordância verbal",
+                        "explicacao": "No sentido de existir, o verbo “haver” é impessoal; a forma adequada seria “que haja vacinas suficientes”."
+                    },
+                    {
+                        "trecho": "dificuldade de acesso à postos de saúde",
+                        "tipo": "crase",
+                        "explicacao": "O uso de crase é inadequado antes de “postos”, substantivo masculino plural; o adequado seria “acesso a postos de saúde”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                0,
+                1,
+                0
+            ]
+        }
+    },
+    {
+        "id": "39.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Tal atividade é extremamente prejudicial a todos, pois a queda na cobertura vacinal traz à tona enfermidades antes erradicadas, além do mais, a vacinação é um importante agente preventivo, pois estimula o sistema imunológico a produzir anticorpos para inibir a doença.",
+                        "tipo": "justaposição inadequada de orações / período sobrecarregado",
+                        "explicacao": "O período reúne orações independentes com articulação pouco adequada, especialmente na passagem introduzida por “além do mais”, o que reduz a fluidez da construção."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "As vacinas surgiram no Brasil ( em 1804",
+                        "tipo": "pontuação / convenção da escrita",
+                        "explicacao": "Há uso inadequado de parêntese, com abertura sem fechamento e espaçamento indevido."
+                    },
+                    {
+                        "trecho": "entre 09 de julho a 31 de agosto de 2019",
+                        "tipo": "regência / paralelismo",
+                        "explicacao": "A construção esperada seria “entre 09 de julho e 31 de agosto” ou “de 09 de julho a 31 de agosto”, mantendo o paralelismo adequado."
+                    },
+                    {
+                        "trecho": "mais de dois mil e setecentas pessoas",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há inadequação na concordância do numeral com “pessoas”; a forma mais adequada seria “duas mil e setecentas pessoas”."
+                    },
+                    {
+                        "trecho": "foram diagnosticadas com a disfunção",
+                        "tipo": "escolha vocabular",
+                        "explicacao": "O termo “disfunção” é pouco adequado para retomar “sarampo”, pois se trata de uma doença, não propriamente de uma disfunção."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                0,
+                1,
+                0
+            ]
+        }
+    },
+    {
+        "id": "41.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "Consequentemente, essas ações geram amplos obstáculos, seja a volta de doenças erradicadas, como o surto de sarampo no estado do Amazonas , onde tiveram mais de 10 mil casos, com a morte de 13 crianças.",
+                        "tipo": "organização sintática pouco articulada",
+                        "explicacao": "A construção iniciada por “seja” não apresenta paralelismo claro com outro termo equivalente, o que torna o período pouco fluido."
+                    },
+                    {
+                        "trecho": "Também podendo afetar aqueles que não são capazes se imunizar, ocorrendo assim uma circulação de agentes infecciosos .",
+                        "tipo": "período truncado / oração sem núcleo independente claro",
+                        "explicacao": "O período é iniciado por uma forma gerundiva dependente, sem uma oração principal explícita, prejudicando a completude sintática."
+                    },
+                    {
+                        "trecho": "Como também palestras e oficinas direcionadas aos pais nas escolas , para que haja esclarecimento de dúvidas e fazer com que eles não acreditem em notícias sem fundamentos.",
+                        "tipo": "fragmento sintático",
+                        "explicacao": "O trecho aparece como período independente, mas depende sintaticamente da oração anterior, ficando sem verbo principal claro."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "Porém,ao comparamos esse fato histórico com a atual sociedade brasileira",
+                        "tipo": "desvio gramatical - forma verbal",
+                        "explicacao": "A construção exige “ao compararmos”, com infinitivo flexionado, e não “ao comparamos”."
+                    },
+                    {
+                        "trecho": "Tais ações geram grandes impactos no sociais e na economia do país.",
+                        "tipo": "desvio gramatical - concordância/emprego vocabular",
+                        "explicacao": "A expressão “no sociais” apresenta inadequação formal; o esperado seria algo como “no âmbito social” ou “na sociedade”."
+                    },
+                    {
+                        "trecho": "segundo organização mundial da saúde",
+                        "tipo": "convenção da escrita - uso de maiúsculas",
+                        "explicacao": "Nome de instituição deve ser grafado com iniciais maiúsculas: “Organização Mundial da Saúde”."
+                    },
+                    {
+                        "trecho": "elas evitaram entre 2 a 3 milhões de mortes por ano.",
+                        "tipo": "desvio gramatical - regência",
+                        "explicacao": "A construção adequada é “entre 2 e 3 milhões”, e não “entre 2 a 3 milhões”."
+                    },
+                    {
+                        "trecho": "nos últimos anos têm ocorrido uma redução no número de crianças vacinadas",
+                        "tipo": "desvio gramatical - concordância verbal",
+                        "explicacao": "O sujeito é “uma redução”, no singular; portanto, a forma esperada é “tem ocorrido”."
+                    },
+                    {
+                        "trecho": "há movimentos antivacinas, onde usam mentiras e notícias manipuladas",
+                        "tipo": "desvio gramatical - emprego de pronome relativo",
+                        "explicacao": "“Onde” é inadequado nesse contexto, pois não retoma lugar físico; seria mais adequado empregar “que” ou reformular a construção."
+                    },
+                    {
+                        "trecho": "aqueles que não são capazes se imunizar",
+                        "tipo": "desvio gramatical - regência nominal",
+                        "explicacao": "A construção exige a preposição “de”: “capazes de se imunizar”."
+                    },
+                    {
+                        "trecho": "é necessário que se realiza-se uma melhoria",
+                        "tipo": "desvio gramatical - forma verbal",
+                        "explicacao": "Há inadequação na forma verbal; o esperado seria “realize” ou, em outra construção, “realizasse”, sem hífen."
+                    },
+                    {
+                        "trecho": "por meio informações mais explícitas",
+                        "tipo": "desvio gramatical - regência/ausência de preposição",
+                        "explicacao": "A locução exige a preposição “de”: “por meio de informações”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "66.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Apenas com a Revolução Industrial que doenças começaram a ser erradicadas e, assim, as taxas de mortalidade caíram vertiginosamente",
+                        "tipo": "construção sintática truncada",
+                        "explicacao": "A construção enfática exige uma forma como “foi apenas com...” ou uma reorganização do período; do modo como está, há quebra na estrutura do período."
+                    },
+                    {
+                        "trecho": "Acarretado por uma série de eventos que geraram descontentamento popular , como a desapropriação urbanística de camadas mais pobres em prol da estética da urbe , o movimento tinha a falsa convicção de que a vacinação era supérflua",
+                        "tipo": "construção pouco fluida",
+                        "explicacao": "A oração reduzida inicial fica distante do termo a que se refere, o que torna a leitura menos fluida, embora o sentido geral permaneça compreensível."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "popular ,",
+                        "tipo": "convenção da escrita / pontuação",
+                        "explicacao": "Há espaço indevido antes da vírgula, ocorrência repetida em outros pontos do texto."
+                    },
+                    {
+                        "trecho": "O movimento anti-vacina",
+                        "tipo": "ortografia / hífen",
+                        "explicacao": "Pela norma vigente, o prefixo “anti-” diante de palavra iniciada por consoante diferente de h deve ser grafado sem hífen: “antivacina”."
+                    },
+                    {
+                        "trecho": "novas e já erradicas epidemias",
+                        "tipo": "ortografia / concordância nominal",
+                        "explicacao": "A forma adequada seria “erradicadas”, concordando com “epidemias”."
+                    },
+                    {
+                        "trecho": "impactando seriamente na economia",
+                        "tipo": "regência verbal",
+                        "explicacao": "Na modalidade formal, o verbo “impactar”, no sentido de afetar, tende a ser empregado como transitivo direto: “impactando a economia”."
+                    },
+                    {
+                        "trecho": "responsáveis para tal decréscimo",
+                        "tipo": "regência nominal",
+                        "explicacao": "O nome “responsáveis” exige, nesse contexto, a preposição “por”: “responsáveis por tal decréscimo”."
+                    },
+                    {
+                        "trecho": "implica negativamente na economia",
+                        "tipo": "regência verbal",
+                        "explicacao": "No sentido de acarretar, “implicar” é preferencialmente transitivo direto na norma formal: “implica prejuízos à economia” ou construção equivalente."
+                    },
+                    {
+                        "trecho": "faz-se necessário a implantação",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O adjetivo deve concordar com o núcleo feminino “implantação”: “faz-se necessária a implantação”."
+                    },
+                    {
+                        "trecho": "destinado a grandeza",
+                        "tipo": "crase",
+                        "explicacao": "Há necessidade de crase antes de “grandeza”: “destinado à grandeza”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "72.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Ademais, a desinformação por parte da população, o que é incentivado pelos movimentos antivacina que são informações falsas que circulam nas redes sociais sobre a importância e necessidade de se vacinar.",
+                        "tipo": "período truncado / oração incompleta",
+                        "explicacao": "O período inicia um tópico nominal, mas não apresenta predicado principal claro para completar a ideia, o que prejudica a construção sintática."
+                    },
+                    {
+                        "trecho": "movimentos antivacina que são informações falsas que circulam nas redes sociais",
+                        "tipo": "organização sintática imprecisa",
+                        "explicacao": "A relação entre os termos fica mal organizada, pois a oração relativa associa 'movimentos antivacina' a 'informações falsas', gerando construção pouco clara."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "obstáculos a política de imunização no Brasil",
+                        "tipo": "crase",
+                        "explicacao": "Há ausência de crase em 'à política', pois ocorre a preposição 'a' exigida por 'obstáculos' e o artigo feminino de 'política'."
+                    },
+                    {
+                        "trecho": "ou seja não tem a periodicidade que deveriam",
+                        "tipo": "pontuação e concordância verbal",
+                        "explicacao": "Falta vírgula após 'ou seja' e o verbo deveria concordar com 'as campanhas', resultando em 'não têm'."
+                    },
+                    {
+                        "trecho": "é válido salientar sobre a distribuição das vacinas",
+                        "tipo": "regência verbal",
+                        "explicacao": "O verbo 'salientar', nesse contexto, é transitivo direto; a forma mais adequada seria 'salientar a distribuição' ou construção equivalente."
+                    },
+                    {
+                        "trecho": "regiões remotas .",
+                        "tipo": "convenção da escrita / pontuação",
+                        "explicacao": "Há espaço indevido antes do ponto final."
+                    },
+                    {
+                        "trecho": "regiões longínquas.Já as escolas",
+                        "tipo": "convenção da escrita / pontuação",
+                        "explicacao": "Há ausência de espaço após o ponto final."
+                    },
+                    {
+                        "trecho": "o aumento das Unidades Móveis de Imunização, utilizados para levar vacinas a regiões longínquas",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O termo 'utilizados' não concorda adequadamente com 'Unidades Móveis de Imunização', que exigiria 'utilizadas', ou com 'aumento', que exigiria outra reformulação."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "74.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "O poder estatal por falta de políticas públicas agride a Legislação, dessa forma, a negligência estatal representa uma das causas da problemática, afinal, a saúde pública tem sido abandonada em todo o país, a falta de frequência em campanhas de vacinação, até mesmo a falta de estoque de vacinas é o reflexo disso.",
+                        "tipo": "justaposição inadequada de orações/período pouco organizado",
+                        "explicacao": "O período reúne várias ideias por meio de vírgulas, com articulação sintática pouco clara entre as orações, o que prejudica a fluidez."
+                    },
+                    {
+                        "trecho": "Porém, é uma realidade que parte da população brasileira não tem estado com seus cartões de vacina em dia, permitindo assim que surtos de doenças anteriormente erradicadas venham surgir, a exemplo do sarampo, e que o poder público tem se mostrado negligente com a saúde em todas as regiões brasileiras.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "A coordenação entre as ideias fica pesada e pouco clara, especialmente na ligação entre a situação da população e a afirmação sobre o poder público."
+                    },
+                    {
+                        "trecho": "Portanto, é de responsabilidade do poder público a conscientização da importância das vacinas, a realização do controle do estoque destas nos postos de saúde, aumentar a frequência das campanhas de vacina, e também a criação de políticas para coibir os grupos anti vacina, a elaboração de estratégias para a redução de fake news , em virtude do problema à sociedade que isso vem trazendo.",
+                        "tipo": "enumeração extensa com organização irregular",
+                        "explicacao": "A enumeração de ações apresenta organização sintática pouco uniforme, o que reduz a clareza e a fluidez do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "proteção de doenças",
+                        "tipo": "regência/seleção vocabular inadequada",
+                        "explicacao": "Na modalidade formal, o esperado seria 'proteção contra doenças'."
+                    },
+                    {
+                        "trecho": "Legislação",
+                        "tipo": "uso inadequado de maiúscula",
+                        "explicacao": "O substantivo comum foi grafado com inicial maiúscula sem necessidade contextual."
+                    },
+                    {
+                        "trecho": "anti vacina",
+                        "tipo": "ortografia/uso de prefixo",
+                        "explicacao": "A forma adequada é 'antivacina', grafada como uma só palavra."
+                    },
+                    {
+                        "trecho": "onde inúmeras crianças morreram no Brasil em decorrência desta doença",
+                        "tipo": "emprego inadequado de pronome relativo",
+                        "explicacao": "O uso de 'onde' é inadequado porque o referente não indica lugar físico; seria mais adequado empregar construção como 'caso em que'."
+                    },
+                    {
+                        "trecho": "a realização do controle do estoque destas nos postos de saúde, aumentar a frequência das campanhas de vacina",
+                        "tipo": "paralelismo sintático",
+                        "explicacao": "Há quebra de paralelismo na enumeração, com alternância entre estruturas nominais e forma verbal no infinitivo."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "86.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "De fato, o reflexo dessas ideias, contribuem, em grande parte, para a redução do número de pessoas vacinadas, que, segundo o Ministério da Saúde, em 2017, o índice de crescimento de crianças com menos de um ano que receberam vacinação foi o menor desde 2001.",
+                        "tipo": "construção sintática inadequada / articulação comprometida",
+                        "explicacao": "O período apresenta encadeamento problemático na parte iniciada por 'que, segundo o Ministério da Saúde...', pois a relação sintática entre a redução do número de vacinados e o dado apresentado fica mal construída, prejudicando a fluidez."
+                    },
+                    {
+                        "trecho": "Isso mostra, por sua vez, o que a falta de acesso à informação pode gerar efeitos danosos à saúde dos cidadãos.",
+                        "tipo": "construção sintática inadequada",
+                        "explicacao": "A sequência 'mostra... o que a falta... pode gerar efeitos' produz uma construção pouco convencional, com encaixe inadequado entre as orações. A forma esperada seria algo como 'mostra que a falta...'."
+                    },
+                    {
+                        "trecho": "No Brasil, durante a Primeira República, houve a Revolta da Vacina, na qual uma parcela de brasileiros, por falta de informação e de esclarecimentos, resistiu – com uso de violência e de agressão – à aplicação de vacinas, por encará-las como prejudicial à saúde.",
+                        "tipo": "período complexo bem organizado",
+                        "explicacao": "Apesar de longo, o período apresenta organização sintática compreensível, com adjuntos, oração relativa e relações internas bem articuladas."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "por encará-las como prejudicial à saúde",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O termo 'prejudicial' deveria concordar com 'vacinas', no plural: 'prejudiciais'."
+                    },
+                    {
+                        "trecho": "Um exemplo disso, são alguns vídeos",
+                        "tipo": "pontuação",
+                        "explicacao": "Há uso indevido de vírgula separando elementos essenciais da oração."
+                    },
+                    {
+                        "trecho": "o reflexo dessas ideias, contribuem",
+                        "tipo": "concordância verbal e pontuação",
+                        "explicacao": "O sujeito 'o reflexo' está no singular, exigindo 'contribui'; além disso, a vírgula entre sujeito e verbo é inadequada."
+                    },
+                    {
+                        "trecho": "as doenças já erradicadas não têm possibilidade retorno",
+                        "tipo": "regência nominal / ausência de preposição",
+                        "explicacao": "Falta a preposição 'de' após 'possibilidade': 'possibilidade de retorno'."
+                    },
+                    {
+                        "trecho": "a vacinação deve ocorrer de contínua",
+                        "tipo": "escolha vocabular / construção inadequada",
+                        "explicacao": "A expressão 'de contínua' não é adequada nesse contexto formal; seria esperado 'de forma contínua' ou 'continuamente'."
+                    },
+                    {
+                        "trecho": "para recebem as vacinas",
+                        "tipo": "forma verbal",
+                        "explicacao": "Após 'para', nesse contexto, o verbo deveria estar no infinitivo: 'para receberem' ou 'para receber'."
+                    },
+                    {
+                        "trecho": "nas erradicação de doenças",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há incompatibilidade entre 'nas' e 'erradicação'; o adequado seria 'na erradicação de doenças'."
+                    },
+                    {
+                        "trecho": "mídias socais",
+                        "tipo": "ortografia",
+                        "explicacao": "Há erro ortográfico em 'socais', forma incorreta de 'sociais'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "24.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "Esses problemas acabam deixando-os muito tristes e solitários levando-os a tomar decisões preciptadas, é o caso de recorrerem ao suicídio.",
+                        "tipo": "justaposição inadequada de orações",
+                        "explicacao": "Há união por vírgula entre segmentos que exigiriam melhor articulação sintática, o que prejudica a fluidez do período."
+                    },
+                    {
+                        "trecho": "Outras dificuldades a qual a juventude pode encontrar é com a escola, pois, é nesse lugar que os mesmos ficam pensando em melhora e no futuro acham-se ansiosos, também cansados, estando esgotados emocionalmente, logo, prejudicados psicologicamente interferindo de forma negativa na vida dos estudantes.",
+                        "tipo": "período com acúmulo de orações e organização prejudicada",
+                        "explicacao": "O período apresenta encadeamento excessivo de informações, com articulações pouco claras entre as orações, dificultando a leitura."
+                    },
+                    {
+                        "trecho": "Desse modo, fazer a juventude entender o quanto viver é importante e que desistir nunca é a melhor opção e que os problemas sempre irão existir mas que cabe a cada um saber como passar por eles.",
+                        "tipo": "oração incompleta / período truncado",
+                        "explicacao": "A construção iniciada por infinitivo não se completa como período autônomo, ficando dependente de uma estrutura sintática ausente."
+                    },
+                    {
+                        "trecho": "Então, tentar para que assim haja a diminuição do suicídio entre os jovens no Brasil.",
+                        "tipo": "oração incompleta / período truncado",
+                        "explicacao": "O período não apresenta núcleo verbal finito que organize a oração principal, resultando em fragmento sintático."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "preciptadas",
+                        "tipo": "ortografia",
+                        "explicacao": "A grafia correta é “precipitadas”."
+                    },
+                    {
+                        "trecho": "padrões que a sociedade impõem",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo deveria concordar com “sociedade”, no singular: “impõe”."
+                    },
+                    {
+                        "trecho": "promove o o setembro amarelo",
+                        "tipo": "convenção da escrita / duplicação indevida",
+                        "explicacao": "Há duplicação do artigo “o” e inadequação na grafia do nome da campanha, que deveria aparecer como “Setembro Amarelo”."
+                    },
+                    {
+                        "trecho": "que são campanhas de prevenção e conscientização para o completo corpo social que ocorre durante todo o mês referente",
+                        "tipo": "concordância verbal",
+                        "explicacao": "Há inconsistência de concordância entre os termos retomados e os verbos, especialmente em “campanhas” associado a “ocorre”."
+                    },
+                    {
+                        "trecho": "coneversas",
+                        "tipo": "ortografia",
+                        "explicacao": "A grafia correta é “conversas”."
+                    },
+                    {
+                        "trecho": "consentração",
+                        "tipo": "ortografia",
+                        "explicacao": "A grafia correta é “concentração”."
+                    },
+                    {
+                        "trecho": "não apenas no mês de setembro mas durante todo o ano",
+                        "tipo": "pontuação",
+                        "explicacao": "A construção correlativa exige vírgula antes de “mas”: “não apenas..., mas...”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "31.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "Contudo, não se assemelha aos altos índices que vemos , hoje, no Brasil.",
+                        "tipo": "referência/organização sintática pouco clara",
+                        "explicacao": "O período apresenta sujeito/referente pouco claro, o que prejudica a articulação sintática com a ideia anterior."
+                    },
+                    {
+                        "trecho": "Familiares e amigos nem sempre percebem que a iniciativa do suicídio pode já está sendo gerada na mente do jovem, pensam que isso não vai acontecer e então não precisa ser conversado sobre .",
+                        "tipo": "justaposição inadequada de orações",
+                        "explicacao": "Há união de orações independentes por vírgula, sem articulação sintática adequada, o que compromete a fluidez do período."
+                    },
+                    {
+                        "trecho": "A dor dos problemas, medo, solidão e insegurança que para muitos parece ser eterna.",
+                        "tipo": "período fragmentado",
+                        "explicacao": "O trecho funciona como fragmento nominal, sem predicação principal plenamente desenvolvida no período."
+                    },
+                    {
+                        "trecho": "Os gestores municipais e estaduais devem disponibilizar uma central para ajudar nas descobertas/desconfiança dos casos para que assim seja possível uma visita com especialistas para evitar o aumento do percentual de suicídio.",
+                        "tipo": "construção sintática pouco fluida",
+                        "explicacao": "O período acumula finalidades encadeadas e apresenta construção pouco precisa em 'para que assim seja possível uma visita', prejudicando a clareza."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Na idade média",
+                        "tipo": "emprego de maiúsculas/minúsculas",
+                        "explicacao": "O nome do período histórico deve ser grafado com iniciais maiúsculas: 'Idade Média'."
+                    },
+                    {
+                        "trecho": "independente do motivo",
+                        "tipo": "escolha gramatical/valor adverbial",
+                        "explicacao": "No contexto, o emprego formal mais adequado seria 'independentemente do motivo'."
+                    },
+                    {
+                        "trecho": "Mas, esse ainda é um assunto sem fortes debates na no contexto familiar brasileiro.",
+                        "tipo": "convenção da escrita/digitação",
+                        "explicacao": "Há sobreposição indevida de preposições/artigos em 'na no'."
+                    },
+                    {
+                        "trecho": "facebook, instagram e whatsApp",
+                        "tipo": "emprego de maiúsculas/minúsculas",
+                        "explicacao": "Os nomes próprios das plataformas foram grafados com inadequações de capitalização."
+                    },
+                    {
+                        "trecho": "é mais fácil conversar com alguém desconhecido por esses meios supracitados do que algum familiar",
+                        "tipo": "regência/paralelismo",
+                        "explicacao": "Há quebra de paralelismo/regência; o esperado seria 'do que com algum familiar'."
+                    },
+                    {
+                        "trecho": "pode já está sendo gerada",
+                        "tipo": "forma verbal",
+                        "explicacao": "Após o auxiliar 'pode', deve-se empregar o infinitivo: 'pode já estar sendo gerada'."
+                    },
+                    {
+                        "trecho": "não precisa ser conversado sobre",
+                        "tipo": "regência/construção gramatical",
+                        "explicacao": "A construção é inadequada na modalidade formal; seria mais adequado algo como 'não precisa ser discutido' ou 'não se precisa conversar sobre isso'."
+                    },
+                    {
+                        "trecho": "Se faz necessário campanhas midiáticas",
+                        "tipo": "concordância verbal/nominal",
+                        "explicacao": "Há inadequação de concordância; o esperado seria 'Fazem-se necessárias campanhas midiáticas' ou 'São necessárias campanhas midiáticas'."
+                    },
+                    {
+                        "trecho": "nas descobertas/desconfiança dos casos",
+                        "tipo": "concordância/paralelismo nominal",
+                        "explicacao": "Há falta de paralelismo e inconsistência de número entre os termos coordenados."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "35.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "No período literário ultrarromântico, é depressão foi predominante presente nos poemas e na vida dos poetas, de tal maneira que promoveu o suicídio.",
+                        "tipo": "construção oracional problemática",
+                        "explicacao": "O período apresenta organização inadequada dos elementos da oração, especialmente em 'é depressão foi predominante presente', o que prejudica a clareza sintática."
+                    },
+                    {
+                        "trecho": "Consoante, legitimava o teórico Émile Durkheim, esse fato social, como nomeia de coercitivo, induz a confirmação desses as regras e sociedade .",
+                        "tipo": "organização sintática confusa",
+                        "explicacao": "A relação entre as orações e os termos internos do período é mal construída, com prejuízo à articulação sintática e à compreensão do enunciado."
+                    },
+                    {
+                        "trecho": "Consequentemente, promova-se em um desamparo social que, somado a pressão, impacta diretamente a psique humana, por conseguinte, tendo o potencial de ceifar a própria vida .",
+                        "tipo": "construção sintática inadequada",
+                        "explicacao": "Há dificuldade na definição do sujeito e na articulação entre as formas verbais, o que torna o período pouco fluido e sintaticamente instável."
+                    },
+                    {
+                        "trecho": "Sendo assim, cabe ao Governo Federal, por meio do Ministério da Saúde, em parceria com escolas e postos e saúde, deve direcionar profissionais da saúde mental, como psicólogos e psiquiatras, contratados por concurso público, a fim de tratar, orientar e debater com os alunos, pais e todos os frequentadores desses âmbitos sobre os fatos como os supracitados.",
+                        "tipo": "duplicação de estrutura sintática",
+                        "explicacao": "O período combina indevidamente 'cabe ao Governo Federal' com 'deve direcionar', gerando duplicação de núcleos predicativos e comprometendo a construção da oração principal."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "é depressão foi predominante presente",
+                        "tipo": "desvio gramatical",
+                        "explicacao": "Há emprego inadequado de forma verbal/artigo, além de construção incompatível com a norma formal esperada."
+                    },
+                    {
+                        "trecho": "a modernidade líquida é um fato e responsável para a permanência do suicídio",
+                        "tipo": "regência nominal",
+                        "explicacao": "O adjetivo 'responsável' exige, nesse contexto, a preposição 'por', e não 'para'."
+                    },
+                    {
+                        "trecho": "acarretam no afastamento social",
+                        "tipo": "regência verbal",
+                        "explicacao": "O verbo 'acarretar', na norma formal, é geralmente transitivo direto: 'acarretam o afastamento social'."
+                    },
+                    {
+                        "trecho": "a falta e interação",
+                        "tipo": "desvio gramatical/convenção da escrita",
+                        "explicacao": "Há troca inadequada de elemento conectivo/preposição; o esperado seria 'falta de interação'."
+                    },
+                    {
+                        "trecho": "ao que concerne a problemática",
+                        "tipo": "regência e crase",
+                        "explicacao": "A construção adequada seria 'no que concerne à problemática', com ajuste de regência e uso de crase."
+                    },
+                    {
+                        "trecho": "mercado e trabalho",
+                        "tipo": "desvio de convenção/emprego de preposição",
+                        "explicacao": "Há uso inadequado de 'e' no lugar da preposição 'de': 'mercado de trabalho'."
+                    },
+                    {
+                        "trecho": "induz a confirmação desses as regras e sociedade",
+                        "tipo": "desvio gramatical",
+                        "explicacao": "O trecho apresenta problemas de regência, emprego pronominal e seleção de preposições, comprometendo a correção formal."
+                    },
+                    {
+                        "trecho": "somado a pressão",
+                        "tipo": "crase",
+                        "explicacao": "Ocorre ausência de crase antes de substantivo feminino determinado: 'somado à pressão'."
+                    },
+                    {
+                        "trecho": "postos e saúde",
+                        "tipo": "desvio de convenção/emprego de preposição",
+                        "explicacao": "Há uso inadequado de 'e' em lugar de 'de': 'postos de saúde'."
+                    },
+                    {
+                        "trecho": "com o propósito de desempenhar reflexão",
+                        "tipo": "escolha vocabular inadequada",
+                        "explicacao": "O verbo 'desempenhar' não se combina adequadamente com 'reflexão' nesse contexto formal; seria esperado algo como 'promover reflexão'."
+                    },
+                    {
+                        "trecho": "os casos de suicídio venham amenizar",
+                        "tipo": "escolha vocabular/regência",
+                        "explicacao": "O verbo 'amenizar' foi empregado de modo inadequado, pois os casos não 'amenizam'; eles podem ser 'amenizados' ou 'reduzidos'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "39.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Além disso, não há profissionais capacitados nas escolas ou nas clínicas públicas de saúde responsáveis pela saúde mental dos adolescentes prejudicando aqueles que são menos abastados e não são capazes de pagar por um tratamento particular.",
+                        "tipo": "organização sintática com gerúndio",
+                        "explicacao": "O uso de 'prejudicando' ao final do período cria uma articulação menos fluida, pois a relação sintática entre a ausência de profissionais e o prejuízo aos adolescentes fica pouco explicitada, embora o sentido global seja compreensível."
+                    },
+                    {
+                        "trecho": "Como também, o Estado deve ser responsável pelo controle do noticiário nacional conforme as normas da OMS (Organização Mundial da Saúde) que procuram minimizar as notícias relacionadas ao suicídio, em razão daqueles que estão mentalmente fragilizados.",
+                        "tipo": "articulação de período",
+                        "explicacao": "A abertura com 'Como também' em período independente gera uma conexão sintática pouco convencional com a oração anterior, mas não compromete significativamente a compreensão."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "suícido",
+                        "tipo": "ortografia/acentuação",
+                        "explicacao": "No contexto, o adequado seria 'suicídio', pois se refere ao ato amplamente divulgado, não ao indivíduo suicida."
+                    },
+                    {
+                        "trecho": "suícidio",
+                        "tipo": "acentuação",
+                        "explicacao": "A palavra apresenta acentuação incorreta; a forma adequada é 'suicídio'. O desvio aparece mais de uma vez no texto."
+                    },
+                    {
+                        "trecho": "vitímas",
+                        "tipo": "acentuação",
+                        "explicacao": "A forma correta é 'vítimas', com acento na primeira sílaba."
+                    },
+                    {
+                        "trecho": "soluçãopara",
+                        "tipo": "convenção da escrita",
+                        "explicacao": "Há ausência indevida de espaço entre as palavras; o correto seria 'solução para'."
+                    },
+                    {
+                        "trecho": "atráves",
+                        "tipo": "acentuação",
+                        "explicacao": "A forma correta é 'através'. O desvio aparece em mais de um momento da redação."
+                    },
+                    {
+                        "trecho": "se devem á singularidade",
+                        "tipo": "crase/acentuação",
+                        "explicacao": "O correto seria 'se devem à singularidade', com crase indicada por acento grave."
+                    },
+                    {
+                        "trecho": "impecilhos",
+                        "tipo": "ortografia",
+                        "explicacao": "A grafia adequada é 'empecilhos'."
+                    },
+                    {
+                        "trecho": "campanhas que visam a prevenção do suícidio",
+                        "tipo": "regência/crase",
+                        "explicacao": "No sentido de 'ter por objetivo', o verbo 'visar' rege preposição, e, diante de substantivo feminino determinado, espera-se 'visam à prevenção'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "46.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 5,
+                "evidencias": [
+                    {
+                        "trecho": "Segundo o levantamento feito pelo sociólogo Júlio Jacobo, entre 2000 e 2015, os casos de suicídio de jovens entre 15 e 19 anos cresceram 45%.",
+                        "tipo": "período bem estruturado",
+                        "explicacao": "O período apresenta organização sintática clara, com adjuntos bem posicionados e oração principal completa."
+                    },
+                    {
+                        "trecho": "Entretanto, a série s 13 porquês\", lançada pela Netflix em março do ano passado e inspirada no livro de Jay Asher, mostra que essa atitude extrema também pode ter seus fundamentos no bullying.",
+                        "tipo": "estrutura sintática complexa adequada",
+                        "explicacao": "Apesar de haver desvios formais no trecho, a estrutura do período é compreensível e bem articulada, com intercalação explicativa e oração subordinada completiva."
+                    },
+                    {
+                        "trecho": "As instituições escolares também podem participar desse processo incentivando os pais e responsáveis a participarem e observarem ativamente o comportamento dos filhos.",
+                        "tipo": "período completo e fluido",
+                        "explicacao": "A construção é completa, com relação clara entre oração principal e forma reduzida de gerúndio, mantendo a fluidez da leitura."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Desde o inicio do século XXI",
+                        "tipo": "acentuação",
+                        "explicacao": "A palavra “inicio”, nesse contexto, deveria ser acentuada: “início”."
+                    },
+                    {
+                        "trecho": "É de conhecimento geral que, na maioria das vezes, o suicídio tenha sido causado pela depressão.",
+                        "tipo": "modo verbal",
+                        "explicacao": "O uso de “tenha sido” é inadequado após “É de conhecimento geral que”; a forma indicativa, como “é causado” ou “foi causado”, seria mais adequada."
+                    },
+                    {
+                        "trecho": "a série s 13 porquês\"",
+                        "tipo": "convenção da escrita",
+                        "explicacao": "Há inserção inadequada da letra “s” antes do título e problema na marcação das aspas."
+                    },
+                    {
+                        "trecho": "dão razão á frase de Sêneca",
+                        "tipo": "crase/acentuação",
+                        "explicacao": "O correto seria “à frase”, com acento grave, e não “á”."
+                    },
+                    {
+                        "trecho": "Mas, ainda sim é possível",
+                        "tipo": "escolha vocabular/convenção da escrita",
+                        "explicacao": "A expressão adequada na modalidade formal é “ainda assim”."
+                    },
+                    {
+                        "trecho": "A internet, como uma das principais formas e comunicação",
+                        "tipo": "regência/emprego de preposição",
+                        "explicacao": "O trecho apresenta emprego inadequado de “e” no lugar de “de”: “formas de comunicação”."
+                    },
+                    {
+                        "trecho": "Esse tipo de iniciativa deve ser incentivada e valorizada",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O núcleo do sujeito é “tipo”, portanto a concordância formal recomendada seria “deve ser incentivado e valorizado”."
+                    },
+                    {
+                        "trecho": "o Ministério da Saúde em conjunto com a mídia, deve promover campanhas",
+                        "tipo": "pontuação",
+                        "explicacao": "Há vírgula separando o sujeito do predicado; se a expressão intercalada fosse marcada, seria necessário empregar vírgulas antes e depois dela."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                0,
+                1
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "47.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "Segundo dados do IBGE (Instituto brasileiro de geografia e estàtisticas), o suicídio é a segunda maior causa de morte entre jovens de 15 e 19 anos, isso pode ser causado por vários pontos",
+                        "tipo": "justaposição inadequada de orações independentes",
+                        "explicacao": "Duas informações independentes são unidas apenas por vírgula, sem articulação sintática adequada, o que prejudica a fluidez do período."
+                    },
+                    {
+                        "trecho": "tendo em vista a falta de acompanhamento escolar para com seu jovens. ue acabam cometendo o ato de tirar a própria vida",
+                        "tipo": "oração dependente separada indevidamente / período truncado",
+                        "explicacao": "O trecho iniciado por “ue acabam” parece depender sintaticamente do período anterior, mas aparece separado por ponto, formando construção incompleta."
+                    },
+                    {
+                        "trecho": "Destaca-se, portanto, uma inião dos ministérios da saúde e educação, para ministrarem palestras em escolas de ensino fundamental e médio com especialistas falando sobre o assunto para pais e alunos, é acompanhamento parental, incentivando seus filhos e filhas a falarem sobre o assunto",
+                        "tipo": "organização sintática prejudicada",
+                        "explicacao": "A coordenação entre as ações propostas é confusa, especialmente em “é acompanhamento parental”, o que dificulta a relação sintática entre os elementos do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "outro.No entanto",
+                        "tipo": "convenção da escrita / pontuação e espaçamento",
+                        "explicacao": "Há ausência de espaço após o ponto final."
+                    },
+                    {
+                        "trecho": "númerode",
+                        "tipo": "convenção da escrita / ortografia",
+                        "explicacao": "As palavras aparecem indevidamente unidas."
+                    },
+                    {
+                        "trecho": "convém analisamos",
+                        "tipo": "aspecto gramatical / flexão verbal",
+                        "explicacao": "A forma verbal adequada seria “analisarmos”, pois o verbo está em construção subordinada após “convém”."
+                    },
+                    {
+                        "trecho": "efeitos e consequência",
+                        "tipo": "aspecto gramatical / concordância nominal",
+                        "explicacao": "Há falta de paralelismo de número entre os substantivos coordenados; o esperado seria “efeitos e consequências”."
+                    },
+                    {
+                        "trecho": "Instituto brasileiro de geografia e estàtisticas",
+                        "tipo": "convenções da escrita / maiúsculas, acentuação e ortografia",
+                        "explicacao": "O nome da instituição apresenta problemas de capitalização e grafia, como em “estàtisticas”."
+                    },
+                    {
+                        "trecho": "seja psicológicos",
+                        "tipo": "aspecto gramatical / concordância",
+                        "explicacao": "Há inadequação de concordância na construção; o esperado seria algo como “sejam psicológicos”."
+                    },
+                    {
+                        "trecho": "que muito das vezes passa despercebido pelos pais",
+                        "tipo": "aspecto gramatical / concordância e registro",
+                        "explicacao": "A expressão apresenta inadequação formal em “muito das vezes” e problema de concordância com o referente plural."
+                    },
+                    {
+                        "trecho": "esses ideais iluminista é contestado",
+                        "tipo": "aspecto gramatical / concordância verbal e nominal",
+                        "explicacao": "O sujeito plural exige concordância em “ideais iluministas” e “são contestados”."
+                    },
+                    {
+                        "trecho": "teória",
+                        "tipo": "convenção da escrita / acentuação",
+                        "explicacao": "A palavra foi grafada com acento indevido; o correto é “teoria”."
+                    },
+                    {
+                        "trecho": "seu jovens",
+                        "tipo": "aspecto gramatical / concordância nominal",
+                        "explicacao": "O pronome possessivo não concorda em número com “jovens”; o esperado seria “seus jovens”."
+                    },
+                    {
+                        "trecho": "fazer passa sua dor",
+                        "tipo": "aspecto gramatical / forma verbal",
+                        "explicacao": "A forma adequada seria “fazer passar sua dor”, com o verbo no infinitivo."
+                    },
+                    {
+                        "trecho": "inião",
+                        "tipo": "convenção da escrita / ortografia",
+                        "explicacao": "A palavra foi grafada incorretamente; o esperado é “união”."
+                    },
+                    {
+                        "trecho": "poís",
+                        "tipo": "convenção da escrita / acentuação",
+                        "explicacao": "A palavra “pois” foi grafada com acento indevido."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "50.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "No que checamos estes levantamentos, todos mostram algo em comum: o jovem como predominante vítima.",
+                        "tipo": "articulação sintática pouco convencional",
+                        "explicacao": "A construção inicial do período é pouco natural na modalidade escrita formal e prejudica parcialmente a fluidez; seria esperada uma formulação como “Ao checarmos esses levantamentos”."
+                    },
+                    {
+                        "trecho": "Eventualidades que fazem com que o indivíduo busque aliviar a dor, supondo que o único jeito seria tirando a própria vida.",
+                        "tipo": "período fragmentado",
+                        "explicacao": "O trecho funciona como continuação explicativa da frase anterior, mas aparece isolado como período sem uma oração principal plenamente desenvolvida."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "milhares de informação são absorvidas",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há inadequação entre “milhares” e “informação”; o esperado seria “milhares de informações”."
+                    },
+                    {
+                        "trecho": "É a fase onde os jovens procuram aproveitar a vida",
+                        "tipo": "emprego inadequado de pronome relativo",
+                        "explicacao": "O uso de “onde” é inadequado para retomar “fase”, que indica tempo ou situação abstrata; seria mais adequado “em que”."
+                    },
+                    {
+                        "trecho": "métodos que os jovens mais optam para o suicídio",
+                        "tipo": "regência verbal",
+                        "explicacao": "O verbo “optar” exige a preposição “por”; a construção adequada seria “métodos pelos quais os jovens mais optam” ou semelhante."
+                    },
+                    {
+                        "trecho": "bebidas alcóolicas",
+                        "tipo": "ortografia/acentuação",
+                        "explicacao": "A grafia correta é “bebidas alcoólicas”."
+                    },
+                    {
+                        "trecho": "fiquem mais atentos a mudança de comportamento",
+                        "tipo": "crase/regência nominal",
+                        "explicacao": "A expressão “atentos” exige preposição e, diante de substantivo feminino determinado, ocorre crase: “atentos à mudança de comportamento”."
+                    },
+                    {
+                        "trecho": "para que estes possam orientar os jovens",
+                        "tipo": "emprego de pronome",
+                        "explicacao": "O pronome “estes” apresenta referência imprecisa no contexto, pois não fica claro se retoma governo, Ministério da Saúde, escolas, municípios, palestras ou acompanhamento psicológico."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "60.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "afinal a pressão psicológica se torna tamanha, além de raramente possuírem algum apoio amigo, que não enxergam outra solução.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "A intercalação de “além de raramente possuírem...” entre a estrutura correlativa “tamanha... que” torna o período menos fluido e dificulta parcialmente a leitura, embora a ideia geral permaneça compreensível."
+                    },
+                    {
+                        "trecho": "No terceiro e último exemplo, também o mais polêmico, a homossexualidade, é onde são observados inúmeros jovens depressivos",
+                        "tipo": "construção sintática pouco convencional",
+                        "explicacao": "A sequência de apostos e topicalizações antes da oração principal produz uma construção pesada e pouco direta, ainda que compreensível no contexto."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "uso de drogas .",
+                        "tipo": "pontuação / convenção da escrita",
+                        "explicacao": "Há espaço indevido antes do ponto final."
+                    },
+                    {
+                        "trecho": "Organização Mundial da Saúde ,",
+                        "tipo": "pontuação / convenção da escrita",
+                        "explicacao": "Há espaço indevido antes da vírgula."
+                    },
+                    {
+                        "trecho": "Nesse intuito",
+                        "tipo": "escolha vocabular inadequada",
+                        "explicacao": "A expressão é empregada de modo pouco adequado ao contexto; seria mais apropriado um conector como “nesse sentido” ou “sob essa perspectiva”."
+                    },
+                    {
+                        "trecho": "o elevado sofrimento é um fato pertinente a isso",
+                        "tipo": "escolha vocabular imprecisa",
+                        "explicacao": "A formulação apresenta inadequação vocabular, pois “fato pertinente a isso” não expressa com precisão a relação pretendida."
+                    },
+                    {
+                        "trecho": "destinados aos juvenis",
+                        "tipo": "escolha vocabular inadequada",
+                        "explicacao": "O termo “juvenis” é empregado de forma inadequada como substantivo para se referir aos jovens, soando pouco compatível com a modalidade formal nesse contexto."
+                    },
+                    {
+                        "trecho": "“cheios de frescura” .",
+                        "tipo": "pontuação / convenção da escrita",
+                        "explicacao": "Há espaço indevido antes do ponto final."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "70.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "No limiar do século XXI o suicídio entre os jovens é uma problemática atual e com inúmeros fatores contribuem para tomar a decisão final.",
+                        "tipo": "construção sintática inadequada",
+                        "explicacao": "A coordenação entre 'é uma problemática atual' e 'com inúmeros fatores contribuem' fica mal articulada, prejudicando a organização do período."
+                    },
+                    {
+                        "trecho": "Medidas devem ser tomadas como promover a socialização; grupos de apoio para aqueles que precisam de melhorar a saúde mental; limites para menores na internet; importante o policiamento de agências em tudo que tenha o suicídio como assunto.",
+                        "tipo": "justaposição e enumeração sintaticamente irregular",
+                        "explicacao": "A enumeração mistura estruturas de naturezas diferentes, com trechos nominais sem verbo ou sem integração clara ao período, o que compromete a fluidez sintática."
+                    },
+                    {
+                        "trecho": "Dessa maneira é importante que os ambientes como trabalho, escola, estejam promovendo a socialização de todos.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "A inserção de exemplos em 'os ambientes como trabalho, escola' fica pouco organizada, tornando a construção menos clara, embora compreensível."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "No limiar do século XXI o suicídio entre os jovens",
+                        "tipo": "pontuação",
+                        "explicacao": "Há ausência de vírgula após o adjunto adverbial inicial 'No limiar do século XXI'."
+                    },
+                    {
+                        "trecho": "Assim como no período colonial quando escravos optaram pela morte do que a prosseguir com o trabalho forçado",
+                        "tipo": "regência/emprego de estrutura comparativa",
+                        "explicacao": "A construção 'optaram pela morte do que a prosseguir' é inadequada na modalidade formal; seria esperada formulação como 'optaram pela morte em vez de prosseguir'."
+                    },
+                    {
+                        "trecho": "De um lado a saúde mental é um fator de extrema relevância",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após a expressão introdutória 'De um lado'."
+                    },
+                    {
+                        "trecho": "Com o aumento do suicídio entre os jovens problemas como depressão, relacionamentos e situações desfavoráveis",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após o adjunto adverbial inicial 'Com o aumento do suicídio entre os jovens'."
+                    },
+                    {
+                        "trecho": "atitudes dos fãns",
+                        "tipo": "ortografia",
+                        "explicacao": "A forma correta é 'fãs', sem 'n'."
+                    },
+                    {
+                        "trecho": "é de indelével valor",
+                        "tipo": "escolha vocabular inadequada",
+                        "explicacao": "O adjetivo 'indelével' significa algo que não se apaga, sendo inadequado ao contexto de valor/importância."
+                    },
+                    {
+                        "trecho": "aqueles que precisam de melhorar a saúde mental",
+                        "tipo": "regência verbal",
+                        "explicacao": "Na modalidade formal brasileira, a construção mais adequada seria 'precisam melhorar' ou 'precisam de melhora'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "0.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "A falta de conhecimento técnico tem levado agricultores a aplicarem agrotóxicos de maneira indevida nas culturas, causando verdadeiros estragos, um desses problemas é, a poluição do solo que se torna infértil para o plantio de culturas, gerando fome para milhares de famílias, agrotóxico quando se infiltra no solo contamina os lenções freáticos, comprometendo as espécies vegetais e matando animais por envenenamento, devido ao acúmulo desse produto tóxico no seu organismo.",
+                        "tipo": "justaposição inadequada de orações/período excessivamente encadeado",
+                        "explicacao": "O período reúne muitas informações e orações independentes separadas sobretudo por vírgulas, sem articulação sintática adequada entre partes como 'um desses problemas é...' e 'agrotóxico quando se infiltra...'. Isso prejudica a fluidez e a organização do período."
+                    },
+                    {
+                        "trecho": "Em decorrência disso, nota-se a necessidade de mudar comportamentos humanos com relação ao uso de agrotóxicos, adotando por parte do agricultor atitudes sustentáveis controlando o uso de agrotóxicos, de forma que, não agrida o meio ambiente e não cause danos à saúde das pessoas, necessário também que o Estado ofereça assistência técnica aos agricultores a fim de ensiná-los a aplicar corretamente os agrotóxicos, sem comprometer o meio ambiente e saúde das pessoas, além de implantar órgãos de fiscalizações na zona rural para evitar qualquer ação que desrespeite a lei com relação ao uso de agrotóxicos.",
+                        "tipo": "período longo com falha de articulação sintática",
+                        "explicacao": "Há encadeamento excessivo de segmentos e uma passagem pouco articulada em 'necessário também que', sem integração sintática clara ao restante do período, o que compromete a construção e a fluidez."
+                    },
+                    {
+                        "trecho": "A Revolução Verde trouxe avanços na agricultura aumentando a produção em larga escala de alimentos, graças ao desenvolvimento tecnológico que possibilitou a produção de insumos agrícolas, como agrotóxicos e fertilizantes, aumentando significamente a produtividade agrícola, mas trouxe consigo graves problemas de ordem social, econômica e ambiental.",
+                        "tipo": "encadeamento sintático pouco fluido",
+                        "explicacao": "O período é compreensível, mas apresenta acúmulo de estruturas gerundivas e repetição de encadeamentos, tornando a construção menos fluida."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "aumentando significamente a produtividade agrícola",
+                        "tipo": "ortografia/forma vocabular",
+                        "explicacao": "A forma adequada é 'significativamente'."
+                    },
+                    {
+                        "trecho": "o uso inadequado e abusivo de agrotóxicos na lavoura agrícola gerar impactos negativos",
+                        "tipo": "concordância verbal/forma verbal",
+                        "explicacao": "O verbo deveria concordar com o núcleo do sujeito: 'gera impactos negativos'."
+                    },
+                    {
+                        "trecho": "meio ambiente.A falta de conhecimento técnico",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "Falta espaço após o ponto final."
+                    },
+                    {
+                        "trecho": "um desses problemas é, a poluição do solo",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula entre o verbo de ligação e o predicativo é inadequada."
+                    },
+                    {
+                        "trecho": "contamina os lenções freáticos",
+                        "tipo": "ortografia",
+                        "explicacao": "A forma adequada é 'lençóis freáticos'."
+                    },
+                    {
+                        "trecho": "problemas de saudê",
+                        "tipo": "ortografia/acentuação",
+                        "explicacao": "A forma correta é 'saúde'."
+                    },
+                    {
+                        "trecho": "Outro problema gerado pela utilização de agrotóxicos são os problemas de saudê que atinge grande parte da população.",
+                        "tipo": "concordância verbal e nominal",
+                        "explicacao": "Há inadequação de concordância em 'Outro problema... são os problemas' e em 'problemas... que atinge', em que o verbo deveria concordar com o referente plural."
+                    },
+                    {
+                        "trecho": "de forma que, não agrida o meio ambiente",
+                        "tipo": "pontuação",
+                        "explicacao": "A vírgula após 'que' é inadequada, pois separa a conjunção do restante da oração subordinada."
+                    },
+                    {
+                        "trecho": "órgãos de fiscalizações",
+                        "tipo": "escolha vocabular/concordância nominal",
+                        "explicacao": "No contexto, a forma esperada seria 'órgãos de fiscalização', com o substantivo no singular indicando a função."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "12.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 3,
+                "evidencias": [
+                    {
+                        "trecho": "Em 1954 e 1975 acontecia a guerra do Vietnã, esse conflito era dividido em norte e sul, União Soviética e Estados Unidos.",
+                        "tipo": "justaposição inadequada de orações / construção pouco clara",
+                        "explicacao": "Duas informações independentes são unidas apenas por vírgula, e a enumeração final torna a relação sintática e semântica pouco clara."
+                    },
+                    {
+                        "trecho": "Entre muitas estratégias militares estavam o uso de armas químicas, herbicidas eram jogados na plantação para dificultar o esconderijo de soldados, causando assim desidratação das plantas e atraindo doenças, mutilações e morte aos atingidos.",
+                        "tipo": "período com articulação sintática problemática",
+                        "explicacao": "Há justaposição de orações e acúmulo de informações em um único período, o que prejudica a organização e a fluidez da leitura."
+                    },
+                    {
+                        "trecho": "Segundo o IBGE o uso de agrotóxicos tem crescido deliberadamente nas grandes produções de alimentos, um dos motivos para isso é que o produtor não quer adquirir prejuízos em suas colheitas, causados pelas pragas que devoram a plantação, e também querem produzir muito e em pouco tempo, alimentos para o mercado brasileiro e também exterior.",
+                        "tipo": "período longo com justaposição e organização irregular",
+                        "explicacao": "O período reúne várias ideias com articulação frágil, especialmente pela união de orações independentes por vírgula e por mudanças na organização dos referentes."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "Entre muitas estratégias militares estavam o uso de armas químicas",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo no plural não concorda adequadamente com o núcleo singular da expressão posterior, 'o uso'."
+                    },
+                    {
+                        "trecho": "A guerra acabou, mais o uso desordenado de agrotóxicos na agricultura moderna continuam afetando negativamente a saúde e o meio ambiente.",
+                        "tipo": "ortografia e concordância verbal",
+                        "explicacao": "Há uso de 'mais' no lugar de 'mas' e inadequação de concordância em 'o uso... continuam', pois o núcleo do sujeito é singular."
+                    },
+                    {
+                        "trecho": "Segundo o IBGE o uso de agrotóxicos tem crescido deliberadamente",
+                        "tipo": "pontuação / escolha vocabular",
+                        "explicacao": "Falta vírgula após o adjunto inicial 'Segundo o IBGE'. Além disso, 'deliberadamente' é empregado de modo impreciso no contexto."
+                    },
+                    {
+                        "trecho": "Consequentemente, esse “equilíbrio” financeiro implica no meio ambiente e na saúde da população",
+                        "tipo": "regência verbal",
+                        "explicacao": "No sentido de acarretar ou causar consequência, o verbo 'implicar' exige objeto direto: 'implica o meio ambiente e a saúde' ou construção equivalente."
+                    },
+                    {
+                        "trecho": "doenças como: câncer, envenenamento, doenças renais, redução da fecundidade, além de outros.",
+                        "tipo": "pontuação e concordância nominal",
+                        "explicacao": "O uso de dois-pontos após 'como' é inadequado nesse contexto, e 'outros' não concorda claramente com o referente feminino/plural 'doenças'."
+                    },
+                    {
+                        "trecho": "Portanto medidas devem ser tomadas",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após o conectivo conclusivo 'Portanto'."
+                    },
+                    {
+                        "trecho": "através do ministério da agricultura",
+                        "tipo": "emprego de maiúsculas/minúsculas",
+                        "explicacao": "O nome institucional deveria ser grafado com iniciais maiúsculas: 'Ministério da Agricultura'."
+                    },
+                    {
+                        "trecho": "benefícios relacionados à saúde do consumidor final e as finanças pessoais",
+                        "tipo": "crase",
+                        "explicacao": "Há paralelismo com 'relacionados a'; diante de 'finanças', seria esperado o uso de crase: 'às finanças pessoais'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                1,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "28.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Apesar dos agrotóxicos protegerem a agricultura podem prejudicar os seres vivos através da contaminação,poluição do solo,da água e do ar.",
+                        "tipo": "articulação sintática com pontuação insuficiente",
+                        "explicacao": "A oração concessiva inicial está articulada a uma oração principal completa, mas a ausência de marcação adequada entre as partes reduz a fluidez do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Brasil,pois",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "Há ausência de espaço após a vírgula e falta de separação adequada antes da conjunção explicativa."
+                    },
+                    {
+                        "trecho": "Apesar dos agrotóxicos protegerem a agricultura podem prejudicar",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após a oração subordinada concessiva anteposta."
+                    },
+                    {
+                        "trecho": "contaminação,poluição do solo,da água e do ar",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "Há ausência de espaço após as vírgulas na enumeração."
+                    },
+                    {
+                        "trecho": "Nos seres humanos os agrotóxicos podem causar",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após o adjunto adverbial deslocado no início do período."
+                    },
+                    {
+                        "trecho": "como por exemplo:lesões nos rins,câncer",
+                        "tipo": "pontuação/espaçamento",
+                        "explicacao": "O trecho apresenta pontuação inadequada na expressão exemplificativa e ausência de espaço após dois-pontos e vírgula."
+                    },
+                    {
+                        "trecho": "É fundamental que se utilize os agrotóxicos",
+                        "tipo": "concordância verbal",
+                        "explicacao": "Na construção com pronome apassivador, o verbo deveria concordar com o sujeito plural: 'que se utilizem os agrotóxicos'."
+                    },
+                    {
+                        "trecho": "para que assim diminua os problemas de saúde e os impactos ambientais",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo 'diminua' não concorda com o sujeito plural 'os problemas de saúde e os impactos ambientais'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "30.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Os agrotóxicos começaram se intensificado no final da Segunda Guerra Mundial , conhecido como a Revolução Verde, é usado para controlar insetos, doenças, ou plantas daninhas que causam danos às plantações e tem ganhado bastante visibilidade na sociedade, s urbanistas defendem a necessidade de usar para a maior produtividade da agricultura, já os especialistas e ambientalistas são contra o uso pois trazem riscos à saúde e ao meio ambiente.",
+                        "tipo": "período longo com articulação inadequada de orações",
+                        "explicacao": "O período acumula muitas informações com relações sintáticas mal organizadas, mudança de referente e justaposição de orações, o que prejudica a fluidez e a clareza."
+                    },
+                    {
+                        "trecho": "O Brasil é o maior consumidor, segundo o site g1 (globo.com) e com o maior risco, tanto para os trabalhadores da agricultura, e para os consumidores podendo causar doenças gravíssimas",
+                        "tipo": "construção sintática pouco articulada",
+                        "explicacao": "A relação entre 'maior consumidor' e 'com o maior risco' fica mal estruturada; além disso, a sequência final aproxima orações sem articulação clara."
+                    },
+                    {
+                        "trecho": "No meio ambiente também tem seus prejuízos podem diminuir a biodiversidade do solo, ocasionar acidez, desencadear a morte de vários tipos de plantas.",
+                        "tipo": "justaposição inadequada de orações",
+                        "explicacao": "Há união inadequada entre 'tem seus prejuízos' e 'podem diminuir', sem elemento sintático que organize a relação entre as ideias."
+                    },
+                    {
+                        "trecho": "é fundamental que haja novas maneiras e fiscalização para que diminua os riscos para os seres vivos, e que de alguma forma seja palestras, campanhas na televisão",
+                        "tipo": "construção incompleta ou mal organizada",
+                        "explicacao": "A passagem apresenta encaixe sintático problemático, especialmente em 'que de alguma forma seja palestras', comprometendo a construção do período."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "começaram se intensificado",
+                        "tipo": "desvio gramatical - forma verbal/pronominal",
+                        "explicacao": "A construção verbal está inadequada à norma formal; seria necessária outra estrutura, como 'começaram a se intensificar'."
+                    },
+                    {
+                        "trecho": "conhecido como a Revolução Verde, é usado",
+                        "tipo": "desvio gramatical - concordância/referência",
+                        "explicacao": "Há inadequação de concordância e de referente, pois 'agrotóxicos' está no plural, mas os termos aparecem no singular."
+                    },
+                    {
+                        "trecho": "s urbanistas",
+                        "tipo": "desvio de convenção da escrita - ortografia/digitação",
+                        "explicacao": "Há provável supressão da letra inicial em 'os urbanistas'."
+                    },
+                    {
+                        "trecho": "a necessidade de usar",
+                        "tipo": "desvio gramatical - regência/complementação",
+                        "explicacao": "O verbo 'usar' aparece sem complemento explícito em contexto em que ele é necessário para a clareza formal da construção."
+                    },
+                    {
+                        "trecho": "tanto para os trabalhadores da agricultura, e para os consumidores",
+                        "tipo": "desvio gramatical - paralelismo/pontuação",
+                        "explicacao": "A correlação 'tanto... quanto' não é realizada adequadamente, e a vírgula antes de 'e' prejudica a construção formal."
+                    },
+                    {
+                        "trecho": "No meio ambiente também tem seus prejuízos",
+                        "tipo": "desvio gramatical - registro/construção verbal",
+                        "explicacao": "O uso de 'tem' com valor existencial é marca menos adequada à escrita formal; seria esperado 'há' ou outra construção equivalente."
+                    },
+                    {
+                        "trecho": "diante de todos problemas",
+                        "tipo": "desvio gramatical - concordância nominal/determinação",
+                        "explicacao": "Falta o artigo em 'todos os problemas', forma exigida pela construção na norma formal."
+                    },
+                    {
+                        "trecho": "para que diminua os riscos",
+                        "tipo": "desvio gramatical - concordância verbal",
+                        "explicacao": "O verbo deveria concordar com o sujeito mais provável no contexto, como 'as maneiras e a fiscalização diminuam' ou construção equivalente."
+                    },
+                    {
+                        "trecho": "conscientizando a população na importância",
+                        "tipo": "desvio gramatical - regência",
+                        "explicacao": "A regência mais adequada é 'conscientizar a população sobre/da importância', não 'na importância'."
+                    },
+                    {
+                        "trecho": "a concentração inserido do agrotóxico",
+                        "tipo": "desvio gramatical/vocabular - concordância e escolha lexical",
+                        "explicacao": "Há inadequação de concordância em 'inserido' e emprego vocabular impreciso no contexto."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                1,
+                0,
+                0,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "32.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "pois o alto grau de toxicidade traz problemas como o câncer e problemas crônicos aos consumidores destes alimentos e pode contaminar também o solo deixando-o desnutrido e infértil , lagos e rios, inclusive animais como as abelhas (que são as responsáveis pela polinização).",
+                        "tipo": "período sobrecarregado",
+                        "explicacao": "O período acumula várias informações coordenadas, o que reduz a fluidez e torna a organização das relações entre os termos menos clara, embora a compreensão global seja preservada."
+                    },
+                    {
+                        "trecho": "para que assim sejam reduzidas as consequências e os cidadãos possam ter uma melhor qualidade de vida para essa e as gerações futuras, e o meio ambiente um lugar mais sadio.",
+                        "tipo": "ausência de elemento sintático",
+                        "explicacao": "No trecho final, a construção coordenada fica incompleta, pois falta um verbo ou estrutura equivalente para completar a relação com “o meio ambiente”."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "a ausência de leis que atenuam essa quantidade",
+                        "tipo": "modo verbal",
+                        "explicacao": "Pelo contexto de finalidade/hipótese, seria esperado o subjuntivo: “leis que atenuem essa quantidade”."
+                    },
+                    {
+                        "trecho": "no entanto o uso elevado destes acaba por trazer sérios riscos",
+                        "tipo": "pontuação",
+                        "explicacao": "Há ausência de vírgula após a locução conjuntiva deslocada “no entanto”."
+                    },
+                    {
+                        "trecho": "na busca por matar as pragas alguns agricultores sem saber outras medidas eficazes acaba por utilizar",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O sujeito plural “alguns agricultores” exige o verbo no plural: “acabam”."
+                    },
+                    {
+                        "trecho": "um solo desnutrido acaba ficando mais sucessível a doenças e pragas",
+                        "tipo": "ortografia/escolha vocabular",
+                        "explicacao": "A forma adequada é “suscetível”, não “sucessível”."
+                    },
+                    {
+                        "trecho": "Além disso a mídia deve atuar",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta vírgula após o conector introdutório “Além disso”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "5.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "O uso abusivo dos produtos químicos e nocivos é a falta de capacitação dos trabalhadores que infelizmente, faz com que esse direito continue apenas no papel.",
+                        "tipo": "construção sintática inadequada",
+                        "explicacao": "O período estabelece uma relação pouco adequada entre sujeito e predicativo, como se o uso abusivo 'fosse' a falta de capacitação, o que compromete a clareza da construção."
+                    },
+                    {
+                        "trecho": "A Constituição cidadã de 1988 garante a saúde de qualidade como direito de todos e dever do Estado tendo o compromisso de prover o acesso igualitário e universal às ações e aos serviços para sua formação e proteção, todavia, o poder executivo não efetiva esse direito.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "O período é compreensível, mas a articulação entre as informações é pouco fluida, especialmente no trecho com gerúndio, o que torna a construção menos clara."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Segundo Platão a qualidade de vida do ser humano tem tamanha importância que ultrapassa a própria existência.",
+                        "tipo": "pontuação",
+                        "explicacao": "Há ausência de vírgula após o adjunto adverbial deslocado 'Segundo Platão'."
+                    },
+                    {
+                        "trecho": "não há dúvida que a diminuição de defensivos agrícolas é um desafio no Brasil",
+                        "tipo": "regência",
+                        "explicacao": "Na modalidade formal, a construção esperada é 'não há dúvida de que'."
+                    },
+                    {
+                        "trecho": "devido não só a negligência governamental, mas também a postura indolente da sociedade",
+                        "tipo": "crase",
+                        "explicacao": "Há ausência de crase em 'à negligência' e 'à postura', pois a expressão 'devido a' exige preposição e os substantivos femininos admitem artigo."
+                    },
+                    {
+                        "trecho": "como por exemplo, doenças crônicas",
+                        "tipo": "pontuação",
+                        "explicacao": "A expressão intercalada 'por exemplo' deveria estar isolada por vírgulas: 'como, por exemplo, doenças crônicas'."
+                    },
+                    {
+                        "trecho": "impulsionar debates que orientam o uso correto dos agrotóxicos",
+                        "tipo": "tempo e modo verbal",
+                        "explicacao": "Pelo contexto de finalidade, seria mais adequado o uso do subjuntivo: 'debates que orientem'."
+                    },
+                    {
+                        "trecho": "o mesmo contamine os lençois freáticos",
+                        "tipo": "emprego de pronome e ortografia",
+                        "explicacao": "O uso de 'o mesmo' como pronome retomador é inadequado na modalidade formal; além disso, há desvio ortográfico em 'lençois', cuja forma correta é 'lençóis'."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "56.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Consoante Immanuel Kant, o homem político deve ser acima de tudo moralmente altruísta, ou seja, garantir a felicidade coletiva, logo se verifica que esse conceito encontra-se deturpado no Brasil à medida que a população ingere em média 1 kg de produtos químicos anualmente que, consequentemente podem acarretar uma série de problemas futuramente; fazendo com que os direitos permanecem no papel.",
+                        "tipo": "período longo com articulação parcialmente prejudicada",
+                        "explicacao": "O período reúne muitas informações e orações em sequência; apesar de compreensível, a articulação final com 'fazendo com que' após ponto e vírgula prejudica a fluidez e a organização sintática."
+                    },
+                    {
+                        "trecho": "fazendo com que os direitos permanecem no papel.",
+                        "tipo": "oração dependente mal articulada",
+                        "explicacao": "A oração introduzida por gerúndio depende sintaticamente do trecho anterior, mas aparece separada por ponto e vírgula, o que gera uma construção pouco fluida."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "à uma agricultura natural",
+                        "tipo": "crase",
+                        "explicacao": "Há uso inadequado de crase antes de artigo indefinido; a forma esperada seria 'a uma agricultura natural'."
+                    },
+                    {
+                        "trecho": "possibilit de certa forma sua sobrevivência",
+                        "tipo": "ortografia",
+                        "explicacao": "A forma verbal aparece grafada de modo incompleto/inadequado, provavelmente por erro de digitação ou ortografia."
+                    },
+                    {
+                        "trecho": "o uso constante de produtos nocivos à saúde se tornaram um grande impasse",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O núcleo do sujeito é 'uso', no singular; portanto, a forma verbal adequada seria 'se tornou'."
+                    },
+                    {
+                        "trecho": "não há dúvidas que",
+                        "tipo": "regência nominal",
+                        "explicacao": "A construção formal exige a preposição 'de': 'não há dúvidas de que'."
+                    },
+                    {
+                        "trecho": "ao meio na qual se encontra a produção agrícola do país",
+                        "tipo": "concordância/pronome relativo",
+                        "explicacao": "O termo retomado é masculino singular, 'meio'; o adequado seria 'no qual'."
+                    },
+                    {
+                        "trecho": "fazendo com que os direitos permanecem no papel",
+                        "tipo": "modo verbal",
+                        "explicacao": "Após 'fazendo com que', espera-se o subjuntivo: 'permaneçam'."
+                    },
+                    {
+                        "trecho": "por meio de palestras e grupos de debates a população",
+                        "tipo": "pontuação",
+                        "explicacao": "Falta uma vírgula após o adjunto intercalado 'por meio de palestras e grupos de debates', antes de 'a população'."
+                    },
+                    {
+                        "trecho": "com viés de ascender à mesma",
+                        "tipo": "escolha vocabular/pronominal",
+                        "explicacao": "O uso de 'ascender à mesma' é inadequado ao contexto e pouco compatível com a modalidade formal esperada."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "66.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "E, assim, os direitos defendidos pela ONU sejam realmente cumpridos",
+                        "tipo": "fragmento sintático / oração dependente separada",
+                        "explicacao": "O trecho aparece separado por ponto e apresenta verbo no subjuntivo, funcionando como continuação finalística da oração anterior; isolado, fica sem oração principal completa."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 1,
+                "evidencias": [
+                    {
+                        "trecho": "Criado pela ONU , em 1948, os Diretos do Homem e Cidadão garante",
+                        "tipo": "ortografia e concordância",
+                        "explicacao": "Há erro ortográfico em “Diretos” por “Direitos” e problemas de concordância em “Criado” e “garante” em relação ao núcleo plural."
+                    },
+                    {
+                        "trecho": "o uso de agrotóxicos trazem",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O sujeito é singular, “o uso”, portanto o verbo deveria estar no singular: “traz”."
+                    },
+                    {
+                        "trecho": "70% de todo os alimentos",
+                        "tipo": "concordância nominal",
+                        "explicacao": "O termo “todo” não concorda adequadamente com “os alimentos”; o esperado seria “todos os alimentos”."
+                    },
+                    {
+                        "trecho": "alguma pesticida",
+                        "tipo": "concordância nominal / escolha vocabular",
+                        "explicacao": "O termo “pesticida”, no contexto, pede concordância masculina: “algum pesticida”."
+                    },
+                    {
+                        "trecho": "essas substâncias são percursoras de vária moléstias",
+                        "tipo": "ortografia e concordância nominal",
+                        "explicacao": "Há inadequação em “percursoras”, provavelmente por “precursoras”, e falta de concordância em “vária moléstias”, que deveria ser “várias moléstias”."
+                    },
+                    {
+                        "trecho": "tais substâncias são bio-acumulativos",
+                        "tipo": "hífen e concordância nominal",
+                        "explicacao": "O adjetivo deveria concordar com “substâncias” e, pela grafia usual, não levar hífen: “bioacumulativas”."
+                    },
+                    {
+                        "trecho": "não são degrados por agentes biológicos",
+                        "tipo": "ortografia / forma vocabular",
+                        "explicacao": "A forma adequada seria “degradados”."
+                    },
+                    {
+                        "trecho": "os agrotóxicos são um risco a bio-diversidade",
+                        "tipo": "crase e ortografia",
+                        "explicacao": "Falta crase em “à biodiversidade” e a grafia “bio-diversidade” está inadequada."
+                    },
+                    {
+                        "trecho": "uma vez que rompe o equilíbrio ecológico",
+                        "tipo": "concordância verbal",
+                        "explicacao": "O verbo “rompe” não concorda com o referente plural “os agrotóxicos”; o esperado seria “rompem”."
+                    },
+                    {
+                        "trecho": "por tanto",
+                        "tipo": "ortografia / segmentação vocabular",
+                        "explicacao": "A forma correta do conectivo conclusivo é “portanto”, escrito junto."
+                    },
+                    {
+                        "trecho": "desenvolvimento de novo bio-defensivos",
+                        "tipo": "concordância nominal e hífen",
+                        "explicacao": "O adjetivo deveria concordar com o substantivo plural: “novos”; além disso, a grafia com hífen é inadequada no contexto."
+                    },
+                    {
+                        "trecho": "por meio observações e o uso da tecnologia",
+                        "tipo": "regência / ausência de preposição",
+                        "explicacao": "A locução exige a preposição “de”: “por meio de observações e do uso da tecnologia”."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                1,
+                0,
+                0,
+                0
+            ]
+        }
+    },
+    {
+        "id": "70.html",
+        "weak_label": {
+            "estrutura_sintatica": {
+                "score": 4,
+                "evidencias": [
+                    {
+                        "trecho": "Um problema que tem nome desde épocas de Guerras .",
+                        "tipo": "oração/período incompleto",
+                        "explicacao": "O trecho funciona como um fragmento nominal, sem verbo principal, o que compromete a completude sintática do período."
+                    },
+                    {
+                        "trecho": "O primeiro lugar da lista dos países que mais utilizam a aplicação de pesticidas na agricultura está com o Brasil, e pesquisas estão continuamente mostrando os solos que são afetados, pessoas que desenvolvem problemas crônicos, psicológicos e a ligação da infertilidade e até mesmo do câncer a esse tipo de produto agrícola.",
+                        "tipo": "organização sintática pouco fluida",
+                        "explicacao": "O período é compreensível, mas apresenta encadeamento pouco equilibrado e enumeração com articulação irregular, especialmente em “os solos que são afetados, pessoas que desenvolvem... e a ligação...”, o que prejudica a fluidez."
+                    },
+                    {
+                        "trecho": "Sendo extremamente nocivos, ou não, o uso precisa ser fiscalizado e moderado",
+                        "tipo": "relação sintática imprecisa",
+                        "explicacao": "A construção inicial parece se referir aos pesticidas, mas o sujeito do período é “o uso”, gerando uma articulação sintática pouco precisa."
+                    }
+                ]
+            },
+            "desvios": {
+                "score": 2,
+                "evidencias": [
+                    {
+                        "trecho": "Guerras",
+                        "tipo": "emprego de maiúscula/minúscula",
+                        "explicacao": "Há uso inadequado de inicial maiúscula em substantivo comum no contexto apresentado."
+                    },
+                    {
+                        "trecho": "Agrotóxico",
+                        "tipo": "emprego de maiúscula/minúscula",
+                        "explicacao": "O substantivo comum aparece com inicial maiúscula sem justificativa no período."
+                    },
+                    {
+                        "trecho": "egunda Guerra Mundial",
+                        "tipo": "ortografia",
+                        "explicacao": "Há erro ortográfico por ausência da letra inicial em “Segunda”."
+                    },
+                    {
+                        "trecho": "é importante lembrar dos pontos positivos",
+                        "tipo": "regência verbal",
+                        "explicacao": "Na modalidade formal, a construção esperada seria “lembrar os pontos positivos” ou “lembrar-se dos pontos positivos”."
+                    },
+                    {
+                        "trecho": "por mais que a utilização dos mesmos possa ser benéfica",
+                        "tipo": "emprego de pronome/registro",
+                        "explicacao": "O uso de “os mesmos” como recurso anafórico é inadequado na modalidade escrita formal."
+                    },
+                    {
+                        "trecho": "Intoxicação advindas do uso de agrotóxicos não é problema exclusivo dos humanos.",
+                        "tipo": "concordância nominal",
+                        "explicacao": "Há discordância entre “Intoxicação”, no singular, e “advindas”, no plural."
+                    },
+                    {
+                        "trecho": "dependência dos mesmos para a agricultura nacional",
+                        "tipo": "emprego de pronome/registro",
+                        "explicacao": "O emprego de “os mesmos” como substituto anafórico é inadequado na escrita formal."
+                    }
+                ]
+            }
+        },
+        "one_hot": {
+            "estrutura_sintatica": [
+                0,
+                0,
+                0,
+                0,
+                1,
+                0
+            ],
+            "desvios": [
+                0,
+                0,
+                1,
+                0,
+                0
+            ]
+        }
+    }
+]
