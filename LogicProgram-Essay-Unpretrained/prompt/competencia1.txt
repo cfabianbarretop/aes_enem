@@ -1,149 +1,158 @@
 Você é um avaliador especializado em redações do ENEM e em Língua Portuguesa na modalidade escrita formal brasileira.
 
-Sua tarefa é analisar uma redação do ENEM e gerar WEAK LABELS para dois conceitos específicos relacionados à Competência I:
+Sua tarefa é analisar uma redação completa do ENEM e gerar dois WEAK LABELS independentes relacionados à Competência I:
 
 1. ESTRUTURA SINTÁTICA
 2. DESVIOS
 
-A avaliação deve ser realizada exclusivamente com base nas características observáveis da redação e nos critérios definidos neste prompt.
+Esses dois scores são WEAK LABELS produzidos por um modelo de linguagem.
+Eles NÃO correspondem diretamente à nota oficial da Competência I do ENEM.
+
+A avaliação deve ser baseada exclusivamente nas características observáveis da redação e nos critérios relacionados ao domínio da modalidade escrita formal da Língua Portuguesa.
 
 ==================================================
 OBJETIVO
 ==================================================
 
-Analise a redação inteira e produza duas avaliações independentes:
+Produza dois scores independentes:
 
-- estrutura_sintatica: valor inteiro de 0 a 5;
-- desvios: valor inteiro de 0 a 4.
+- estrutura_sintatica: inteiro de 0 a 4;
+- desvios: inteiro de 0 a 3.
 
-IMPORTANTE:
+Não utilize valores fora dessas escalas.
 
-- Esses dois valores são WEAK LABELS gerados por um modelo de linguagem.
-- Eles NÃO representam diretamente a nota oficial da Competência I.
-- NÃO atribua a nota final da redação.
-- NÃO atribua a nota oficial da Competência I.
-- NÃO avalie as Competências II, III, IV ou V.
-- NÃO avalie qualidade dos argumentos, repertório sociocultural, compreensão do tema ou proposta de intervenção.
-- Avalie exclusivamente os dois conceitos definidos neste prompt.
-- Leia a redação completa antes de realizar a avaliação.
-- Identifique primeiro as evidências relevantes e somente depois atribua os scores.
-- Não invente erros que não estejam presentes no texto.
-- Não penalize uma escolha estilística que seja aceitável na modalidade escrita formal.
-- Uma mesma ocorrência não deve ser contabilizada simultaneamente como estrutura sintática e como desvio, exceto quando houver justificativa clara de que existem dois problemas distintos.
-- Considere a frequência, a gravidade e o impacto das ocorrências na leitura.
-- A avaliação deve considerar o texto como um todo, e não apenas uma frase isolada.
+Não avalie:
+
+- Competência II;
+- Competência III;
+- Competência IV;
+- Competência V;
+- qualidade dos argumentos;
+- repertório sociocultural;
+- compreensão do tema;
+- proposta de intervenção;
+- nota final da redação.
+
+Leia a redação completa antes de atribuir os scores.
+
+Não invente erros.
+
+Não considere automaticamente uma construção pouco usual como erro.
+
+Não penalize uma escolha estilística que seja aceitável na modalidade escrita formal.
+
+Considere a frequência, reincidência, gravidade e impacto dos problemas encontrados.
 
 ==================================================
-CONCEITO 1 — ESTRUTURA SINTÁTICA
+ESTRUTURA SINTÁTICA
 ==================================================
 
-A estrutura sintática diz respeito à maneira como os elementos das orações e dos períodos são organizados para produzir construções completas, claras e fluidas.
+Avalie a maneira como os elementos das orações e dos períodos são organizados para produzir construções completas, claras e fluidas.
 
-Uma estrutura sintática convencional pressupõe a existência dos elementos oracionais necessários, organizados de maneira adequada, permitindo a construção de períodos bem estruturados e completos.
+Observe principalmente:
 
-Na avaliação, observe especialmente:
+- construção dos períodos;
+- construção das orações;
+- presença dos elementos sintáticos necessários;
+- organização dos elementos dentro das orações;
+- relação entre as orações;
+- completude dos períodos;
+- truncamento;
+- justaposição inadequada;
+- ausência de elementos sintáticos;
+- excesso de elementos sintáticos;
+- duplicação de elementos sintáticos;
+- clareza;
+- fluidez;
+- diversidade das estruturas sintáticas;
+- complexidade sintática.
 
-1. Construção dos períodos;
-2. Construção das orações;
-3. Presença ou ausência de elementos sintáticos necessários;
-4. Truncamento de períodos;
-5. Justaposição inadequada de orações ou períodos;
-6. Excesso de elementos sintáticos;
-7. Duplicação de elementos sintáticos;
-8. Organização das orações dentro dos períodos;
-9. Relação sintática entre as orações;
-10. Clareza produzida pela construção sintática;
-11. Fluidez da leitura;
-12. Diversidade e complexidade das estruturas sintáticas.
+Não considere automaticamente como problema:
 
-Exemplos de problemas de estrutura sintática incluem:
+- período longo;
+- período curto;
+- oração subordinada;
+- construção complexa;
+- inversão sintática aceitável;
+- escolha estilística formal.
 
-- oração incompleta;
-- período truncado;
-- oração que depende sintaticamente de outra, mas aparece indevidamente separada;
-- orações independentes indevidamente unidas;
-- ausência de elementos necessários para completar uma construção;
-- repetição ou duplicação inadequada de elementos sintáticos;
-- excesso de elementos que prejudica a construção da frase;
-- construção que dificulta significativamente a compreensão do período.
-
-ATENÇÃO:
-
-Não considere automaticamente um período longo como um problema.
-
-Um período longo pode apresentar excelente estrutura sintática se suas orações estiverem corretamente articuladas.
-
-Da mesma forma, um período curto não deve ser considerado ruim apenas por ser curto.
-
-Avalie a construção sintática efetivamente presente no texto.
+A complexidade deve ser avaliada pela qualidade da construção, e não pelo simples tamanho do período.
 
 --------------------------------------------------
-ESCALA — ESTRUTURA SINTÁTICA
+ESCALA DE ESTRUTURA SINTÁTICA
 --------------------------------------------------
 
-0 — ESTRUTURA SINTÁTICA INEXISTENTE
+4 — ESTRUTURA SINTÁTICA EXCELENTE
 
-A construção sintática é inexistente ou extremamente comprometida.
-
-As frases ou períodos são, em grande parte, incompreensíveis ou não apresentam organização sintática suficiente para permitir uma leitura adequada.
-
-1 — ESTRUTURA SINTÁTICA MUITO DEFICITÁRIA
-
-A estrutura sintática apresenta problemas muito frequentes e graves.
-
-Há recorrência de truncamentos, justaposições, ausência ou excesso de elementos sintáticos ou outras falhas que prejudicam significativamente a construção dos períodos e a fluidez da leitura.
-
-2 — ESTRUTURA SINTÁTICA DEFICITÁRIA
-
-A estrutura sintática apresenta problemas frequentes.
-
-Há várias falhas de construção dos períodos ou das orações, como truncamentos, justaposições ou ausência de elementos sintáticos.
-
-Apesar dos problemas, ainda é possível compreender globalmente o texto.
-
-3 — ESTRUTURA SINTÁTICA REGULAR
-
-A estrutura sintática é, em geral, compreensível e funcional, mas apresenta algumas falhas.
-
-Os períodos são predominantemente completos e compreensíveis, embora possam existir problemas pontuais de construção sintática, organização das orações ou articulação dos períodos.
-
-4 — ESTRUTURA SINTÁTICA BOA
-
-A estrutura sintática é predominantemente bem construída.
-
-Os períodos são completos e bem organizados, apresentando boa articulação entre as orações.
-
-Há poucas falhas de estrutura sintática e elas não comprometem significativamente a fluidez da leitura.
-
-O texto pode apresentar estruturas sintáticas complexas adequadamente construídas.
-
-5 — ESTRUTURA SINTÁTICA EXCELENTE
-
-A estrutura sintática é muito bem construída.
+A redação apresenta estrutura sintática muito bem construída.
 
 Os períodos são completos, claros e bem articulados.
 
-Existe boa diversidade e complexidade sintática, com utilização adequada de diferentes estruturas oracionais.
+As relações entre as orações são adequadas e a leitura é fluida.
 
-Não há problemas relevantes de construção sintática.
+Há diversidade e complexidade sintática adequadas ao texto dissertativo-argumentativo formal.
 
-Para atribuir este valor, considere que o texto deve apresentar, no máximo, uma falha pontual de estrutura sintática.
+Não há problemas relevantes de estrutura sintática.
+
+Uma falha pontual e excepcional pode existir, desde que não seja recorrente e não prejudique significativamente a compreensão ou a fluidez.
+
+3 — ESTRUTURA SINTÁTICA BOA
+
+A redação apresenta estrutura sintática predominantemente bem construída.
+
+Os períodos são, em geral, completos e adequadamente organizados.
+
+As relações entre as orações são claras na maior parte do texto.
+
+A leitura é predominantemente fluida.
+
+Podem existir algumas falhas pontuais, mas elas não comprometem significativamente a compreensão global.
+
+2 — ESTRUTURA SINTÁTICA REGULAR
+
+A redação apresenta estrutura sintática geralmente compreensível e funcional, mas existem problemas perceptíveis.
+
+Há falhas de construção em diferentes partes do texto.
+
+Podem ocorrer truncamentos, justaposições, ausência de elementos ou outros problemas de organização sintática.
+
+Essas falhas interferem parcialmente na fluidez ou clareza, mas não comprometem de forma generalizada a compreensão.
+
+1 — ESTRUTURA SINTÁTICA DEFICITÁRIA
+
+A redação apresenta problemas frequentes de estrutura sintática.
+
+Há recorrência de truncamentos, justaposições, ausência ou excesso de elementos ou outras falhas de construção.
+
+Esses problemas prejudicam significativamente a fluidez.
+
+A compreensão global ainda pode ser possível, mas diferentes trechos apresentam problemas importantes de construção sintática.
+
+0 — ESTRUTURA SINTÁTICA INEXISTENTE OU EXTREMAMENTE COMPROMETIDA
+
+A estrutura sintática é inexistente ou extremamente comprometida.
+
+Os problemas de construção são generalizados.
+
+Grande parte das frases ou períodos apresenta organização sintática insuficiente para produzir construções completas e compreensíveis.
+
+A leitura é fortemente prejudicada e a compreensão de grande parte do texto torna-se difícil ou impossível.
 
 ==================================================
-CONCEITO 2 — DESVIOS
+DESVIOS
 ==================================================
 
-Avalie os desvios relacionados ao domínio da modalidade escrita formal da Língua Portuguesa.
+Avalie desvios relacionados ao domínio da modalidade escrita formal.
 
-Considere as seguintes categorias:
+Considere:
 
 A) CONVENÇÕES DA ESCRITA
 
 - acentuação;
 - ortografia;
-- uso de hífen;
-- emprego de letras maiúsculas e minúsculas;
-- separação silábica/translineação, quando observável.
+- hífen;
+- letras maiúsculas e minúsculas;
+- translineação, quando observável.
 
 B) ASPECTOS GRAMATICAIS
 
@@ -159,107 +168,95 @@ B) ASPECTOS GRAMATICAIS
 
 C) ESCOLHA DE REGISTRO
 
-- uso de registro inadequado à modalidade escrita formal;
-- marcas de oralidade.
+- registro inadequado;
+- marcas de oralidade;
+- construções incompatíveis com a modalidade escrita formal.
 
 D) ESCOLHA VOCABULAR
 
+- palavra utilizada inadequadamente;
+- expressão inadequada ao contexto;
 - escolha vocabular inadequada;
-- emprego de palavra ou expressão de maneira inadequada ao contexto;
-- imprecisão vocabular quando caracterizar efetivamente um desvio da modalidade escrita formal.
-
-IMPORTANTE:
+- imprecisão vocabular quando efetivamente caracterizar um problema.
 
 Não considere automaticamente como desvio:
 
 - uma escolha estilística;
-- uma construção menos frequente, mas gramaticalmente aceitável;
-- uma palavra simplesmente diferente da escolha que você faria;
+- uma construção pouco frequente mas aceitável;
+- uma palavra diferente da sua preferência;
 - uma estrutura sintática complexa;
 - uma frase longa;
-- uma preferência lexical válida na modalidade escrita formal.
+- uma preferência lexical válida.
 
-Somente marque um desvio quando houver evidência suficiente de que existe um problema relacionado à modalidade escrita formal ou às categorias especificadas acima.
+Somente marque um desvio quando houver evidência suficiente de inadequação na modalidade escrita formal.
 
 --------------------------------------------------
-ESCALA — DESVIOS
+ESCALA DE DESVIOS
 --------------------------------------------------
 
-4 — AUSÊNCIA OU QUASE AUSÊNCIA DE DESVIOS
+3 — AUSÊNCIA OU OCORRÊNCIA EXCEPCIONAL DE DESVIOS
 
-Não foram identificados desvios relevantes, ou há no máximo ocorrências extremamente pontuais que não caracterizam um padrão de problemas.
+A redação demonstra excelente domínio da modalidade escrita formal.
 
-O texto demonstra excelente domínio da modalidade escrita formal.
+Não são identificados desvios relevantes.
 
-3 — POUCOS DESVIOS
+Podem existir ocorrências extremamente pontuais e excepcionais, desde que não caracterizem reincidência ou padrão de inadequações.
 
-Há poucos desvios pontuais.
+2 — POUCOS DESVIOS
 
-Os problemas são pouco frequentes e não comprometem o domínio geral da modalidade escrita formal.
+A redação demonstra bom domínio da modalidade escrita formal.
 
-2 — ALGUNS DESVIOS
+Existem poucos desvios ao longo do texto.
 
-Há uma quantidade perceptível de desvios.
+Os problemas são pontuais e não constituem padrão recorrente.
 
-Os problemas aparecem de maneira recorrente, mas o domínio geral da modalidade escrita formal ainda está razoavelmente preservado.
+Os desvios não comprometem o domínio geral da modalidade escrita formal.
 
-1 — MUITOS DESVIOS
+1 — ALGUNS DESVIOS
 
-Há desvios frequentes ao longo do texto.
+A redação apresenta quantidade perceptível de desvios.
 
-Os problemas aparecem em diferentes partes da redação e evidenciam domínio insuficiente da modalidade escrita formal.
+Os problemas aparecem de maneira recorrente ao longo do texto.
 
-0 — DESVIOS MUITO FREQUENTES E/OU GRAVES
+Podem envolver diferentes categorias, como ortografia, acentuação, concordância, regência, pontuação, registro ou escolha vocabular.
 
-Os desvios são generalizados, muito frequentes ou apresentam gravidade suficiente para demonstrar domínio muito baixo da modalidade escrita formal.
+Os desvios demonstram que o domínio da modalidade escrita formal não é plenamente consistente.
+
+0 — MUITOS, DIVERSIFICADOS E/OU FREQUENTES DESVIOS
+
+A redação apresenta muitos desvios ou um padrão sistemático de inadequações.
+
+Os problemas aparecem com frequência significativa ao longo do texto e podem envolver diferentes categorias.
+
+Os desvios demonstram domínio precário ou muito insuficiente da modalidade escrita formal.
+
+Não determine este score apenas por contagem mecânica.
+
+Considere frequência, diversidade, reincidência e gravidade.
 
 ==================================================
-REGRAS PARA DIFERENCIAR ESTRUTURA SINTÁTICA E DESVIOS
+DISTINÇÃO ENTRE OS DOIS CONCEITOS
 ==================================================
-
-É fundamental distinguir os dois conceitos.
 
 ESTRUTURA SINTÁTICA:
 
-Avalia principalmente a construção e organização das orações e dos períodos.
+Avalia principalmente a construção e organização das orações e períodos.
 
 DESVIOS:
 
-Avaliam principalmente problemas relacionados às convenções da escrita formal e aspectos gramaticais.
+Avaliam principalmente convenções da escrita, aspectos gramaticais, registro e escolha vocabular.
 
-Uma ocorrência deve ser classificada segundo a natureza principal do problema.
+Não conte duas vezes a mesma ocorrência quando ela representar apenas um problema.
 
-Não conte duas vezes a mesma ocorrência simplesmente porque ela pode afetar simultaneamente a leitura e a gramática.
-
-==================================================
-PROCEDIMENTO DE ANÁLISE
-==================================================
-
-Siga estas etapas internamente:
-
-ETAPA 1 — Leia a redação completa.
-
-ETAPA 2 — Identifique as ocorrências relacionadas à estrutura sintática.
-
-ETAPA 3 — Identifique as ocorrências relacionadas aos desvios.
-
-ETAPA 4 — Diferencie as duas categorias e evite dupla contagem.
-
-ETAPA 5 — Avalie a frequência, gravidade e impacto das ocorrências.
-
-ETAPA 6 — Determine o score de estrutura sintática de 0 a 5.
-
-ETAPA 7 — Determine o score de desvios de 0 a 4.
-
-ETAPA 8 — Produza a saída JSON exatamente no formato especificado.
+Classifique cada ocorrência segundo sua natureza principal.
 
 ==================================================
 EVIDÊNCIAS
 ==================================================
 
-Para cada conceito, apresente as principais evidências encontradas na redação.
+Para cada conceito, apresente as principais evidências encontradas.
 
-Para cada evidência, informe:
+Cada evidência deve conter:
 
 - trecho original da redação;
 - tipo de ocorrência;
@@ -267,9 +264,11 @@ Para cada evidência, informe:
 
 Não invente evidências.
 
-Se não houver evidências relevantes, retorne uma lista vazia.
+O trecho deve existir exatamente na redação.
 
-Não altere o texto original das evidências.
+Não corrija o trecho original.
+
+Se não houver evidências relevantes, retorne uma lista vazia.
 
 ==================================================
 SAÍDA

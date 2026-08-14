@@ -10,12 +10,12 @@ from tqdm import tqdm
 # ============================================================
 
 MODEL = "gpt-5.5"
-DATASET_NAME = "igorcs/C1-A"
-OUTPUT_FILE_NAME = "weak_labels_C1A.json"
+DATASET_NAME = "igorcs/LLM-JBCS"
+OUTPUT_FILE_NAME = "weak_labels_LLM-JBCS.json"
 API_KEY_SECRET = "OPEN_IA"  # Api key
 API_KEY_SECRET_DIR = "api_key.json"  # Api key data path
 PROMPT_PATH = "prompt/competencia1.txt"
-DATA_RESULT_PATH = "result" 
+DATA_RESULT_PATH = "result"
 
 base_dir = os.path.dirname(os.path.abspath(__file__))
 prompt_dir = os.path.join(base_dir, PROMPT_PATH)
@@ -37,7 +37,7 @@ OUTPUT_SCHEMA = {
         "estrutura_sintatica": {
             "type": "object",
             "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 5},
+                "score": {"type": "integer", "minimum": 0, "maximum": 4},
                 "evidencias": {
                     "type": "array",
                     "items": {
@@ -58,7 +58,7 @@ OUTPUT_SCHEMA = {
         "desvios": {
             "type": "object",
             "properties": {
-                "score": {"type": "integer", "minimum": 0, "maximum": 4},
+                "score": {"type": "integer", "minimum": 0, "maximum": 3},
                 "evidencias": {
                     "type": "array",
                     "items": {
@@ -91,13 +91,14 @@ def getApiKey(name_api_key):
     return config[name_api_key]
 
 
+client = OpenAI(api_key=getApiKey(API_KEY_SECRET))
+
 # ============================================================
 # 5. FUNÇÃO PARA GERAR UMA WEAK LABEL
 # ============================================================
 
 
 def generate_weak_label(essay):
-    client = OpenAI(api_key=getApiKey(API_KEY_SECRET))
     response = client.responses.create(
         model=MODEL,
         input=[
@@ -130,70 +131,115 @@ def generate_weak_label(essay):
 # 6. CARREGAR DATASET
 # ============================================================
 
-dataset = load_dataset(DATASET_NAME, cache_dir="tmp/aes_enem", trust_remote_code=True)['train']
+dataset = load_dataset(DATASET_NAME, cache_dir="tmp/aes_enem", trust_remote_code=True)[
+    "train"
+]
 
 # ============================================================
-# 7. TRABALHA COMO ESSAY
+#  7. SALVAR OS RESULTADOS
+# ============================================================
+
+
+def load_results(output_file):
+    """
+    Carrega resultados existentes.
+    Se o arquivo não existir, retorna lista vazia.
+    """
+
+    if not os.path.exists(output_file):
+        return []
+
+    try:
+        with open(output_file, "r", encoding="utf-8") as f:
+            return json.load(f)
+
+    except json.JSONDecodeError:
+        print("O arquivo JSON está corrompido.")
+        print("Iniciando com resultados vazios.")
+        return []
+
+
+def save_results(results, output_file):
+    """
+    Salva os resultados imediatamente.
+    """
+
+    # cria o diretório caso não exista
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+
+    # arquivo temporário
+    temp_file = output_file + ".tmp"
+
+    with open(temp_file, "w", encoding="utf-8") as f:
+
+        json.dump(results, f, ensure_ascii=False, indent=4)
+
+        # garante que os dados sejam escritos
+        f.flush()
+        os.fsync(f.fileno())
+
+    # substitui o arquivo antigo somente depois
+    # que o novo foi completamente escrito
+    os.replace(temp_file, output_file)
+
+
+# ============================================================
+# 8. TRABALHA COMO ESSAY
 # ============================================================
 def one_hot(score, num_classes):
     vector = [0] * num_classes
     vector[score] = 1
     return vector
 
+
 def generate_one_hot(result):
     return {
-        "estrutura_sintatica":
-            one_hot(
-                result["estrutura_sintatica"]["score"],
-                6
-            ),
-
-        "desvios":
-            one_hot(
-                result["desvios"]["score"],
-                5
-            )
+        "estrutura_sintatica": one_hot(result["estrutura_sintatica"]["score"], 5),
+        "desvios": one_hot(result["desvios"]["score"], 4),
     }
 
-results = []
-print("LEN ->",len(dataset))
+
+# results = []
+
+OUTPUT_FILE = os.path.join(result_dir, OUTPUT_FILE_NAME)
+
+results = load_results(OUTPUT_FILE)
+
+print(f"Resultados já salvos: {len(results)}")
+
+processed_ids = {item["id"] for item in results}
+
+print(f"IDs já processados: {len(processed_ids)}")
+
 iter = tqdm(dataset, total=len(dataset))
 for i, row in enumerate(iter):
+    id_essay = f"{row['id']}-{row['id_prompt']}"
+
+    # ============================================
+    # Já processado?
+    # ============================================
+    if id_essay in processed_ids:
+        continue
     essay = row["essay_text"]
-    id_essay =  row["id redação"]
 
     try:
         weak_label = generate_weak_label(essay)
 
-        results.append({
+        result = {
             "id": id_essay,
             "weak_label": weak_label,
-            "one_hot": generate_one_hot(weak_label)
-        })
+            "one_hot": generate_one_hot(weak_label),
+        }
+        results.append(result)
+
+        # adiciona ao conjunto
+        processed_ids.add(id_essay)
+
+        save_results(results, OUTPUT_FILE)
 
     except Exception as e:
 
         print(f"Erro no ensaio {id_essay}: {e}")
+        continue
 
-        # results.append({
-        #     "id": id_essay,
-        #     "error": str(e)
-        # })
     iter.set_description(f"[Weak label: Total {i+1}/{len(dataset)}]")
-
-# ============================================================
-# 7. SALVAR OS RESULTADOS
-# ============================================================
-OUTPUT_FILE = f"{result_dir}/{OUTPUT_FILE_NAME}"
-with open(
-    OUTPUT_FILE,
-    "w",
-    encoding="utf-8"
-) as f:
-
-    json.dump(
-        results,
-        f,
-        ensure_ascii=False,
-        indent=4
-    )
