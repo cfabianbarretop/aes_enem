@@ -2,6 +2,7 @@ import json
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from collections import Counter
 
 from datasets import load_dataset
 from sklearn.metrics import (
@@ -15,7 +16,8 @@ from sklearn.metrics import (
 # 1. CONFIGURAÇÃO
 # ============================================================
 DATA_RESULT_PATH = "result"
-OUTPUT_FILE_NAME = "weak_labels_C1A.json"
+# OUTPUT_FILE_NAME = "weak_labels_C1A.json"
+OUTPUT_FILE_NAME = "weak_labels_LLM-JBCS.json"
 GRAPH_SYNTAX_NAME = "syntax_matrix.png"
 GRAPH_MISTAKE_NAME = "mistake_matrix.png"
 
@@ -30,11 +32,50 @@ OUTPUT_FILE = f"{result_dir}/{OUTPUT_FILE_NAME}"
 # ============================================
 
 dataset = load_dataset(
-    "igorcs/C1-A",
+    # "igorcs/C1-A",
+    "igorcs/LLM-JBCS",
     cache_dir="tmp/aes_enem",
     trust_remote_code=True
 )["train"]
 
+# ============================================
+# Valores GT
+# ============================================
+map_sintaxe = {
+    "ruim": 0,
+    "deficitária": 1,
+    "regular": 2,
+    "boa": 3,
+    "excelente": 4
+}
+
+map_desvios = {
+    "muitos": 0,
+    "alguns": 1,
+    "poucos": 2,
+    "menos de dois": 3,
+}
+# valores_sintaxe = set()
+# valores_desvios = set()
+# for row in dataset:
+#     sintaxi = row["sintaxe"]
+#     desvios = row["desvios"]
+#     valor_mas_repetido_s = Counter(sintaxi).most_common(1)[0][0]
+#     valor_mas_repetido_d = Counter(desvios).most_common(1)[0][0]
+#     valores_sintaxe.add(valor_mas_repetido_s)
+#     valores_desvios.add(valor_mas_repetido_d)
+#     valor_numerico_s = map_sintaxe[valor_mas_repetido_s]
+#     valor_numerico_d = map_desvios[valor_mas_repetido_d]
+#     print(f"{valor_numerico_s} - {valor_numerico_d}")
+
+def get_valor_numerico(valor, tipo):
+    valor_numerico = -1
+    valor_mas_repetido = Counter(valor).most_common(1)[0][0]
+    if tipo == "sintaxe":
+        valor_numerico = map_sintaxe[valor_mas_repetido]
+    elif tipo == "desvios":
+        valor_numerico = map_desvios[valor_mas_repetido]
+    return valor_numerico
 
 # ============================================
 # Cargar weak labels
@@ -61,8 +102,10 @@ for row, weak in zip(dataset, weak_labels):
     # Ground truth
     # --------------------------
 
-    syntax_true.append(row["syntax"])
-    mistakes_true.append(row["mistakes"])
+    # syntax_true.append(row["syntax"])
+    # mistakes_true.append(row["mistakes"])
+    syntax_true.append(get_valor_numerico(row["sintaxe"],"sintaxe"))
+    mistakes_true.append(get_valor_numerico(row["desvios"], "desvios"))
 
 
     # --------------------------
@@ -70,10 +113,12 @@ for row, weak in zip(dataset, weak_labels):
     # --------------------------
 
     syntax_pred.append(
+        # get_valor_numerico(row["sintaxe"],"sintaxe")
         weak["weak_label"]["estrutura_sintatica"]["score"]
     )
 
     mistakes_pred.append(
+        # get_valor_numerico(row["desvios"], "desvios")
         weak["weak_label"]["desvios"]["score"]
     )
 
@@ -145,7 +190,7 @@ plt.imshow(cm_syntax)
 
 plt.title("Estrutura Sintática")
 plt.xlabel("Weak Label — LLM")
-plt.ylabel("Label original — INEP")
+plt.ylabel("Label original — LLM")
 
 plt.xticks(range(6), range(6))
 plt.yticks(range(6), range(6))
@@ -177,7 +222,7 @@ plt.imshow(cm_mistakes)
 
 plt.title("Desvios")
 plt.xlabel("Weak Label — LLM")
-plt.ylabel("Label original — INEP")
+plt.ylabel("Label original — LLM")
 
 plt.xticks(range(5), range(5))
 plt.yticks(range(5), range(5))
@@ -211,14 +256,14 @@ plt.plot(
     linestyle="--"
 )
 
-plt.xlabel("Label original — syntax")
-plt.ylabel("Weak Label — LLM")
-plt.title("Syntax: INEP vs LLM")
+# plt.xlabel("Label original — syntax")
+# plt.ylabel("Weak Label — LLM")
+# plt.title("Syntax: C1-A vs LLM")
 
-plt.xticks(range(6))
-plt.yticks(range(6))
+# plt.xticks(range(6))
+# plt.yticks(range(6))
 
-plt.grid(True)
+# plt.grid(True)
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
