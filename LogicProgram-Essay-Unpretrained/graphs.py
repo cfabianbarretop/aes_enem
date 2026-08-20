@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 # ==============================================
 GRAPH_RESULT_NAME = "result_graph"      # Result img name
 GRAPH_RESULT_CONCEPT_ACC = "concept_acc_graph"      # Result img name
+GRAPH_RESULT_F1_ACC = "f1_acc_graph"      # Result img name
 
 # ==============================================
 # COLOR MAP
@@ -29,10 +30,11 @@ COLOR_MAP = {
 # GRAPHS
 # ==============================================
 class Graphs():
-    def __init__(self, root: str, img: str, acc_concept_img: str, training: str):
+    def __init__(self, root: str, img: str, acc_concept_img: str, acc_f1_img: str, training: str):
         self.result_dir = root
         self.result_img= img
         self.acc_concept_img = acc_concept_img
+        self.acc_f1_img = acc_f1_img
         self.training = training
     
     def graph(self):
@@ -157,6 +159,27 @@ class Graphs():
             plt.savefig(self.acc_concept_img, dpi=300, bbox_inches="tight")
             plt.close()
 
+    def graph_f1(self):
+            for csv_file in Path(self.result_dir).glob("*.csv"):
+                name = csv_file.stem.lower()
+    
+                if self.training not in name:
+                    continue
+    
+                df = pd.read_csv(csv_file)
+                plt.figure(figsize=(8,5))
+                plt.plot(df["epoch"], 100 * df["f1_macro"], label="Macro", marker="o")
+                plt.plot(df["epoch"], 100 * df["f1_weighted"], label="Weighted", marker="s")
+                plt.plot(df["epoch"], df["acc"], label="Accuracy", marker="d",  linestyle="--", color="black")
+                plt.xlabel("Epoch")
+                plt.ylabel("Accuracy (%)")
+                plt.title("F1-Score vs Accuracy")
+                plt.legend()
+                plt.grid(True)
+                plt.tight_layout()
+                plt.savefig(self.acc_f1_img, dpi=300, bbox_inches="tight")
+                plt.close()
+
 def main_graph(training="rs", dir_result = ""):
     # Obtiene el directorio donde está este archivo.py
     base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -164,11 +187,14 @@ def main_graph(training="rs", dir_result = ""):
     result_dir = os.path.join(base_dir, dir_result)
     name_img = f"{GRAPH_RESULT_NAME}_{training}.png"
     name_acc_concept_img = f"{GRAPH_RESULT_CONCEPT_ACC}_{training}.png"
+    name_acc_f1_img = f"{GRAPH_RESULT_F1_ACC}_{training}.png"
     result_img = os.path.join(result_dir, name_img)
     result_acc_concept_img = os.path.join(result_dir, name_acc_concept_img)
-    graph = Graphs(result_dir, result_img, result_acc_concept_img, training)
+    result_acc_f1_img = os.path.join(result_dir, name_acc_f1_img)
+    graph = Graphs(result_dir, result_img, result_acc_concept_img, result_acc_f1_img, training)
     graph.graph()
     graph.graph_concept()
+    graph.graph_f1()
 
 if __name__ == "__main__":
   # Argument parser

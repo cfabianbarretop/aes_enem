@@ -20,10 +20,11 @@ from datasets import load_dataset, Dataset
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, f1_score
 from torchvision.transforms.functional import to_pil_image
 from tqdm import tqdm
 from graphs import main_graph
+
 # ==============================================
 # CONFIG
 # ==============================================
@@ -38,17 +39,14 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 cy = {0: 1, 1: 1, 2: 6, 3: 5, 4: 3, 5: 1}
 print("Device: ", device)
 
+
 def get_ground_thun(result_dir, id_dataset):
     OUTPUT_FILE = f"{result_dir}/{OUTPUT_FILE_NAME}"
     gt_syntax, gt_mistake = 0, 0
-    pb_syntax = [0,0,0,0,0]
-    pb_mistake = [0,0,0,0]
-     
-    with open(
-        OUTPUT_FILE,
-        "r",
-        encoding="utf-8"
-    ) as f:
+    pb_syntax = [0, 0, 0, 0, 0]
+    pb_mistake = [0, 0, 0, 0]
+
+    with open(OUTPUT_FILE, "r", encoding="utf-8") as f:
         weak_labels = json.load(f)
     for item in weak_labels:
         if item["id"] == id_dataset:
@@ -57,6 +55,7 @@ def get_ground_thun(result_dir, id_dataset):
             gt_syntax = item["weak_label"]["estrutura_sintatica"]["score"]
             gt_mistake = item["weak_label"]["desvios"]["score"]
     return gt_syntax, gt_mistake, pb_syntax, pb_mistake
+
 
 # ==============================================
 # Dataset
@@ -127,9 +126,18 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
             else:
                 label = self.essays[idx]["label"] // 40
         id_dataset = f"{self.essays[idx]['id']}-{self.essays[idx]['id_prompt']}"
-        gt_syntax, gt_mistake, pb_syntax, pb_mistake = get_ground_thun(self.dir_result, id_dataset)
+        gt_syntax, gt_mistake, pb_syntax, pb_mistake = get_ground_thun(
+            self.dir_result, id_dataset
+        )
         # Each data has two images and the GT is the sum of two digits
-        return (tokenized_text, label, gt_syntax, gt_mistake, pb_syntax, pb_mistake)  # (a_img, b_img, a_digit + b_digit)
+        return (
+            tokenized_text,
+            label,
+            gt_syntax,
+            gt_mistake,
+            pb_syntax,
+            pb_mistake,
+        )  # (a_img, b_img, a_digit + b_digit)
 
     @staticmethod
     def collate_fn(batch):
@@ -141,7 +149,12 @@ class MNISTFashionDataset(torch.utils.data.Dataset):
         gt_mistake = torch.tensor([item[3] for item in batch], dtype=torch.long)
         prob_syntax = torch.stack([torch.tensor(item[4]) for item in batch])
         prob_mistake = torch.stack([torch.tensor(item[5]) for item in batch])
-        return ((input_ids, token_type, attention_mask), digits, (gt_syntax, gt_mistake), (prob_syntax, prob_mistake))
+        return (
+            (input_ids, token_type, attention_mask),
+            digits,
+            (gt_syntax, gt_mistake),
+            (prob_syntax, prob_mistake),
+        )
 
 
 # ==============================================
@@ -243,35 +256,25 @@ class MNISTFashionLogic(nn.Module):
         # sum_2(2)
         p2 = (
             resposta_a[:, 1] * resposta_b[:, 1:].sum(dim=1)
-            +
-            resposta_a[:, 2:].sum(dim=1) * resposta_b[:, 0]
+            + resposta_a[:, 2:].sum(dim=1) * resposta_b[:, 0]
         )
 
         # sum_2(3)
         p3 = (
             resposta_a[:, 2] * resposta_b[:, 1:].sum(dim=1)
-            +
-            resposta_a[:, 3:].sum(dim=1) * resposta_b[:, 1]
+            + resposta_a[:, 3:].sum(dim=1) * resposta_b[:, 1]
         )
 
         # sum_2(4)
         p4 = (
             resposta_a[:, 3] * resposta_b[:, 2:].sum(dim=1)
-            +
-            resposta_a[:, 4] * resposta_b[:, 2]
+            + resposta_a[:, 4] * resposta_b[:, 2]
         )
 
         # sum_2(5)
         p5 = resposta_a[:, 4] * resposta_b[:, 3]
 
-        sum_2 = torch.stack([
-            p0,
-            p1,
-            p2,
-            p3,
-            p4,
-            p5
-        ], dim=1)
+        sum_2 = torch.stack([p0, p1, p2, p3, p4, p5], dim=1)
 
         # Then execute the reasoning module; the result is a size 19 tensor
         return (
@@ -293,6 +296,8 @@ def save_metrics(file_path, file_name, metric):
                 "epoch",
                 "loss",
                 "acc",
+                "f1_macro",
+                "f1_weighted",
                 "GAcc",
                 "acc_C1",
                 "acc_C2",
@@ -310,6 +315,8 @@ def save_metrics(file_path, file_name, metric):
                     row["epoch"],
                     row["loss"],
                     row["acc"],
+                    row["f1_macro"],
+                    row["f1_weighted"],
                     row["GAcc"],
                     row["acc_C1"],
                     row["acc_C2"],
@@ -386,15 +393,14 @@ def nll_loss(output, ground_truth):
 
 def con_loss(output, target, gt1, gt2, pred1, pred2):
     loss = torch.tensor(0.0, device=output.device)
-    loss_concep =torch.tensor(0.0, device=output.device)
-    entropy =torch.tensor(0.0, device=output.device)
+    loss_concep = torch.tensor(0.0, device=output.device)
+    entropy = torch.tensor(0.0, device=output.device)
 
-    lambda_label   = torch.tensor(1.0, device=output.device)
+    lambda_label = torch.tensor(1.0, device=output.device)
     lambda_concept = torch.tensor(0.1, device=output.device)
     lambda_entropy = torch.tensor(0.001, device=output.device)
 
     loss_label = bce_loss(output, target)
-    
 
     loss1 = -(gt1 * torch.log(pred1 + 1e-8)).sum(dim=1).mean()
     loss2 = -(gt2 * torch.log(pred2 + 1e-8)).sum(dim=1).mean()
@@ -405,7 +411,11 @@ def con_loss(output, target, gt1, gt2, pred1, pred2):
     loss_concep = loss1 + loss2
     entropy = entropy1 + entropy2
 
-    loss = (lambda_concept*loss_concep + lambda_entropy*entropy + lambda_label*loss_label)
+    loss = (
+        lambda_concept * loss_concep
+        + lambda_entropy * entropy
+        + lambda_label * loss_label
+    )
     # return loss
     return loss_label
 
@@ -437,7 +447,15 @@ def conf_matrix(file_path, file_name, data):
 # ==============================================
 class Trainer:
     def __init__(
-        self, result_dir, train_loader, validation_loader, test_loader, learning_rate, loss, k, provenance
+        self,
+        result_dir,
+        train_loader,
+        validation_loader,
+        test_loader,
+        learning_rate,
+        loss,
+        k,
+        provenance,
     ):
         self.network = MNISTFashionLogic(provenance, k).to(device)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
@@ -453,7 +471,7 @@ class Trainer:
         elif loss == "bce":
             self.loss = bce_loss
         elif loss == "ll":
-                    self.loss = con_loss
+            self.loss = con_loss
         else:
             raise Exception(f"Unknown loss function `{loss}`")
 
@@ -466,7 +484,7 @@ class Trainer:
         pc1, pc2 = [], []
         g1, g2 = [], []
         y, p, pb = [], [], []
-        for (data, target, (gt_syntax, gt_mistake), (p_syntax, p_mistake)) in iter:
+        for data, target, (gt_syntax, gt_mistake), (p_syntax, p_mistake) in iter:
             p_syntax = p_syntax.to(device)
             p_mistake = p_mistake.to(device)
             self.optimizer.zero_grad()
@@ -497,10 +515,12 @@ class Trainer:
             g1, g2, y, c1, pc1, c2, pc2, p
         )
         correct_concepts = sum(
-            (a == b) and (c == d)
-            for a, b, c, d in zip(g1, c1, g2, c2)
+            (a == b) and (c == d) for a, b, c, d in zip(g1, c1, g2, c2)
         )
         gacc = 100.0 * correct_concepts / len(g1)
+
+        f1_macro = f1_score(y, p, average="macro")
+        f1_weighted = f1_score(y, p, average="weighted")
 
         acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
         acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
@@ -510,6 +530,8 @@ class Trainer:
                 "epoch": epoch,
                 "loss": loss.item(),
                 "acc": perc,
+                "f1_macro": f1_macro,
+                "f1_weighted": f1_weighted,
                 "GAcc": gacc,
                 "acc_C1": acc_c1,
                 "acc_C2": acc_c2,
@@ -535,7 +557,7 @@ class Trainer:
         y, p, pb = [], [], []
         with torch.no_grad():
             iter = tqdm(self.test_loader, total=len(self.test_loader))
-            for (data, target, (gt_syntax, gt_mistake), (p_syntax, p_mistake)) in iter:
+            for data, target, (gt_syntax, gt_mistake), (p_syntax, p_mistake) in iter:
                 p_syntax = p_syntax.to(device)
                 p_mistake = p_mistake.to(device)
                 a_distrs, b_distrs, output = self.network(data)
@@ -552,7 +574,9 @@ class Trainer:
                 p.extend(t_p.tolist())
                 pb.extend(t_pb.tolist())
                 y.extend(target.tolist())
-                test_loss = self.loss(output, target, p_syntax, p_mistake, a_distrs, b_distrs)
+                test_loss = self.loss(
+                    output, target, p_syntax, p_mistake, a_distrs, b_distrs
+                )
                 pred = t_p
                 correct += pred.eq(target.view_as(pred)).sum().item()
                 perc = 100.0 * correct / num_items
@@ -563,10 +587,13 @@ class Trainer:
                 g1, g2, y, c1, pc1, c2, pc2, p
             )
             correct_concepts = sum(
-                (a == b) and (c == d)
-                for a, b, c, d in zip(g1, c1, g2, c2)
+                (a == b) and (c == d) for a, b, c, d in zip(g1, c1, g2, c2)
             )
             gacc = 100.0 * correct_concepts / len(g1)
+
+            f1_macro = f1_score(y, p, average="macro")
+
+            f1_weighted = f1_score(y, p, average="weighted")
 
             acc_c1 = 100.0 * sum(a == b for a, b in zip(g1, c1)) / len(g1)
             acc_c2 = 100.0 * sum(a == b for a, b in zip(g2, c2)) / len(g2)
@@ -575,6 +602,8 @@ class Trainer:
                     "epoch": epoch,
                     "loss": test_loss.item(),
                     "acc": perc,
+                    "f1_macro": f1_macro,
+                    "f1_weighted": f1_weighted,
                     "GAcc": gacc,
                     "acc_C1": acc_c1,
                     "acc_C2": acc_c2,
@@ -634,14 +663,21 @@ if __name__ == "__main__":
     data_dir = os.path.abspath(os.path.join(base_dir, "../..", DATA_MNIST_FASHION_PATH))
     result_dir = os.path.join(base_dir, DATA_RESULT_PATH)
     print("PATH data -> ", data_dir)
-    train_loader, validation_loader, test_loader = mnist_fashion_loader(
-        result_dir, batch_size_train, batch_size_test
-    )
+    # train_loader, validation_loader, test_loader = mnist_fashion_loader(
+    #     result_dir, batch_size_train, batch_size_test
+    # )
     # Create trainer and train
-    trainer = Trainer(
-        result_dir, train_loader, validation_loader, test_loader, learning_rate, loss_fn, k, provenance
-    )
+    # trainer = Trainer(
+    #     result_dir,
+    #     train_loader,
+    #     validation_loader,
+    #     test_loader,
+    #     learning_rate,
+    #     loss_fn,
+    #     k,
+    #     provenance,
+    # )
     # trainer.train(n_epochs)
     main_graph("train", DATA_RESULT_PATH)
-    main_graph("test", DATA_RESULT_PATH)
+    # main_graph("test", DATA_RESULT_PATH)
     # main_distribution(train_loader, test_loader)
